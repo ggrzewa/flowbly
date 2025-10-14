@@ -1,0 +1,2784 @@
+https://docs.dataforseo.com/v3/dataforseo_labs/google/related_keywords/live/?bash
+
+🔹 Related Keywords - 0.010900$
+📄 dataforseo_labs_google_related_keywords_live_request_info.py
+
+📄 ..._response_info.py, ..._result_info.py
+
+➡️ Do wyświetlania powiązanych zapytań jak „ludzie też pytają / szukają”
+
+
+# DataForSEO Related Keywords API - Szybka Dokumentacja
+
+## PODSTAWOWE INFO
+- Endpoint: /v3/dataforseo_labs/google/related_keywords/live
+- Method: POST (Live - instant results)
+- Format: JSON (UTF-8)
+- Limit: 2000 calls/min, max 30 simultaneous
+- Max results: 4680 keywords (depth 4)
+- Źródło: "searches related to" SERP element
+
+---
+
+## ALGORYTM WYSZUKIWANIA
+- **Metoda**: Depth-first search
+- **Bazuje na**: "searches related to" z SERP
+- **Przykład**: "keyword research" → "free keyword research", "keyword research tools", etc.
+
+---
+
+## POLA ŻĄDANIA (POST REQUEST)
+
+| Pole | Typ | Wymagane | Opis |
+|------|-----|----------|------|
+| keyword | string | TAK | Główne słowo kluczowe (UTF-8, lowercase) |
+| location_name | string | TAK* | Pełna nazwa lokalizacji |
+| location_code | integer | TAK* | Kod lokalizacji |
+| language_name | string | TAK* | Pełna nazwa języka |
+| language_code | string | TAK* | Kod języka |
+| depth | integer | NIE | Głębokość wyszukiwania (0-4, default: 1) |
+| include_seed_keyword | boolean | NIE | Dołączyć dane seed keyword (default: false) |
+| include_serp_info | boolean | NIE | Dołączyć dane SERP (default: false) |
+| include_clickstream_data | boolean | NIE | Dołączyć clickstream (default: false, 2x koszt) |
+| ignore_synonyms | boolean | NIE | Ignorować synonimy (default: false) |
+| replace_with_core_keyword | boolean | NIE | Zwracać dane dla core keyword (default: false) |
+| filters | array | NIE | Filtry wyników (max 8) |
+| order_by | array | NIE | Sortowanie (max 3 reguły) |
+| limit | integer | NIE | Max wyników (default: 100, max: 1000) |
+| offset | integer | NIE | Offset w wynikach (default: 0) |
+| tag | string | NIE | Identyfikator zadania (max 255 znaków) |
+
+*wymagane po jednym z pary: location_name/location_code, language_name/language_code
+
+---
+
+## POZIOMY GŁĘBOKOŚCI (DEPTH)
+
+| Level | Max Keywords | Opis |
+|-------|--------------|------|
+| 0 | 1 | Tylko seed keyword |
+| 1 | 8 | Bezpośrednio powiązane |
+| 2 | 72 | Drugi poziom powiązań |
+| 3 | 584 | Trzeci poziom powiązań |
+| 4 | 4680 | Maksymalna głębokość |
+
+---
+
+## GŁÓWNA STRUKTURA ODPOWIEDZI
+
+```
+response
+├── version (string)
+├── status_code (integer)
+├── status_message (string)
+├── time (string)  
+├── cost (float)
+├── tasks_count (integer)
+├── tasks_error (integer)
+└── tasks (array)
+    └── [task_object]
+```
+
+---
+
+## OBIEKT ZADANIA (tasks[])
+
+| Pole | Typ | Opis |
+|------|-----|------|
+| id | string | UUID zadania |
+| status_code | integer | Status kod |
+| status_message | string | Wiadomość statusu |
+| time | string | Czas wykonania |
+| cost | float | Koszt w USD |
+| result_count | integer | Liczba wyników |
+| path | array | Ścieżka URL |
+| data | object | Parametry z POST request |
+| result | array | Tablica wyników |
+
+---
+
+## STRUKTURA WYNIKU (result[])
+
+### PODSTAWOWE POLA WYNIKU
+| Pole | Typ | Opis |
+|------|-----|------|
+| se_type | string | "google" |
+| seed_keyword | string | Główne słowo kluczowe |
+| seed_keyword_data | array/null | Dane seed keyword (jeśli include_seed_keyword: true) |
+| location_code | integer | Kod lokalizacji |
+| language_code | string | Kod języka |
+| total_count | integer | Łączna liczba wyników w DB |
+| items_count | integer | Liczba zwróconych wyników |
+| items | array | Główne dane wyników |
+
+---
+
+## ELEMENTY W ITEMS[]
+
+### STRUKTURA ITEM
+```
+item
+├── se_type (string) - "google"
+├── keyword_data (object) - pełne dane słowa kluczowego
+├── depth (integer) - poziom głębokości (0-4)
+└── related_keywords (array) - lista powiązanych słów
+```
+
+---
+
+## KEYWORD_DATA (Pełna struktura jak w Keyword Overview)
+
+### KEYWORD_INFO
+```
+keyword_info
+├── se_type (string)
+├── last_updated_time (string)
+├── competition (float) - 0-1
+├── competition_level (string) - LOW/MEDIUM/HIGH
+├── cpc (float) - koszt za kliknięcie USD
+├── search_volume (integer) - wolumen miesięczny
+├── low_top_of_page_bid (float)
+├── high_top_of_page_bid (float)
+├── categories (array) - kategorie Google Ads
+├── monthly_searches (array) - dane historyczne 12 miesięcy
+│   ├── year (integer)
+│   ├── month (integer)
+│   └── search_volume (integer)
+└── search_volume_trend (object)
+    ├── monthly (integer) - % zmiana miesięczna
+    ├── quarterly (integer) - % zmiana kwartalna
+    └── yearly (integer) - % zmiana roczna
+```
+
+### KEYWORD_PROPERTIES
+```
+keyword_properties
+├── se_type (string)
+├── core_keyword (string/null) - główne słowo w grupie
+├── synonym_clustering_algorithm (string) - algorytm grupowania
+├── keyword_difficulty (integer) - trudność SEO (0-100)
+├── detected_language (string) - wykryty język
+└── is_another_language (boolean) - czy inne języki
+```
+
+### CLICKSTREAM_KEYWORD_INFO (jeśli include_clickstream_data: true)
+```
+clickstream_keyword_info
+├── search_volume (integer)
+├── last_updated_time (string)
+├── gender_distribution (object)
+│   ├── female (integer) - % kobiet
+│   └── male (integer) - % mężczyzn
+├── age_distribution (object)
+│   ├── 18-24 (integer)
+│   ├── 25-34 (integer)
+│   ├── 35-44 (integer)
+│   ├── 45-54 (integer)
+│   └── 55-64 (integer)
+└── monthly_searches (array)
+    ├── year (integer)
+    ├── month (integer)
+    └── search_volume (integer)
+```
+
+### SERP_INFO (jeśli include_serp_info: true)
+```
+serp_info
+├── se_type (string)
+├── check_url (string) - URL do sprawdzenia SERP
+├── serp_item_types (array) - typy elementów SERP
+├── se_results_count (integer) - liczba wyników
+├── last_updated_time (string)
+└── previous_updated_time (string)
+```
+
+### AVG_BACKLINKS_INFO
+```
+avg_backlinks_info
+├── se_type (string)
+├── backlinks (float) - średnia liczba backlinków
+├── dofollow (float) - średnia liczba dofollow
+├── referring_pages (float) - strony odnoszące
+├── referring_domains (float) - domeny odnoszące
+├── referring_main_domains (float) - główne domeny
+├── rank (float) - średni ranking
+├── main_domain_rank (float) - ranking głównej domeny
+└── last_updated_time (string)
+```
+
+### SEARCH_INTENT_INFO
+```
+search_intent_info
+├── se_type (string)
+├── main_intent (string) - główna intencja
+├── foreign_intent (array/null) - dodatkowe intencje
+└── last_updated_time (string)
+```
+
+### NORMALIZED DATA
+```
+keyword_info_normalized_with_bing
+├── last_updated_time (string)
+├── search_volume (integer) - znormalizowany z Bing
+├── is_normalized (boolean)
+└── monthly_searches (array)
+
+keyword_info_normalized_with_clickstream  
+├── last_updated_time (string)
+├── search_volume (integer) - znormalizowany z clickstream
+├── is_normalized (boolean)
+└── monthly_searches (array)
+```
+
+---
+
+## FILTRY I SORTOWANIE
+
+### Przykłady filtrów:
+```javascript
+// Search volume > 0
+["keyword_data.keyword_info.search_volume", ">", 0]
+
+// Niska konkurencja + search volume 0-1000
+[["keyword_info.search_volume", "in", [0,1000]], 
+ "and", 
+ ["keyword_data.keyword_info.competition_level", "=", "LOW"]]
+
+// Złożone filtry
+[["keyword_data.keyword_info.search_volume", ">", 100],
+ "and",
+ [["keyword_data.keyword_info.cpc", "<", 0.5],
+  "or",
+  ["keyword_info.high_top_of_page_bid", "<=", 0.5]]]
+```
+
+### Przykłady sortowania:
+```javascript
+// Default: search volume desc
+["keyword_data.keyword_info.search_volume,desc"]
+
+// Multiple sort rules  
+["keyword_data.keyword_info.search_volume,desc",
+ "keyword_data.keyword_info.cpc,desc"]
+```
+
+---
+
+
+
+## ZASTOSOWANIA BIZNESOWE
+
+### Keyword Research:
+- **Ekspansja listy słów kluczowych**
+- **Odkrywanie long-tail keywords**
+- **Identyfikacja nowych tematów**
+- **Analiza semantic clusters**
+
+### Content Strategy:
+- **Topic clusters** planning
+- **Internal linking** opportunities  
+- **Content gap** analysis
+- **User journey** mapping
+
+### SEO Strategy:
+- **Keyword difficulty** analysis na skalę
+- **Competition assessment** dla grup słów
+- **Search intent** distribution
+- **SERP features** opportunities
+
+### PPC Strategy:
+- **Keyword expansion** dla kampanii
+- **Negative keywords** identification
+- **Bid strategy** optimization
+- **Ad group** structuring
+
+---
+
+## WAŻNE NOTATKI
+
+**DEPTH STRATEGY:**
+- **Depth 1**: Quick keyword expansion (8 keywords)
+- **Depth 2**: Comprehensive research (72 keywords)  
+- **Depth 3**: Deep topic exploration (584 keywords)
+- **Depth 4**: Maximum coverage (4680 keywords)
+
+**PERFORMANCE TIPS:**
+- Użyj **filters** aby ograniczyć wyniki do relevantnych
+- **limit/offset** dla paginacji dużych wyników
+- **order_by** dla priorytetyzacji najważniejszych słów
+- **ignore_synonyms** dla core keywords only
+
+**COST OPTIMIZATION:**
+- **include_clickstream_data: true** = 2x koszt
+- Używaj tylko gdy potrzebujesz demografii
+- **include_serp_info** zwiększa response size
+- **depth 4** może generować ogromne koszty
+
+**QUALITY CONTROL:**
+- **replace_with_core_keyword** dla consistent data
+- **ignore_synonyms** eliminuje duplikaty
+- Sprawdzaj **detected_language** vs **is_another_language**
+- Analizuj **keyword_difficulty** dla feasibility
+
+**USE CASES:**
+- **Seed keyword expansion** (depth 1-2)
+- **Competitive analysis** (include_serp_info)
+- **Demographic research** (include_clickstream_data)  
+- **Content planning** (search intent analysis)
+- **Link building** (avg_backlinks_info analysis)
+
+
+
+
+
+import os
+import logging
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
+from dotenv import load_dotenv
+from dataforseo_client import configuration as dfs_config, api_client as dfs_api_provider
+from dataforseo_client.api.dataforseo_labs_api import DataforseoLabsApi
+from dataforseo_client.models.dataforseo_labs_google_related_keywords_live_request_info import (
+    DataforseoLabsGoogleRelatedKeywordsLiveRequestInfo,
+)
+
+load_dotenv()
+
+router = APIRouter()
+
+# Konfiguracja logowania
+logger = logging.getLogger("dfs_labs")
+logger.setLevel(logging.DEBUG)
+handler = logging.StreamHandler()
+formatter = logging.Formatter("%(asctime)s | %(levelname)s | %(message)s")
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+
+# Dane logowania
+DFS_LOGIN = os.getenv("DATAFORSEO_LOGIN")
+DFS_PASSWORD = os.getenv("DATAFORSEO_PASSWORD")
+
+# Model danych wejściowych
+class RelatedKeywordsInput(BaseModel):
+    keyword: str
+    location_code: int = 2616  # domyślnie Polska
+    language_code: str = "pl"
+
+@router.post("/labs/related-keywords")
+async def get_related_keywords(data: RelatedKeywordsInput):
+    if not DFS_LOGIN or not DFS_PASSWORD:
+        logger.error("❌ Brak danych logowania do API")
+        raise HTTPException(status_code=500, detail="Brak danych logowania do API DataForSEO.")
+
+    logger.info(f"➡️ Otrzymano zapytanie dla słowa kluczowego: {data.keyword}")
+
+    config = dfs_config.Configuration(username=DFS_LOGIN, password=DFS_PASSWORD)
+
+    request_data = [
+        DataforseoLabsGoogleRelatedKeywordsLiveRequestInfo(
+            keyword=data.keyword,
+            location_code=data.location_code,
+            language_code=data.language_code
+        )
+    ]
+
+    try:
+        with dfs_api_provider.ApiClient(config) as api_client:
+            api_instance = DataforseoLabsApi(api_client)
+
+            logger.debug("➡️ Wysyłanie żądania do DataForSEO Labs API (Related Keywords)...")
+            api_response = api_instance.google_related_keywords_live(request_data)
+
+            task = api_response.tasks[0]
+            if not task.result:
+                logger.warning("⚠️ Brak wyników dla tego słowa kluczowego.")
+                raise HTTPException(status_code=404, detail="Brak danych dla podanego słowa kluczowego.")
+
+            logger.info("✅ Pobrano dane z DFS Labs API (Related Keywords).")
+            return task.result[0].to_dict()
+
+    except Exception as e:
+        logger.exception("❌ Błąd podczas pobierania danych z DataForSEO Labs API")
+        raise HTTPException(status_code=500, detail=f"Błąd serwera:\n{str(e)}")
+
+
+
+
+*****
+*****
+
+{
+  "se_type": "google",
+  "seed_keyword": "soczewki",
+  "location_code": 2616,
+  "language_code": "pl",
+  "total_count": 9,
+  "items_count": 9,
+  "items": [
+    {
+      "se_type": "google",
+      "keyword_data": {
+        "se_type": "google",
+        "keyword": "soczewki",
+        "location_code": 2616,
+        "language_code": "pl",
+        "keyword_info": {
+          "se_type": "google",
+          "last_updated_time": "2025-05-12 11:37:13 +00:00",
+          "competition": 1,
+          "competition_level": "HIGH",
+          "cpc": 1.73,
+          "search_volume": 18100,
+          "low_top_of_page_bid": 0.43,
+          "high_top_of_page_bid": 1.82,
+          "categories": [
+            10011,
+            10085,
+            10460,
+            12867,
+            12868
+          ],
+          "monthly_searches": [
+            {
+              "year": 2025,
+              "month": 4,
+              "search_volume": 18100
+            },
+            {
+              "year": 2025,
+              "month": 3,
+              "search_volume": 18100
+            },
+            {
+              "year": 2025,
+              "month": 2,
+              "search_volume": 14800
+            },
+            {
+              "year": 2025,
+              "month": 1,
+              "search_volume": 18100
+            },
+            {
+              "year": 2024,
+              "month": 12,
+              "search_volume": 14800
+            },
+            {
+              "year": 2024,
+              "month": 11,
+              "search_volume": 18100
+            },
+            {
+              "year": 2024,
+              "month": 10,
+              "search_volume": 22200
+            },
+            {
+              "year": 2024,
+              "month": 9,
+              "search_volume": 18100
+            },
+            {
+              "year": 2024,
+              "month": 8,
+              "search_volume": 18100
+            },
+            {
+              "year": 2024,
+              "month": 7,
+              "search_volume": 22200
+            },
+            {
+              "year": 2024,
+              "month": 6,
+              "search_volume": 22200
+            },
+            {
+              "year": 2024,
+              "month": 5,
+              "search_volume": 22200
+            }
+          ],
+          "search_volume_trend": {
+            "monthly": 0,
+            "quarterly": 22,
+            "yearly": -18
+          }
+        },
+        "keyword_properties": {
+          "se_type": "google",
+          "keyword_difficulty": 42,
+          "detected_language": "pl",
+          "is_another_language": false,
+          "core_keyword": null,
+          "synonym_clustering_algorithm": null
+        },
+        "serp_info": {
+          "se_type": "google",
+          "check_url": "https://www.google.pl/search?q=soczewki&num=100&hl=pl&gl=PL&gws_rd=cr&ie=UTF-8&oe=UTF-8&glp=1&uule=w+CAIQIFISCbsLZKRkmQBHEepVzEnKc3UJ",
+          "serp_item_types": [
+            "organic",
+            "people_also_ask",
+            "compare_sites",
+            "related_searches"
+          ],
+          "se_results_count": 11200000,
+          "last_updated_time": "2025-04-30 02:59:39 +00:00",
+          "previous_updated_time": "2025-03-14 09:37:30 +00:00"
+        },
+        "avg_backlinks_info": {
+          "se_type": "google",
+          "backlinks": 1648.6,
+          "dofollow": 1601.5,
+          "referring_pages": 1643.6,
+          "referring_domains": 31.7,
+          "referring_main_domains": 29.9,
+          "rank": 175.6,
+          "main_domain_rank": 275.3,
+          "last_updated_time": "2025-04-29 23:59:39 +00:00"
+        },
+        "search_intent_info": {
+          "se_type": "google",
+          "main_intent": "transactional",
+          "last_updated_time": "2023-03-01 19:08:15 +00:00",
+          "foreign_intent": null
+        },
+        "clickstream_keyword_info": null
+      },
+      "depth": 0,
+      "related_keywords": [
+        "soczewki kontaktowe 30-dniowe",
+        "soczewki kontaktowe 1-dniowe",
+        "ile kosztują soczewki kontaktowe roczne",
+        "soczewki miesięczne",
+        "vision express soczewki",
+        "kodano soczewki",
+        "tanie soczewki",
+        "ile kosztują soczewki na stałe"
+      ]
+    },
+    {
+      "se_type": "google",
+      "keyword_data": {
+        "se_type": "google",
+        "keyword": "soczewki miesięczne",
+        "location_code": 2616,
+        "language_code": "pl",
+        "keyword_info": {
+          "se_type": "google",
+          "last_updated_time": "2025-05-10 07:21:53 +00:00",
+          "competition": 1,
+          "competition_level": "HIGH",
+          "cpc": 1.19,
+          "search_volume": 6600,
+          "low_top_of_page_bid": 0.31,
+          "high_top_of_page_bid": 1.05,
+          "categories": [
+            10011,
+            10085,
+            10091,
+            10460,
+            10515,
+            12867
+          ],
+          "monthly_searches": [
+            {
+              "year": 2025,
+              "month": 4,
+              "search_volume": 5400
+            },
+            {
+              "year": 2025,
+              "month": 3,
+              "search_volume": 6600
+            },
+            {
+              "year": 2025,
+              "month": 2,
+              "search_volume": 5400
+            },
+            {
+              "year": 2025,
+              "month": 1,
+              "search_volume": 5400
+            },
+            {
+              "year": 2024,
+              "month": 12,
+              "search_volume": 4400
+            },
+            {
+              "year": 2024,
+              "month": 11,
+              "search_volume": 5400
+            },
+            {
+              "year": 2024,
+              "month": 10,
+              "search_volume": 6600
+            },
+            {
+              "year": 2024,
+              "month": 9,
+              "search_volume": 6600
+            },
+            {
+              "year": 2024,
+              "month": 8,
+              "search_volume": 8100
+            },
+            {
+              "year": 2024,
+              "month": 7,
+              "search_volume": 8100
+            },
+            {
+              "year": 2024,
+              "month": 6,
+              "search_volume": 6600
+            },
+            {
+              "year": 2024,
+              "month": 5,
+              "search_volume": 6600
+            }
+          ],
+          "search_volume_trend": {
+            "monthly": -18,
+            "quarterly": 0,
+            "yearly": -18
+          }
+        },
+        "keyword_properties": {
+          "se_type": "google",
+          "synonym_clustering_algorithm": "text_processing",
+          "keyword_difficulty": 2,
+          "detected_language": "pl",
+          "is_another_language": false,
+          "core_keyword": null
+        },
+        "serp_info": {
+          "se_type": "google",
+          "check_url": "https://www.google.pl/search?q=soczewki%20miesi%C4%99czne&num=100&hl=pl&gl=PL&gws_rd=cr&ie=UTF-8&oe=UTF-8&glp=1&uule=w+CAIQIFISCbsLZKRkmQBHEepVzEnKc3UJ",
+          "serp_item_types": [
+            "organic",
+            "people_also_ask",
+            "popular_products",
+            "compare_sites",
+            "related_searches"
+          ],
+          "se_results_count": 86,
+          "last_updated_time": "2025-05-01 02:34:40 +00:00",
+          "previous_updated_time": "2025-03-14 17:14:54 +00:00"
+        },
+        "avg_backlinks_info": {
+          "se_type": "google",
+          "backlinks": 14.8,
+          "dofollow": 13.5,
+          "referring_pages": 14.8,
+          "referring_domains": 9.1,
+          "referring_main_domains": 8.6,
+          "rank": 83.2,
+          "main_domain_rank": 336.1,
+          "last_updated_time": "2025-04-30 23:34:41 +00:00"
+        },
+        "search_intent_info": {
+          "se_type": "google",
+          "main_intent": "commercial",
+          "foreign_intent": [
+            "navigational"
+          ],
+          "last_updated_time": "2023-03-01 19:08:16 +00:00"
+        },
+        "clickstream_keyword_info": null
+      },
+      "depth": 1,
+      "related_keywords": [
+        "soczewki miesięczne bez zdejmowania",
+        "najlepsze soczewki miesięczne",
+        "biofinity soczewki miesięczne",
+        "soczewki miesięczne air optix",
+        "soczewki kontaktowe miesięczne astygmatyzm",
+        "soczewki miesięczne cena",
+        "rossmann soczewki miesięczne",
+        "soczewki miesięczne 6 sztuk"
+      ]
+    },
+    {
+      "se_type": "google",
+      "keyword_data": {
+        "se_type": "google",
+        "keyword": "kodano soczewki",
+        "location_code": 2616,
+        "language_code": "pl",
+        "keyword_info": {
+          "se_type": "google",
+          "last_updated_time": "2025-05-12 11:11:32 +00:00",
+          "competition": 1,
+          "competition_level": "HIGH",
+          "cpc": 1.15,
+          "search_volume": 1900,
+          "low_top_of_page_bid": 0.41,
+          "high_top_of_page_bid": 1.47,
+          "categories": [
+            10011,
+            10085,
+            10460,
+            12867,
+            12868
+          ],
+          "monthly_searches": [
+            {
+              "year": 2025,
+              "month": 4,
+              "search_volume": 1600
+            },
+            {
+              "year": 2025,
+              "month": 3,
+              "search_volume": 1600
+            },
+            {
+              "year": 2025,
+              "month": 2,
+              "search_volume": 1600
+            },
+            {
+              "year": 2025,
+              "month": 1,
+              "search_volume": 1600
+            },
+            {
+              "year": 2024,
+              "month": 12,
+              "search_volume": 1600
+            },
+            {
+              "year": 2024,
+              "month": 11,
+              "search_volume": 1600
+            },
+            {
+              "year": 2024,
+              "month": 10,
+              "search_volume": 1600
+            },
+            {
+              "year": 2024,
+              "month": 9,
+              "search_volume": 1600
+            },
+            {
+              "year": 2024,
+              "month": 8,
+              "search_volume": 1900
+            },
+            {
+              "year": 2024,
+              "month": 7,
+              "search_volume": 1900
+            },
+            {
+              "year": 2024,
+              "month": 6,
+              "search_volume": 1900
+            },
+            {
+              "year": 2024,
+              "month": 5,
+              "search_volume": 1900
+            }
+          ],
+          "search_volume_trend": {
+            "monthly": 0,
+            "quarterly": 0,
+            "yearly": -16
+          }
+        },
+        "keyword_properties": {
+          "se_type": "google",
+          "synonym_clustering_algorithm": "text_processing",
+          "keyword_difficulty": 0,
+          "detected_language": "pl",
+          "is_another_language": false,
+          "core_keyword": null
+        },
+        "serp_info": {
+          "se_type": "google",
+          "check_url": "https://www.google.pl/search?q=kodano%20soczewki&num=100&hl=pl&gl=PL&gws_rd=cr&ie=UTF-8&oe=UTF-8&glp=1&uule=w+CAIQIFISCbsLZKRkmQBHEepVzEnKc3UJ",
+          "serp_item_types": [
+            "organic",
+            "popular_products",
+            "images",
+            "related_searches"
+          ],
+          "se_results_count": 90,
+          "last_updated_time": "2025-05-19 20:52:50 +00:00",
+          "previous_updated_time": "2025-04-05 01:16:17 +00:00"
+        },
+        "search_intent_info": {
+          "se_type": "google",
+          "main_intent": "transactional",
+          "last_updated_time": "2023-03-06 19:10:46 +00:00",
+          "foreign_intent": null
+        },
+        "clickstream_keyword_info": null
+      },
+      "depth": 1,
+      "related_keywords": [
+        "kodano soczewki miesięczne",
+        "aquaview soczewki",
+        "soczewki kontaktowe",
+        "kodano soczewki jednodniowe",
+        "biofinity soczewki",
+        "szkla.com soczewki",
+        "kodano kod rabatowy",
+        "alensa soczewki"
+      ]
+    },
+    {
+      "se_type": "google",
+      "keyword_data": {
+        "se_type": "google",
+        "keyword": "vision express soczewki",
+        "location_code": 2616,
+        "language_code": "pl",
+        "keyword_info": {
+          "se_type": "google",
+          "last_updated_time": "2025-05-13 09:39:59 +00:00",
+          "competition": 1,
+          "competition_level": "HIGH",
+          "cpc": 0.52,
+          "search_volume": 1600,
+          "low_top_of_page_bid": 0.31,
+          "high_top_of_page_bid": 1.77,
+          "categories": [
+            10011,
+            10085,
+            10460,
+            11670
+          ],
+          "monthly_searches": [
+            {
+              "year": 2025,
+              "month": 4,
+              "search_volume": 1600
+            },
+            {
+              "year": 2025,
+              "month": 3,
+              "search_volume": 1600
+            },
+            {
+              "year": 2025,
+              "month": 2,
+              "search_volume": 1600
+            },
+            {
+              "year": 2025,
+              "month": 1,
+              "search_volume": 1600
+            },
+            {
+              "year": 2024,
+              "month": 12,
+              "search_volume": 1300
+            },
+            {
+              "year": 2024,
+              "month": 11,
+              "search_volume": 1600
+            },
+            {
+              "year": 2024,
+              "month": 10,
+              "search_volume": 1600
+            },
+            {
+              "year": 2024,
+              "month": 9,
+              "search_volume": 1600
+            },
+            {
+              "year": 2024,
+              "month": 8,
+              "search_volume": 1600
+            },
+            {
+              "year": 2024,
+              "month": 7,
+              "search_volume": 1900
+            },
+            {
+              "year": 2024,
+              "month": 6,
+              "search_volume": 1600
+            },
+            {
+              "year": 2024,
+              "month": 5,
+              "search_volume": 1600
+            }
+          ],
+          "search_volume_trend": {
+            "monthly": 0,
+            "quarterly": 0,
+            "yearly": 0
+          }
+        },
+        "keyword_properties": {
+          "se_type": "google",
+          "synonym_clustering_algorithm": "text_processing",
+          "keyword_difficulty": 0,
+          "detected_language": "pl",
+          "is_another_language": false,
+          "core_keyword": null
+        },
+        "serp_info": {
+          "se_type": "google",
+          "check_url": "https://www.google.pl/search?q=vision%20express%20soczewki&num=100&hl=pl&gl=PL&gws_rd=cr&ie=UTF-8&oe=UTF-8&glp=1&uule=w+CAIQIFISCbsLZKRkmQBHEepVzEnKc3UJ",
+          "serp_item_types": [
+            "organic",
+            "people_also_ask",
+            "related_searches"
+          ],
+          "last_updated_time": "2025-05-03 05:57:04 +00:00",
+          "previous_updated_time": "2025-03-16 08:47:17 +00:00",
+          "se_results_count": null
+        },
+        "avg_backlinks_info": {
+          "se_type": "google",
+          "backlinks": 266.1,
+          "dofollow": 193.5,
+          "referring_pages": 259.4,
+          "referring_domains": 32.9,
+          "referring_main_domains": 30.8,
+          "rank": 78.2,
+          "main_domain_rank": 327,
+          "last_updated_time": "2025-05-03 02:57:05 +00:00"
+        },
+        "search_intent_info": {
+          "se_type": "google",
+          "main_intent": "commercial",
+          "foreign_intent": [
+            "transactional"
+          ],
+          "last_updated_time": "2023-03-01 20:09:23 +00:00"
+        },
+        "clickstream_keyword_info": null
+      },
+      "depth": 1,
+      "related_keywords": [
+        "vision express",
+        "vision express-okulary progresywne cennik",
+        "ile kosztują soczewki na stałe",
+        "badanie wzroku - vision express",
+        "vision express soczewki okularowe",
+        "soczewki kontaktowe",
+        "darmowe badanie wzroku - vision express",
+        "vision express-okulary cennik"
+      ]
+    },
+    {
+      "se_type": "google",
+      "keyword_data": {
+        "se_type": "google",
+        "keyword": "soczewki kontaktowe 30-dniowe",
+        "location_code": 2616,
+        "language_code": "pl",
+        "keyword_info": {
+          "se_type": "google",
+          "last_updated_time": "2025-05-11 04:55:16 +00:00",
+          "competition": 1,
+          "competition_level": "HIGH",
+          "cpc": 1.16,
+          "search_volume": 1000,
+          "low_top_of_page_bid": 0.3,
+          "high_top_of_page_bid": 0.93,
+          "categories": [
+            10011,
+            10085,
+            10460,
+            12867
+          ],
+          "monthly_searches": [
+            {
+              "year": 2025,
+              "month": 4,
+              "search_volume": 880
+            },
+            {
+              "year": 2025,
+              "month": 3,
+              "search_volume": 1000
+            },
+            {
+              "year": 2025,
+              "month": 2,
+              "search_volume": 880
+            },
+            {
+              "year": 2025,
+              "month": 1,
+              "search_volume": 1000
+            },
+            {
+              "year": 2024,
+              "month": 12,
+              "search_volume": 880
+            },
+            {
+              "year": 2024,
+              "month": 11,
+              "search_volume": 1000
+            },
+            {
+              "year": 2024,
+              "month": 10,
+              "search_volume": 880
+            },
+            {
+              "year": 2024,
+              "month": 9,
+              "search_volume": 880
+            },
+            {
+              "year": 2024,
+              "month": 8,
+              "search_volume": 880
+            },
+            {
+              "year": 2024,
+              "month": 7,
+              "search_volume": 1000
+            },
+            {
+              "year": 2024,
+              "month": 6,
+              "search_volume": 880
+            },
+            {
+              "year": 2024,
+              "month": 5,
+              "search_volume": 1000
+            }
+          ],
+          "search_volume_trend": {
+            "monthly": -12,
+            "quarterly": 0,
+            "yearly": -12
+          }
+        },
+        "keyword_properties": {
+          "se_type": "google",
+          "synonym_clustering_algorithm": "text_processing",
+          "keyword_difficulty": 0,
+          "detected_language": "pl",
+          "is_another_language": false,
+          "core_keyword": null
+        },
+        "serp_info": {
+          "se_type": "google",
+          "check_url": "https://www.google.pl/search?q=soczewki%20kontaktowe%2030-dniowe&num=100&hl=pl&gl=PL&gws_rd=cr&ie=UTF-8&oe=UTF-8&glp=1&uule=w+CAIQIFISCbsLZKRkmQBHEepVzEnKc3UJ",
+          "serp_item_types": [
+            "shopping",
+            "organic",
+            "people_also_ask",
+            "popular_products",
+            "compare_sites",
+            "related_searches"
+          ],
+          "se_results_count": 52,
+          "last_updated_time": "2025-04-10 13:27:31 +00:00",
+          "previous_updated_time": "2025-02-24 04:23:16 +00:00"
+        },
+        "avg_backlinks_info": {
+          "se_type": "google",
+          "backlinks": 8.1,
+          "dofollow": 7.8,
+          "referring_pages": 8.1,
+          "referring_domains": 6.5,
+          "referring_main_domains": 6.1,
+          "rank": 64,
+          "main_domain_rank": 328.3,
+          "last_updated_time": "2025-04-10 10:27:32 +00:00"
+        },
+        "search_intent_info": {
+          "se_type": "google",
+          "main_intent": "commercial",
+          "foreign_intent": [
+            "transactional"
+          ],
+          "last_updated_time": "2023-03-01 19:08:16 +00:00"
+        },
+        "clickstream_keyword_info": null
+      },
+      "depth": 1,
+      "related_keywords": [
+        "soczewki 30 dniowe bez zdejmowania",
+        "soczewki kontaktowe 30-dniowe cena",
+        "soczewki kontaktowe jednodniowe",
+        "soczewki kontaktowe 30-dniowe allegro",
+        "soczewki kontaktowe miesięczne astygmatyzm",
+        "soczewki kontaktowe 30-dniowe astygmatyzm",
+        "soczewki kontaktowe astygmatyzm",
+        "najlepsze soczewki miesięczne"
+      ]
+    },
+    {
+      "se_type": "google",
+      "keyword_data": {
+        "se_type": "google",
+        "keyword": "soczewki kontaktowe 1-dniowe",
+        "location_code": 2616,
+        "language_code": "pl",
+        "keyword_info": {
+          "se_type": "google",
+          "last_updated_time": "2025-05-14 18:12:50 +00:00",
+          "competition": 1,
+          "competition_level": "HIGH",
+          "cpc": 1.25,
+          "search_volume": 480,
+          "low_top_of_page_bid": 0.31,
+          "high_top_of_page_bid": 0.94,
+          "categories": [
+            10011,
+            10085,
+            10460,
+            12867
+          ],
+          "monthly_searches": [
+            {
+              "year": 2025,
+              "month": 4,
+              "search_volume": 590
+            },
+            {
+              "year": 2025,
+              "month": 3,
+              "search_volume": 480
+            },
+            {
+              "year": 2025,
+              "month": 2,
+              "search_volume": 590
+            },
+            {
+              "year": 2025,
+              "month": 1,
+              "search_volume": 590
+            },
+            {
+              "year": 2024,
+              "month": 12,
+              "search_volume": 480
+            },
+            {
+              "year": 2024,
+              "month": 11,
+              "search_volume": 480
+            },
+            {
+              "year": 2024,
+              "month": 10,
+              "search_volume": 390
+            },
+            {
+              "year": 2024,
+              "month": 9,
+              "search_volume": 390
+            },
+            {
+              "year": 2024,
+              "month": 8,
+              "search_volume": 480
+            },
+            {
+              "year": 2024,
+              "month": 7,
+              "search_volume": 480
+            },
+            {
+              "year": 2024,
+              "month": 6,
+              "search_volume": 390
+            },
+            {
+              "year": 2024,
+              "month": 5,
+              "search_volume": 480
+            }
+          ],
+          "search_volume_trend": {
+            "monthly": 23,
+            "quarterly": 0,
+            "yearly": 127
+          }
+        },
+        "keyword_properties": {
+          "se_type": "google",
+          "keyword_difficulty": 0,
+          "detected_language": "pl",
+          "is_another_language": false,
+          "core_keyword": null,
+          "synonym_clustering_algorithm": null
+        },
+        "serp_info": {
+          "se_type": "google",
+          "check_url": "https://www.google.pl/search?q=soczewki%20kontaktowe%201-dniowe&num=100&hl=pl&gl=PL&gws_rd=cr&ie=UTF-8&oe=UTF-8&glp=1&uule=w+CAIQIFISCbsLZKRkmQBHEepVzEnKc3UJ",
+          "serp_item_types": [
+            "compare_sites",
+            "people_also_ask",
+            "organic",
+            "related_searches"
+          ],
+          "se_results_count": 64,
+          "last_updated_time": "2025-05-12 17:35:53 +00:00",
+          "previous_updated_time": "2025-03-19 23:18:41 +00:00"
+        },
+        "avg_backlinks_info": {
+          "se_type": "google",
+          "backlinks": 10.1,
+          "dofollow": 6.3,
+          "referring_pages": 10.1,
+          "referring_domains": 5.7,
+          "referring_main_domains": 5.4,
+          "rank": 70.8,
+          "main_domain_rank": 333.6,
+          "last_updated_time": "2025-05-12 14:35:55 +00:00"
+        },
+        "search_intent_info": {
+          "se_type": "google",
+          "main_intent": "commercial",
+          "foreign_intent": [
+            "transactional"
+          ],
+          "last_updated_time": "2024-02-09 01:42:59 +00:00"
+        },
+        "clickstream_keyword_info": null
+      },
+      "depth": 1,
+      "related_keywords": [
+        "soczewki kontaktowe, jednodniowe rossmann",
+        "soczewki kontaktowe jednodniowe astygmatyzm",
+        "soczewki jednodniowe 10 sztuk",
+        "soczewki kontaktowe jednodniowe acuvue oasys",
+        "najlepsze soczewki jednodniowe",
+        "ile kosztują soczewki jednodniowe",
+        "soczewki jednodniowe 90 sztuk",
+        "soczewki kontaktowe 1-dniowe ranking"
+      ]
+    },
+    {
+      "se_type": "google",
+      "keyword_data": {
+        "se_type": "google",
+        "keyword": "tanie soczewki",
+        "location_code": 2616,
+        "language_code": "pl",
+        "keyword_info": {
+          "se_type": "google",
+          "last_updated_time": "2025-05-12 13:26:05 +00:00",
+          "competition": 1,
+          "competition_level": "HIGH",
+          "cpc": 1.6,
+          "search_volume": 480,
+          "low_top_of_page_bid": 0.48,
+          "high_top_of_page_bid": 1.65,
+          "categories": [
+            10011,
+            10085,
+            10460,
+            12867
+          ],
+          "monthly_searches": [
+            {
+              "year": 2025,
+              "month": 4,
+              "search_volume": 390
+            },
+            {
+              "year": 2025,
+              "month": 3,
+              "search_volume": 390
+            },
+            {
+              "year": 2025,
+              "month": 2,
+              "search_volume": 320
+            },
+            {
+              "year": 2025,
+              "month": 1,
+              "search_volume": 390
+            },
+            {
+              "year": 2024,
+              "month": 12,
+              "search_volume": 320
+            },
+            {
+              "year": 2024,
+              "month": 11,
+              "search_volume": 390
+            },
+            {
+              "year": 2024,
+              "month": 10,
+              "search_volume": 390
+            },
+            {
+              "year": 2024,
+              "month": 9,
+              "search_volume": 390
+            },
+            {
+              "year": 2024,
+              "month": 8,
+              "search_volume": 480
+            },
+            {
+              "year": 2024,
+              "month": 7,
+              "search_volume": 590
+            },
+            {
+              "year": 2024,
+              "month": 6,
+              "search_volume": 590
+            },
+            {
+              "year": 2024,
+              "month": 5,
+              "search_volume": 590
+            }
+          ],
+          "search_volume_trend": {
+            "monthly": 0,
+            "quarterly": 22,
+            "yearly": -34
+          }
+        },
+        "keyword_properties": {
+          "se_type": "google",
+          "synonym_clustering_algorithm": "text_processing",
+          "keyword_difficulty": 0,
+          "detected_language": "pl",
+          "is_another_language": false,
+          "core_keyword": null
+        },
+        "serp_info": {
+          "se_type": "google",
+          "check_url": "https://www.google.pl/search?q=tanie%20soczewki&num=100&hl=pl&gl=PL&gws_rd=cr&ie=UTF-8&oe=UTF-8&glp=1&uule=w+CAIQIFISCbsLZKRkmQBHEepVzEnKc3UJ",
+          "serp_item_types": [
+            "organic",
+            "compare_sites",
+            "related_searches",
+            "knowledge_graph"
+          ],
+          "se_results_count": 74,
+          "last_updated_time": "2025-05-12 16:46:15 +00:00",
+          "previous_updated_time": "2025-03-19 07:42:48 +00:00"
+        },
+        "avg_backlinks_info": {
+          "se_type": "google",
+          "backlinks": 104.2,
+          "dofollow": 91.1,
+          "referring_pages": 101.2,
+          "referring_domains": 3.5,
+          "referring_main_domains": 3.4,
+          "rank": 39.5,
+          "main_domain_rank": 279.9,
+          "last_updated_time": "2025-05-12 13:46:25 +00:00"
+        },
+        "search_intent_info": {
+          "se_type": "google",
+          "main_intent": "transactional",
+          "last_updated_time": "2023-03-01 19:38:19 +00:00",
+          "foreign_intent": null
+        },
+        "clickstream_keyword_info": null
+      },
+      "depth": 1,
+      "related_keywords": [
+        "tanie soczewki miesięczne",
+        "tanie soczewki jednodniowe",
+        "kodano soczewki",
+        "alensa soczewki",
+        "tanie soczewki toryczne",
+        "twoje soczewki",
+        "soczewki kontaktowe",
+        "moje soczewki"
+      ]
+    },
+    {
+      "se_type": "google",
+      "keyword_data": {
+        "se_type": "google",
+        "keyword": "ile kosztują soczewki na stałe",
+        "location_code": 2616,
+        "language_code": "pl",
+        "keyword_info": {
+          "se_type": "google",
+          "last_updated_time": "2025-05-12 11:40:59 +00:00",
+          "competition": 1,
+          "competition_level": "HIGH",
+          "cpc": 0.54,
+          "search_volume": 480,
+          "low_top_of_page_bid": 0.16,
+          "high_top_of_page_bid": 0.51,
+          "categories": [
+            10011,
+            10085,
+            10460,
+            12866
+          ],
+          "monthly_searches": [
+            {
+              "year": 2025,
+              "month": 4,
+              "search_volume": 390
+            },
+            {
+              "year": 2025,
+              "month": 3,
+              "search_volume": 390
+            },
+            {
+              "year": 2025,
+              "month": 2,
+              "search_volume": 480
+            },
+            {
+              "year": 2025,
+              "month": 1,
+              "search_volume": 590
+            },
+            {
+              "year": 2024,
+              "month": 12,
+              "search_volume": 480
+            },
+            {
+              "year": 2024,
+              "month": 11,
+              "search_volume": 480
+            },
+            {
+              "year": 2024,
+              "month": 10,
+              "search_volume": 480
+            },
+            {
+              "year": 2024,
+              "month": 9,
+              "search_volume": 480
+            },
+            {
+              "year": 2024,
+              "month": 8,
+              "search_volume": 480
+            },
+            {
+              "year": 2024,
+              "month": 7,
+              "search_volume": 480
+            },
+            {
+              "year": 2024,
+              "month": 6,
+              "search_volume": 390
+            },
+            {
+              "year": 2024,
+              "month": 5,
+              "search_volume": 390
+            }
+          ],
+          "search_volume_trend": {
+            "monthly": 0,
+            "quarterly": -19,
+            "yearly": -19
+          }
+        },
+        "keyword_properties": {
+          "se_type": "google",
+          "keyword_difficulty": 0,
+          "detected_language": "pl",
+          "is_another_language": false,
+          "core_keyword": null,
+          "synonym_clustering_algorithm": null
+        },
+        "serp_info": {
+          "se_type": "google",
+          "check_url": "https://www.google.pl/search?q=ile%20kosztuj%C4%85%20soczewki%20na%20sta%C5%82e&num=100&hl=pl&gl=PL&gws_rd=cr&ie=UTF-8&oe=UTF-8&glp=1&uule=w+CAIQIFISCbsLZKRkmQBHEepVzEnKc3UJ",
+          "serp_item_types": [
+            "featured_snippet",
+            "people_also_ask",
+            "organic",
+            "related_searches"
+          ],
+          "se_results_count": 45,
+          "last_updated_time": "2025-05-13 08:13:42 +00:00",
+          "previous_updated_time": "2025-03-20 02:14:17 +00:00"
+        },
+        "avg_backlinks_info": {
+          "se_type": "google",
+          "backlinks": 0.9,
+          "dofollow": 0.8,
+          "referring_pages": 0.9,
+          "referring_domains": 0.8,
+          "referring_main_domains": 0.8,
+          "rank": 13.3,
+          "main_domain_rank": 331.3,
+          "last_updated_time": "2025-05-13 05:13:43 +00:00"
+        },
+        "search_intent_info": {
+          "se_type": "google",
+          "main_intent": "commercial",
+          "foreign_intent": [
+            "informational",
+            "transactional"
+          ],
+          "last_updated_time": "2023-03-06 15:35:10 +00:00"
+        },
+        "clickstream_keyword_info": null
+      },
+      "depth": 1,
+      "related_keywords": [
+        "ile kosztują soczewki roczne",
+        "ile kosztują soczewki na wadę wzroku",
+        "ile kosztują soczewki miesięczne",
+        "ile kosztują soczewki kontaktowe",
+        "ile kosztują soczewki astygmatyzm",
+        "ile kosztują soczewki dzienne",
+        "ile kosztują soczewki wielorazowe",
+        "ile kosztują soczewki kolorowe"
+      ]
+    },
+    {
+      "se_type": "google",
+      "keyword_data": {
+        "se_type": "google",
+        "keyword": "ile kosztują soczewki kontaktowe roczne",
+        "location_code": 2616,
+        "language_code": "pl",
+        "keyword_info": {
+          "se_type": "google",
+          "last_updated_time": "2025-05-11 19:42:44 +00:00",
+          "competition": 0.97,
+          "competition_level": "HIGH",
+          "cpc": 0.61,
+          "search_volume": 260,
+          "low_top_of_page_bid": 0.18,
+          "high_top_of_page_bid": 0.48,
+          "categories": [
+            10011,
+            10091,
+            10515
+          ],
+          "monthly_searches": [
+            {
+              "year": 2025,
+              "month": 4,
+              "search_volume": 170
+            },
+            {
+              "year": 2025,
+              "month": 3,
+              "search_volume": 210
+            },
+            {
+              "year": 2025,
+              "month": 2,
+              "search_volume": 260
+            },
+            {
+              "year": 2025,
+              "month": 1,
+              "search_volume": 260
+            },
+            {
+              "year": 2024,
+              "month": 12,
+              "search_volume": 210
+            },
+            {
+              "year": 2024,
+              "month": 11,
+              "search_volume": 320
+            },
+            {
+              "year": 2024,
+              "month": 10,
+              "search_volume": 320
+            },
+            {
+              "year": 2024,
+              "month": 9,
+              "search_volume": 260
+            },
+            {
+              "year": 2024,
+              "month": 8,
+              "search_volume": 320
+            },
+            {
+              "year": 2024,
+              "month": 7,
+              "search_volume": 320
+            },
+            {
+              "year": 2024,
+              "month": 6,
+              "search_volume": 320
+            },
+            {
+              "year": 2024,
+              "month": 5,
+              "search_volume": 390
+            }
+          ],
+          "search_volume_trend": {
+            "monthly": -19,
+            "quarterly": -35,
+            "yearly": -56
+          }
+        },
+        "keyword_properties": {
+          "se_type": "google",
+          "keyword_difficulty": 0,
+          "detected_language": "pl",
+          "is_another_language": false,
+          "core_keyword": null,
+          "synonym_clustering_algorithm": null
+        },
+        "serp_info": {
+          "se_type": "google",
+          "check_url": "https://www.google.pl/search?q=ile%20kosztuj%C4%85%20soczewki%20kontaktowe%20roczne&num=100&hl=pl&gl=PL&gws_rd=cr&ie=UTF-8&oe=UTF-8&glp=1&uule=w+CAIQIFISCbsLZKRkmQBHEepVzEnKc3UJ",
+          "serp_item_types": [
+            "featured_snippet",
+            "people_also_ask",
+            "organic",
+            "related_searches"
+          ],
+          "se_results_count": 40,
+          "last_updated_time": "2025-04-11 01:39:26 +00:00",
+          "previous_updated_time": "2025-03-01 03:41:54 +00:00"
+        },
+        "search_intent_info": {
+          "se_type": "google",
+          "main_intent": "commercial",
+          "foreign_intent": [
+            "transactional"
+          ],
+          "last_updated_time": "2023-03-06 15:35:12 +00:00"
+        },
+        "clickstream_keyword_info": null
+      },
+      "depth": 1,
+      "related_keywords": [
+        "ile kosztują soczewki na stałe",
+        "ile kosztują soczewki kontaktowe miesięczne",
+        "soczewki roczne",
+        "soczewki roczne korekcyjne",
+        "ile kosztują soczewki na wadę wzroku",
+        "soczewki roczne astygmatyzm",
+        "soczewki kontaktowe",
+        "ile kosztują soczewki z wadą"
+      ]
+    }
+  ]
+}
+
+*****
+*****
+{
+  "se_type": "google",
+  "seed_keyword": "grzegrzółka",
+  "location_code": 2616,
+  "language_code": "pl",
+  "total_count": 9,
+  "items_count": 9,
+  "items": [
+    {
+      "se_type": "google",
+      "keyword_data": {
+        "se_type": "google",
+        "keyword": "grzegrzółka",
+        "location_code": 2616,
+        "language_code": "pl",
+        "keyword_info": {
+          "se_type": "google",
+          "last_updated_time": "2025-05-09 18:19:58 +00:00",
+          "competition": 0.01,
+          "competition_level": "LOW",
+          "cpc": 1.43,
+          "search_volume": 9900,
+          "low_top_of_page_bid": 0.58,
+          "high_top_of_page_bid": 1.35,
+          "categories": [
+            10010,
+            10082,
+            11613,
+            12832
+          ],
+          "monthly_searches": [
+            {
+              "year": 2025,
+              "month": 4,
+              "search_volume": 9900
+            },
+            {
+              "year": 2025,
+              "month": 3,
+              "search_volume": 12100
+            },
+            {
+              "year": 2025,
+              "month": 2,
+              "search_volume": 12100
+            },
+            {
+              "year": 2025,
+              "month": 1,
+              "search_volume": 9900
+            },
+            {
+              "year": 2024,
+              "month": 12,
+              "search_volume": 9900
+            },
+            {
+              "year": 2024,
+              "month": 11,
+              "search_volume": 9900
+            },
+            {
+              "year": 2024,
+              "month": 10,
+              "search_volume": 12100
+            },
+            {
+              "year": 2024,
+              "month": 9,
+              "search_volume": 8100
+            },
+            {
+              "year": 2024,
+              "month": 8,
+              "search_volume": 6600
+            },
+            {
+              "year": 2024,
+              "month": 7,
+              "search_volume": 6600
+            },
+            {
+              "year": 2024,
+              "month": 6,
+              "search_volume": 8100
+            },
+            {
+              "year": 2024,
+              "month": 5,
+              "search_volume": 9900
+            }
+          ],
+          "search_volume_trend": {
+            "monthly": -18,
+            "quarterly": -18,
+            "yearly": -18
+          }
+        },
+        "keyword_properties": {
+          "se_type": "google",
+          "keyword_difficulty": 0,
+          "detected_language": "pl",
+          "is_another_language": false,
+          "core_keyword": null,
+          "synonym_clustering_algorithm": null
+        },
+        "serp_info": {
+          "se_type": "google",
+          "check_url": "https://www.google.pl/search?q=grzegrz%C3%B3%C5%82ka&num=100&hl=pl&gl=PL&gws_rd=cr&ie=UTF-8&oe=UTF-8&glp=1&uule=w+CAIQIFISCbsLZKRkmQBHEepVzEnKc3UJ",
+          "serp_item_types": [
+            "organic",
+            "people_also_ask",
+            "related_searches"
+          ],
+          "se_results_count": 129000,
+          "last_updated_time": "2025-04-30 05:53:18 +00:00",
+          "previous_updated_time": "2025-03-14 15:22:01 +00:00"
+        },
+        "avg_backlinks_info": {
+          "se_type": "google",
+          "backlinks": 3.5,
+          "dofollow": 2.1,
+          "referring_pages": 3.5,
+          "referring_domains": 3,
+          "referring_main_domains": 3,
+          "rank": 23.1,
+          "main_domain_rank": 384.9,
+          "last_updated_time": "2025-04-30 02:53:18 +00:00"
+        },
+        "search_intent_info": {
+          "se_type": "google",
+          "main_intent": "commercial",
+          "foreign_intent": [
+            "informational"
+          ],
+          "last_updated_time": "2023-03-06 13:39:52 +00:00"
+        },
+        "clickstream_keyword_info": null
+      },
+      "depth": 0,
+      "related_keywords": [
+        "jak się pisze grzegrzółka wikipedia",
+        "grzegrzółką sjp",
+        "jak wygląda gżegżółka",
+        "grzegrzółka jaskółka",
+        "czy gżegżółka to roślina",
+        "dlaczego gżegżółka piszemy przez ż",
+        "czy gżegżółka to kukułka",
+        "grzegrzółka nazwisko"
+      ]
+    },
+    {
+      "se_type": "google",
+      "keyword_data": {
+        "se_type": "google",
+        "keyword": "jak wygląda gżegżółka",
+        "location_code": 2616,
+        "language_code": "pl",
+        "keyword_info": {
+          "se_type": "google",
+          "last_updated_time": "2025-05-09 09:06:30 +00:00",
+          "competition_level": "LOW",
+          "search_volume": 210,
+          "categories": [
+            10001,
+            10010,
+            10082,
+            10193,
+            10972,
+            11613,
+            12832
+          ],
+          "monthly_searches": [
+            {
+              "year": 2025,
+              "month": 4,
+              "search_volume": 260
+            },
+            {
+              "year": 2025,
+              "month": 3,
+              "search_volume": 480
+            },
+            {
+              "year": 2025,
+              "month": 2,
+              "search_volume": 320
+            },
+            {
+              "year": 2025,
+              "month": 1,
+              "search_volume": 260
+            },
+            {
+              "year": 2024,
+              "month": 12,
+              "search_volume": 140
+            },
+            {
+              "year": 2024,
+              "month": 11,
+              "search_volume": 170
+            },
+            {
+              "year": 2024,
+              "month": 10,
+              "search_volume": 210
+            },
+            {
+              "year": 2024,
+              "month": 9,
+              "search_volume": 110
+            },
+            {
+              "year": 2024,
+              "month": 8,
+              "search_volume": 140
+            },
+            {
+              "year": 2024,
+              "month": 7,
+              "search_volume": 170
+            },
+            {
+              "year": 2024,
+              "month": 6,
+              "search_volume": 170
+            },
+            {
+              "year": 2024,
+              "month": 5,
+              "search_volume": 210
+            }
+          ],
+          "search_volume_trend": {
+            "monthly": -46,
+            "quarterly": -19,
+            "yearly": -33
+          },
+          "competition": null,
+          "cpc": null,
+          "low_top_of_page_bid": null,
+          "high_top_of_page_bid": null
+        },
+        "keyword_properties": {
+          "se_type": "google",
+          "keyword_difficulty": 0,
+          "detected_language": "pl",
+          "is_another_language": false,
+          "core_keyword": null,
+          "synonym_clustering_algorithm": null
+        },
+        "serp_info": {
+          "se_type": "google",
+          "check_url": "https://www.google.pl/search?q=jak%20wygl%C4%85da%20g%C5%BCeg%C5%BC%C3%B3%C5%82ka&num=100&hl=pl&gl=PL&gws_rd=cr&ie=UTF-8&oe=UTF-8&glp=1&uule=w+CAIQIFISCbsLZKRkmQBHEepVzEnKc3UJ",
+          "serp_item_types": [
+            "images",
+            "organic",
+            "people_also_ask",
+            "related_searches"
+          ],
+          "se_results_count": 29,
+          "last_updated_time": "2025-04-28 00:05:30 +00:00",
+          "previous_updated_time": "2025-03-10 12:24:29 +00:00"
+        },
+        "avg_backlinks_info": {
+          "se_type": "google",
+          "backlinks": 2.5,
+          "dofollow": 2.3,
+          "referring_pages": 2.3,
+          "referring_domains": 1.7,
+          "referring_main_domains": 1,
+          "rank": 21.6,
+          "main_domain_rank": 631.7,
+          "last_updated_time": "2025-04-27 21:05:30 +00:00"
+        },
+        "search_intent_info": {
+          "se_type": "google",
+          "main_intent": "informational",
+          "last_updated_time": "2023-03-06 16:54:13 +00:00",
+          "foreign_intent": null
+        },
+        "clickstream_keyword_info": null
+      },
+      "depth": 1,
+      "related_keywords": [
+        "grzegrzółka czy gżegżółka",
+        "grzegrzółka warzywo",
+        "co to jest gżegżółka",
+        "gżegżółka, inaczej",
+        "jak się pisze grzegrzółka wikipedia",
+        "czy gżegżółka to roślina",
+        "gżegżółka ptak",
+        "czy gżegżółka to kukułka"
+      ]
+    },
+    {
+      "se_type": "google",
+      "keyword_data": {
+        "se_type": "google",
+        "keyword": "jak się pisze grzegrzółka wikipedia",
+        "location_code": 2616,
+        "language_code": "pl",
+        "keyword_info": {
+          "se_type": "google",
+          "last_updated_time": "2025-05-10 09:36:34 +00:00",
+          "competition_level": "LOW",
+          "search_volume": 170,
+          "categories": [
+            10016,
+            10141,
+            13849
+          ],
+          "monthly_searches": [
+            {
+              "year": 2025,
+              "month": 4,
+              "search_volume": 260
+            },
+            {
+              "year": 2025,
+              "month": 3,
+              "search_volume": 480
+            },
+            {
+              "year": 2025,
+              "month": 2,
+              "search_volume": 390
+            },
+            {
+              "year": 2025,
+              "month": 1,
+              "search_volume": 260
+            },
+            {
+              "year": 2024,
+              "month": 12,
+              "search_volume": 110
+            },
+            {
+              "year": 2024,
+              "month": 11,
+              "search_volume": 170
+            },
+            {
+              "year": 2024,
+              "month": 10,
+              "search_volume": 170
+            },
+            {
+              "year": 2024,
+              "month": 9,
+              "search_volume": 140
+            },
+            {
+              "year": 2024,
+              "month": 8,
+              "search_volume": 70
+            },
+            {
+              "year": 2024,
+              "month": 7,
+              "search_volume": 70
+            },
+            {
+              "year": 2024,
+              "month": 6,
+              "search_volume": 0
+            },
+            {
+              "year": 2024,
+              "month": 5,
+              "search_volume": 0
+            }
+          ],
+          "search_volume_trend": {
+            "monthly": -46,
+            "quarterly": -33,
+            "yearly": null
+          },
+          "competition": null,
+          "cpc": null,
+          "low_top_of_page_bid": null,
+          "high_top_of_page_bid": null
+        },
+        "keyword_properties": {
+          "se_type": "google",
+          "detected_language": "pl",
+          "is_another_language": false,
+          "core_keyword": null,
+          "synonym_clustering_algorithm": null,
+          "keyword_difficulty": null
+        },
+        "search_intent_info": {
+          "se_type": "google",
+          "main_intent": "informational",
+          "last_updated_time": "2024-08-09 09:58:45 +00:00",
+          "foreign_intent": null
+        },
+        "clickstream_keyword_info": null
+      },
+      "depth": 1,
+      "related_keywords": null
+    },
+    {
+      "se_type": "google",
+      "keyword_data": {
+        "se_type": "google",
+        "keyword": "czy gżegżółka to roślina",
+        "location_code": 2616,
+        "language_code": "pl",
+        "keyword_info": {
+          "se_type": "google",
+          "last_updated_time": "2025-05-09 23:57:28 +00:00",
+          "competition_level": "LOW",
+          "search_volume": 70,
+          "categories": [
+            10010,
+            10082,
+            11613,
+            12833
+          ],
+          "monthly_searches": [
+            {
+              "year": 2025,
+              "month": 4,
+              "search_volume": 90
+            },
+            {
+              "year": 2025,
+              "month": 3,
+              "search_volume": 140
+            },
+            {
+              "year": 2025,
+              "month": 2,
+              "search_volume": 110
+            },
+            {
+              "year": 2025,
+              "month": 1,
+              "search_volume": 110
+            },
+            {
+              "year": 2024,
+              "month": 12,
+              "search_volume": 90
+            },
+            {
+              "year": 2024,
+              "month": 11,
+              "search_volume": 90
+            },
+            {
+              "year": 2024,
+              "month": 10,
+              "search_volume": 90
+            },
+            {
+              "year": 2024,
+              "month": 9,
+              "search_volume": 50
+            },
+            {
+              "year": 2024,
+              "month": 8,
+              "search_volume": 70
+            },
+            {
+              "year": 2024,
+              "month": 7,
+              "search_volume": 70
+            },
+            {
+              "year": 2024,
+              "month": 6,
+              "search_volume": 0
+            },
+            {
+              "year": 2024,
+              "month": 5,
+              "search_volume": 0
+            }
+          ],
+          "search_volume_trend": {
+            "monthly": -36,
+            "quarterly": -18,
+            "yearly": null
+          },
+          "competition": null,
+          "cpc": null,
+          "low_top_of_page_bid": null,
+          "high_top_of_page_bid": null
+        },
+        "keyword_properties": {
+          "se_type": "google",
+          "detected_language": "pl",
+          "is_another_language": false,
+          "core_keyword": null,
+          "synonym_clustering_algorithm": null,
+          "keyword_difficulty": null
+        },
+        "search_intent_info": {
+          "se_type": "google",
+          "main_intent": "informational",
+          "last_updated_time": "2024-08-09 09:58:21 +00:00",
+          "foreign_intent": null
+        },
+        "clickstream_keyword_info": null
+      },
+      "depth": 1,
+      "related_keywords": null
+    },
+    {
+      "se_type": "google",
+      "keyword_data": {
+        "se_type": "google",
+        "keyword": "czy gżegżółka to kukułka",
+        "location_code": 2616,
+        "language_code": "pl",
+        "keyword_info": {
+          "se_type": "google",
+          "last_updated_time": "2025-05-11 15:17:13 +00:00",
+          "competition_level": "LOW",
+          "search_volume": 70,
+          "categories": [
+            10009,
+            10410,
+            11566,
+            13829
+          ],
+          "monthly_searches": [
+            {
+              "year": 2025,
+              "month": 4,
+              "search_volume": 40
+            },
+            {
+              "year": 2025,
+              "month": 3,
+              "search_volume": 90
+            },
+            {
+              "year": 2025,
+              "month": 2,
+              "search_volume": 50
+            },
+            {
+              "year": 2025,
+              "month": 1,
+              "search_volume": 50
+            },
+            {
+              "year": 2024,
+              "month": 12,
+              "search_volume": 40
+            },
+            {
+              "year": 2024,
+              "month": 11,
+              "search_volume": 50
+            },
+            {
+              "year": 2024,
+              "month": 10,
+              "search_volume": 50
+            },
+            {
+              "year": 2024,
+              "month": 9,
+              "search_volume": 50
+            },
+            {
+              "year": 2024,
+              "month": 8,
+              "search_volume": 70
+            },
+            {
+              "year": 2024,
+              "month": 7,
+              "search_volume": 50
+            },
+            {
+              "year": 2024,
+              "month": 6,
+              "search_volume": 110
+            },
+            {
+              "year": 2024,
+              "month": 5,
+              "search_volume": 110
+            }
+          ],
+          "search_volume_trend": {
+            "monthly": -56,
+            "quarterly": -20,
+            "yearly": -71
+          },
+          "competition": null,
+          "cpc": null,
+          "low_top_of_page_bid": null,
+          "high_top_of_page_bid": null
+        },
+        "keyword_properties": {
+          "se_type": "google",
+          "keyword_difficulty": 0,
+          "detected_language": "pl",
+          "is_another_language": false,
+          "core_keyword": null,
+          "synonym_clustering_algorithm": null
+        },
+        "serp_info": {
+          "se_type": "google",
+          "check_url": "https://www.google.pl/search?q=czy%20g%C5%BCeg%C5%BC%C3%B3%C5%82ka%20to%20kuku%C5%82ka&num=100&hl=pl&gl=PL&gws_rd=cr&ie=UTF-8&oe=UTF-8&glp=1&uule=w+CAIQIFISCbsLZKRkmQBHEepVzEnKc3UJ",
+          "serp_item_types": [
+            "featured_snippet",
+            "people_also_ask",
+            "organic",
+            "images",
+            "related_searches"
+          ],
+          "se_results_count": 69,
+          "last_updated_time": "2025-01-06 10:57:03 +00:00",
+          "previous_updated_time": null
+        },
+        "search_intent_info": {
+          "se_type": "google",
+          "main_intent": "informational",
+          "last_updated_time": "2023-03-02 20:04:24 +00:00",
+          "foreign_intent": null
+        },
+        "clickstream_keyword_info": null
+      },
+      "depth": 1,
+      "related_keywords": [
+        "grzegrzółka czy gżegżółka",
+        "jak wygląda gżegżółka",
+        "ptak gżegżółka",
+        "gżegżółka ptak leśno-parkowy",
+        "czy gżegżółka to roślina",
+        "gżegżółka wikipedia",
+        "gżegżółka, inaczej",
+        "kukułka gżegżółka do krzyżówki"
+      ]
+    },
+    {
+      "se_type": "google",
+      "keyword_data": {
+        "se_type": "google",
+        "keyword": "grzegrzółka jaskółka",
+        "location_code": 2616,
+        "language_code": "pl",
+        "keyword_info": {
+          "se_type": "google",
+          "last_updated_time": "2025-05-10 19:57:27 +00:00",
+          "competition_level": "LOW",
+          "search_volume": 50,
+          "categories": [
+            10011,
+            10021,
+            10087,
+            10176,
+            10177,
+            10913,
+            10927,
+            11767,
+            12246
+          ],
+          "monthly_searches": [
+            {
+              "year": 2025,
+              "month": 4,
+              "search_volume": 70
+            },
+            {
+              "year": 2025,
+              "month": 3,
+              "search_volume": 90
+            },
+            {
+              "year": 2025,
+              "month": 2,
+              "search_volume": 50
+            },
+            {
+              "year": 2025,
+              "month": 1,
+              "search_volume": 40
+            },
+            {
+              "year": 2024,
+              "month": 12,
+              "search_volume": 20
+            },
+            {
+              "year": 2024,
+              "month": 11,
+              "search_volume": 30
+            },
+            {
+              "year": 2024,
+              "month": 10,
+              "search_volume": 50
+            },
+            {
+              "year": 2024,
+              "month": 9,
+              "search_volume": 30
+            },
+            {
+              "year": 2024,
+              "month": 8,
+              "search_volume": 20
+            },
+            {
+              "year": 2024,
+              "month": 7,
+              "search_volume": 70
+            },
+            {
+              "year": 2024,
+              "month": 6,
+              "search_volume": 90
+            },
+            {
+              "year": 2024,
+              "month": 5,
+              "search_volume": 70
+            }
+          ],
+          "search_volume_trend": {
+            "monthly": -22,
+            "quarterly": 40,
+            "yearly": -36
+          },
+          "competition": null,
+          "cpc": null,
+          "low_top_of_page_bid": null,
+          "high_top_of_page_bid": null
+        },
+        "keyword_properties": {
+          "se_type": "google",
+          "synonym_clustering_algorithm": "text_processing",
+          "detected_language": "pl",
+          "is_another_language": false,
+          "core_keyword": null,
+          "keyword_difficulty": null
+        },
+        "search_intent_info": {
+          "se_type": "google",
+          "main_intent": "commercial",
+          "foreign_intent": [
+            "informational"
+          ],
+          "last_updated_time": "2023-03-06 13:39:52 +00:00"
+        },
+        "clickstream_keyword_info": null
+      },
+      "depth": 1,
+      "related_keywords": null
+    },
+    {
+      "se_type": "google",
+      "keyword_data": {
+        "se_type": "google",
+        "keyword": "grzegrzółką sjp",
+        "location_code": 2616,
+        "language_code": "pl",
+        "keyword_info": {
+          "se_type": "google",
+          "last_updated_time": "2025-05-09 07:31:04 +00:00",
+          "competition_level": "LOW",
+          "search_volume": 30,
+          "categories": [
+            10004,
+            10276
+          ],
+          "monthly_searches": [
+            {
+              "year": 2025,
+              "month": 4,
+              "search_volume": 30
+            },
+            {
+              "year": 2025,
+              "month": 3,
+              "search_volume": 30
+            },
+            {
+              "year": 2025,
+              "month": 2,
+              "search_volume": 30
+            },
+            {
+              "year": 2025,
+              "month": 1,
+              "search_volume": 30
+            },
+            {
+              "year": 2024,
+              "month": 12,
+              "search_volume": 20
+            },
+            {
+              "year": 2024,
+              "month": 11,
+              "search_volume": 30
+            },
+            {
+              "year": 2024,
+              "month": 10,
+              "search_volume": 70
+            },
+            {
+              "year": 2024,
+              "month": 9,
+              "search_volume": 50
+            },
+            {
+              "year": 2024,
+              "month": 8,
+              "search_volume": 40
+            },
+            {
+              "year": 2024,
+              "month": 7,
+              "search_volume": 0
+            },
+            {
+              "year": 2024,
+              "month": 6,
+              "search_volume": 0
+            },
+            {
+              "year": 2024,
+              "month": 5,
+              "search_volume": 0
+            }
+          ],
+          "search_volume_trend": {
+            "monthly": 0,
+            "quarterly": 0,
+            "yearly": null
+          },
+          "competition": null,
+          "cpc": null,
+          "low_top_of_page_bid": null,
+          "high_top_of_page_bid": null
+        },
+        "keyword_properties": {
+          "se_type": "google",
+          "detected_language": "pl",
+          "is_another_language": false,
+          "core_keyword": null,
+          "synonym_clustering_algorithm": null,
+          "keyword_difficulty": null
+        },
+        "search_intent_info": {
+          "se_type": "google",
+          "main_intent": "informational",
+          "last_updated_time": "2024-09-10 13:32:09 +00:00",
+          "foreign_intent": null
+        },
+        "clickstream_keyword_info": null
+      },
+      "depth": 1,
+      "related_keywords": null
+    },
+    {
+      "se_type": "google",
+      "keyword_data": {
+        "se_type": "google",
+        "keyword": "grzegrzółka nazwisko",
+        "location_code": 2616,
+        "language_code": "pl",
+        "keyword_info": {
+          "se_type": "google",
+          "last_updated_time": "2025-05-14 14:27:52 +00:00",
+          "competition_level": "LOW",
+          "search_volume": 20,
+          "categories": [
+            10004,
+            10276,
+            11100
+          ],
+          "monthly_searches": [
+            {
+              "year": 2025,
+              "month": 4,
+              "search_volume": 30
+            },
+            {
+              "year": 2025,
+              "month": 3,
+              "search_volume": 40
+            },
+            {
+              "year": 2025,
+              "month": 2,
+              "search_volume": 20
+            },
+            {
+              "year": 2025,
+              "month": 1,
+              "search_volume": 20
+            },
+            {
+              "year": 2024,
+              "month": 12,
+              "search_volume": 10
+            },
+            {
+              "year": 2024,
+              "month": 11,
+              "search_volume": 30
+            },
+            {
+              "year": 2024,
+              "month": 10,
+              "search_volume": 20
+            },
+            {
+              "year": 2024,
+              "month": 9,
+              "search_volume": 20
+            },
+            {
+              "year": 2024,
+              "month": 8,
+              "search_volume": 10
+            },
+            {
+              "year": 2024,
+              "month": 7,
+              "search_volume": 20
+            },
+            {
+              "year": 2024,
+              "month": 6,
+              "search_volume": 30
+            },
+            {
+              "year": 2024,
+              "month": 5,
+              "search_volume": 20
+            }
+          ],
+          "search_volume_trend": {
+            "monthly": -25,
+            "quarterly": 50,
+            "yearly": 0
+          },
+          "competition": null,
+          "cpc": null,
+          "low_top_of_page_bid": null,
+          "high_top_of_page_bid": null
+        },
+        "keyword_properties": {
+          "se_type": "google",
+          "detected_language": "pl",
+          "is_another_language": false,
+          "core_keyword": null,
+          "synonym_clustering_algorithm": null,
+          "keyword_difficulty": null
+        },
+        "search_intent_info": {
+          "se_type": "google",
+          "main_intent": "informational",
+          "foreign_intent": [
+            "navigational"
+          ],
+          "last_updated_time": "2023-03-06 13:39:52 +00:00"
+        },
+        "clickstream_keyword_info": null
+      },
+      "depth": 1,
+      "related_keywords": null
+    },
+    {
+      "se_type": "google",
+      "keyword_data": {
+        "se_type": "google",
+        "keyword": "dlaczego gżegżółka piszemy przez ż",
+        "location_code": 2616,
+        "language_code": "pl",
+        "keyword_info": {
+          "se_type": "google",
+          "last_updated_time": "2025-05-12 17:36:09 +00:00",
+          "competition_level": "LOW",
+          "search_volume": 10,
+          "categories": [
+            10016,
+            10141,
+            10757
+          ],
+          "monthly_searches": [
+            {
+              "year": 2025,
+              "month": 4,
+              "search_volume": 30
+            },
+            {
+              "year": 2025,
+              "month": 3,
+              "search_volume": 10
+            },
+            {
+              "year": 2025,
+              "month": 2,
+              "search_volume": 10
+            },
+            {
+              "year": 2025,
+              "month": 1,
+              "search_volume": 10
+            },
+            {
+              "year": 2024,
+              "month": 12,
+              "search_volume": 0
+            },
+            {
+              "year": 2024,
+              "month": 11,
+              "search_volume": 0
+            },
+            {
+              "year": 2024,
+              "month": 10,
+              "search_volume": 10
+            },
+            {
+              "year": 2024,
+              "month": 9,
+              "search_volume": 40
+            },
+            {
+              "year": 2024,
+              "month": 8,
+              "search_volume": 30
+            },
+            {
+              "year": 2024,
+              "month": 7,
+              "search_volume": 30
+            },
+            {
+              "year": 2024,
+              "month": 6,
+              "search_volume": 0
+            },
+            {
+              "year": 2024,
+              "month": 5,
+              "search_volume": 10
+            }
+          ],
+          "search_volume_trend": {
+            "monthly": 200,
+            "quarterly": 200,
+            "yearly": 200
+          },
+          "competition": null,
+          "cpc": null,
+          "low_top_of_page_bid": null,
+          "high_top_of_page_bid": null
+        },
+        "keyword_properties": {
+          "se_type": "google",
+          "detected_language": "pl",
+          "is_another_language": false,
+          "core_keyword": null,
+          "synonym_clustering_algorithm": null,
+          "keyword_difficulty": null
+        },
+        "search_intent_info": {
+          "se_type": "google",
+          "main_intent": "informational",
+          "last_updated_time": "2023-03-02 20:17:00 +00:00",
+          "foreign_intent": null
+        },
+        "clickstream_keyword_info": null
+      },
+      "depth": 1,
+      "related_keywords": null
+    }
+  ]
+}

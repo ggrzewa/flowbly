@@ -1,0 +1,323 @@
+/* ========================================
+   SEKCJA 6: COMPLETE GEOGRAPHIC DATA - NASA MISSION CONTROL STYLE
+   ======================================== */
+
+/* NASA Mission Control Variables - Scoped to Section 6 */
+.section-6-nasa {
+  --bg:#f7f8fa; --panel:#fff; --panel-2:#f0f2f5; --text:#222; --muted:#6c757d;
+  --blue:#0b3d91; --blue-2:#1560bd; --green:#198754; --red:#dc3545; --orange:#fd7e14; --purple:#6f42c1; --cyan:#17a2b8;
+  --pink:#e91e63; --teal:#20c997; --indigo:#6610f2; --yellow:#ffc107; --lime:#32cd32;
+  --border:#e5e7eb; --shadow:0 2px 8px rgba(0,0,0,.06); --glow:0 0 0 3px rgba(21,96,189,.18);
+  --gap:10px; --pad:12px; --radius:8px; --fs-10:10.5px; --fs-11:11.5px; --fs-12:12px; --fs-18:18px; --fs-24:24px; --fs-32:32px;
+}
+
+/* Mission Control Layout */
+.section-6-nasa .nasa-mission-control {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  margin-top: 20px;
+}
+
+.section-6-nasa .control-room {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.section-6-nasa .card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+/* Section Headers */
+/* display-header removed per simplification */
+
+.section-6-nasa .display-title {
+  font-weight: 800;
+  letter-spacing: .4px;
+  color: var(--blue);
+  text-transform: uppercase;
+  font-size: 12px;
+}
+
+/* mission-state removed */
+
+/* state-dot removed */
+
+/* Grid Layouts */
+/* target-grid removed */
+
+@media (max-width: 600px) {
+  .section-6-nasa .target-grid {
+    flex-direction: column;
+  }
+}
+
+.section-6-nasa .regions-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 900px) {
+  .section-6-nasa .regions-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* stats-grid removed */
+
+@media (max-width: 600px) {
+  .section-6-nasa .stats-grid {
+    flex-wrap: wrap;
+  }
+}
+
+/* Panel Base */
+.section-6-nasa .panel {
+  background: var(--panel);
+  padding: var(--pad);
+  min-height: 120px;
+    display: flex;
+    flex-direction: column;
+  transition: transform .14s ease, box-shadow .14s ease, background .14s ease;
+  position: relative;
+}
+
+.section-6-nasa .panel:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(0,0,0,.1);
+}
+
+.section-6-nasa .panel:focus-within {
+  outline: var(--glow);
+}
+
+.section-6-nasa .panel-large {
+  min-height: 300px;
+  padding: 16px;
+}
+
+.section-6-nasa .panel-compact {
+  min-height: 100px;
+  padding: 10px;
+  width: 180px;
+  flex-shrink: 0;
+}
+
+/* Panel Headers */
+/* p-head removed */
+
+/* code badge removed */
+
+/* p-status removed */
+
+/* p-status after removed */
+
+/* Status Colors */
+/* status color dots removed */
+
+/* Typography */
+.section-6-nasa .label {
+  font-size: 10px;
+  color: var(--muted);
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: .3px;
+  margin-bottom: 6px;
+}
+
+.section-6-nasa .value {
+  font-size: var(--fs-32);
+  font-weight: 900;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
+  line-height: 1.1;
+}
+
+.section-6-nasa .value-medium {
+  font-size: var(--fs-24);
+}
+
+.section-6-nasa .value-small {
+  font-size: var(--fs-18);
+}
+
+/* Target Location Styling */
+.section-6-nasa .country-flag {
+  font-size: 24px;
+  display: block;
+    text-align: center;
+  margin: 8px 0;
+}
+
+.section-6-nasa .country-name {
+  font-size: var(--fs-18);
+  font-weight: 800;
+  text-align: center;
+    margin-bottom: 6px;
+  color: var(--teal);
+}
+
+.section-6-nasa .country-code {
+  font-size: 10px;
+  color: var(--muted);
+  text-align: center;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
+}
+
+/* Regional Data Lists */
+.section-6-nasa .region-list {
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.section-6-nasa .region-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  transition: background .2s ease;
+}
+
+.section-6-nasa .region-item:hover {
+  background: var(--panel-2);
+}
+
+.section-6-nasa .region-item:last-child {
+  border-bottom: none;
+}
+
+.section-6-nasa .region-item .ranking-indicator {
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.section-6-nasa .region-item .region-info {
+  flex: 1;
+  padding-right: 8px;
+}
+
+.section-6-nasa .region-item .region-bar {
+  flex-shrink: 0;
+}
+
+.section-6-nasa .region-item .region-value {
+  flex-shrink: 0;
+  min-width: 50px;
+  text-align: right;
+}
+
+.section-6-nasa .region-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text);
+  flex: 1;
+  padding-right: 8px;
+}
+
+.section-6-nasa .region-value {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--teal);
+  min-width: 40px;
+  text-align: right;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
+}
+
+.section-6-nasa .region-id {
+  font-size: 9px;
+  color: var(--muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
+}
+
+/* Heat Map Bars */
+.section-6-nasa .region-bar {
+  width: 60px;
+  height: 12px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  margin: 0 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+.section-6-nasa .heat-fill {
+  height: 100%;
+  transition: width .8s ease;
+  border-radius: 1px;
+}
+
+.section-6-nasa .heat-100 { background: linear-gradient(90deg, var(--green), #28a745); } /* 100% */
+.section-6-nasa .heat-90 { background: linear-gradient(90deg, #66bb6a, var(--green)); } /* 90-99% */
+.section-6-nasa .heat-80 { background: linear-gradient(90deg, #81c784, #66bb6a); } /* 80-89% */
+.section-6-nasa .heat-70 { background: linear-gradient(90deg, #a5d6a7, #81c784); } /* 70-79% */
+.section-6-nasa .heat-60 { background: linear-gradient(90deg, #c8e6c9, #a5d6a7); } /* 60-69% */
+.section-6-nasa .heat-50 { background: linear-gradient(90deg, #e8f5e8, #c8e6c9); } /* 50-59% */
+.section-6-nasa .heat-40 { background: linear-gradient(90deg, #ffecb3, #fff176); } /* <50% */
+
+/* Statistics */
+.section-6-nasa .stat-item {
+  text-align: center;
+  padding: 8px 12px;
+  background: var(--panel-2);
+  border-radius: 6px;
+  min-width: 80px;
+}
+
+.section-6-nasa .stat-label {
+  font-size: 9px;
+  color: var(--blue);
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.section-6-nasa .stat-value {
+  font-size: var(--fs-18);
+  font-weight: 800;
+  color: var(--text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
+}
+
+/* Info Panels */
+/* info-panel removed */
+
+.section-6-nasa .info-title {
+  font-size: 10px;
+  color: var(--blue);
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.section-6-nasa .info-text {
+  font-size: 10px;
+  color: #0d47a1;
+  line-height: 1.4;
+    font-weight: 500;
+}
+
+/* Enhanced Animations */
+/* hover code effect removed */
+
+/* hover p-status effect removed */
+
+/* Regional Rankings */
+.section-6-nasa .ranking-indicator {
+  position: relative;
+  margin-right: 8px;
+}
+
+.section-6-nasa .rank-1 { color: var(--yellow); font-weight: 900; }
+.section-6-nasa .rank-2 { color: #c0c0c0; font-weight: 800; }
+.section-6-nasa .rank-3 { color: #cd7f32; font-weight: 800; }
+.section-6-nasa .rank-other { color: var(--muted); font-weight: 600; }

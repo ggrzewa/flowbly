@@ -1,0 +1,254 @@
+v:YvLJ4:]$7}@AL
+
+Database URL: postgresql://postgres:[YOUR-PASSWORD]@db.wulvsfgqblxbwbbjvnvo.supabase.co:5432/postgres
+NEXT_PUBLIC_SUPABASE_URL=https://wulvsfgqblxbwbbjvnvo.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1bHZzZmdxYmx4YndiYmp2bnZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg1NDkwNDUsImV4cCI6MjA2NDEyNTA0NX0.dREELMCa2rrgz3V6bjpQIgh0VawKhP2KfdBC3MqBKuY
+service_rolesecret: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1bHZzZmdxYmx4YndiYmp2bnZvIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0ODU0OTA0NSwiZXhwIjoyMDY0MTI1MDQ1fQ.ZOmRx0a23fYI5y-mfMNnBRpqfdNBOZ5H2N7DTiIWQc4
+
+
+-- ============================================================================
+-- FLOWBLY DATABASE SCHEMA - KOMPLETNY DO SUPABASE
+-- ============================================================================
+-- Struktura dla 6 endpointów DataForSEO: Related_KW, Historical, Intent, 
+-- GT_Explore, DF_Trends, Keyword_Suggestions
+-- ============================================================================
+
+-- ============================================================================
+-- GŁÓWNA TABELA KEYWORDS
+-- ============================================================================
+CREATE TABLE keywords (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    
+    -- PODSTAWOWE IDENTYFIKATORY
+    keyword TEXT NOT NULL,
+    location_code INTEGER,
+    language_code TEXT,
+    
+    -- KLUCZOWE METRYKI SEO (często filtrowane)
+    search_volume INTEGER,
+    competition DECIMAL(3,2),
+    competition_level TEXT,
+    cpc DECIMAL(8,2),
+    keyword_difficulty INTEGER,
+    main_intent TEXT,
+    intent_probability DECIMAL(3,2),
+    
+    -- DEMOGRAFIA (pojedyncze wartości)
+    gender_female INTEGER,
+    gender_male INTEGER,
+    age_18_24 INTEGER,
+    age_25_34 INTEGER,
+    age_35_44 INTEGER,
+    age_45_54 INTEGER,
+    age_55_64 INTEGER,
+    
+    -- TRENDY I SEZONOWOŚĆ
+    monthly_trend_pct INTEGER,
+    quarterly_trend_pct INTEGER,
+    yearly_trend_pct INTEGER,
+    
+    -- ZŁOŻONE STRUKTURY JSONB
+    monthly_searches JSONB,
+    search_volume_trend JSONB,
+    trends_graph JSONB,
+    topics_list JSONB,
+    queries_list JSONB,
+    subregion_interests JSONB,
+    trends_map JSONB,
+    secondary_intents JSONB,
+    serp_info JSONB,
+    backlinks_info JSONB,
+    normalized_data JSONB,
+    
+    -- METADATA
+    seed_keyword TEXT,
+    is_suggestion BOOLEAN DEFAULT FALSE,
+    parent_keyword_id UUID REFERENCES keywords(id),
+    depth INTEGER,
+    categories TEXT[],
+    core_keyword TEXT,
+    detected_language TEXT,
+    
+    -- TRACKING
+    last_updated TIMESTAMPTZ DEFAULT NOW(),
+    data_sources TEXT[] DEFAULT '{}',
+    api_costs_total DECIMAL(8,4) DEFAULT 0,
+    raw_responses JSONB,
+    
+    UNIQUE(keyword, location_code, language_code)
+);
+
+-- ============================================================================
+-- TABELA DANYCH HISTORYCZNYCH
+-- ============================================================================
+CREATE TABLE keyword_historical_data (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    keyword_id UUID REFERENCES keywords(id) ON DELETE CASCADE NOT NULL,
+    year INTEGER NOT NULL,
+    month INTEGER NOT NULL CHECK (month >= 1 AND month <= 12),
+    
+    -- Pełne dane keyword_info dla danego miesiąca
+    search_volume INTEGER,
+    competition DECIMAL(3,2),
+    competition_level TEXT,
+    cpc DECIMAL(8,2),
+    low_top_of_page_bid DECIMAL(8,2),
+    high_top_of_page_bid DECIMAL(8,2),
+    categories TEXT[],
+    
+    -- Miesięczne trendy dla tego okresu
+    monthly_searches JSONB,
+    search_volume_trend JSONB,
+    
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(keyword_id, year, month)
+);
+
+-- ============================================================================
+-- TABELA POWIĄZANYCH SŁÓW KLUCZOWYCH
+-- ============================================================================
+CREATE TABLE keyword_relations (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    parent_keyword_id UUID REFERENCES keywords(id) ON DELETE CASCADE NOT NULL,
+    related_keyword_id UUID REFERENCES keywords(id) ON DELETE CASCADE NOT NULL,
+    depth INTEGER NOT NULL CHECK (depth >= 0 AND depth <= 4),
+    relationship_type TEXT DEFAULT 'related',
+    
+    -- Mini dane o powiązaniu
+    relevance_score DECIMAL(3,2),
+    search_volume INTEGER,
+    keyword_difficulty INTEGER,
+    
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(parent_keyword_id, related_keyword_id, depth)
+);
+
+-- ============================================================================
+-- INDEKSY DLA WYDAJNOŚCI
+-- ============================================================================
+
+-- Indeksy dla tabeli keywords
+CREATE INDEX idx_keywords_keyword ON keywords(keyword);
+CREATE INDEX idx_keywords_location_language ON keywords(location_code, language_code);
+CREATE INDEX idx_keywords_search_volume ON keywords(search_volume DESC);
+CREATE INDEX idx_keywords_competition ON keywords(competition);
+CREATE INDEX idx_keywords_intent ON keywords(main_intent);
+CREATE INDEX idx_keywords_difficulty ON keywords(keyword_difficulty);
+CREATE INDEX idx_keywords_updated ON keywords(last_updated);
+CREATE INDEX idx_keywords_is_suggestion ON keywords(is_suggestion);
+CREATE INDEX idx_keywords_parent ON keywords(parent_keyword_id);
+CREATE INDEX idx_keywords_seed ON keywords(seed_keyword);
+
+-- JSONB indeksy dla częstych zapytań
+CREATE INDEX idx_keywords_monthly_searches ON keywords USING GIN (monthly_searches);
+CREATE INDEX idx_keywords_trends_graph ON keywords USING GIN (trends_graph);
+CREATE INDEX idx_keywords_topics ON keywords USING GIN (topics_list);
+CREATE INDEX idx_keywords_queries ON keywords USING GIN (queries_list);
+
+-- Indeksy dla tabeli keyword_historical_data
+CREATE INDEX idx_historical_keyword_id ON keyword_historical_data(keyword_id);
+CREATE INDEX idx_historical_date ON keyword_historical_data(year, month);
+CREATE INDEX idx_historical_search_volume ON keyword_historical_data(search_volume DESC);
+
+-- Indeksy dla tabeli keyword_relations
+CREATE INDEX idx_relations_parent ON keyword_relations(parent_keyword_id);
+CREATE INDEX idx_relations_related ON keyword_relations(related_keyword_id);
+CREATE INDEX idx_relations_type ON keyword_relations(relationship_type);
+CREATE INDEX idx_relations_depth ON keyword_relations(depth);
+
+-- ============================================================================
+-- SZCZEGÓŁOWE KOMENTARZE DOKUMENTACYJNE
+-- ============================================================================
+
+-- Komentarze dla głównej tabeli keywords
+COMMENT ON TABLE keywords IS 'Główna tabela słów kluczowych - dane z 6 endpointów DataForSEO (Related_KW, Historical, Intent, GT_Explore, DF_Trends, Keyword_Suggestions)';
+
+-- Identyfikatory
+COMMENT ON COLUMN keywords.id IS 'UUID - unikalny identyfikator słowa kluczowego';
+COMMENT ON COLUMN keywords.keyword IS 'Tekst słowa kluczowego (ze wszystkich endpointów)';
+COMMENT ON COLUMN keywords.location_code IS 'Kod lokalizacji DataForSEO np. 2616=Polska (wszystkie endpointy)';
+COMMENT ON COLUMN keywords.language_code IS 'Kod języka np. "pl", "en" (wszystkie endpointy)';
+
+-- Podstawowe metryki SEO
+COMMENT ON COLUMN keywords.search_volume IS 'Średni miesięczny wolumen wyszukiwań Google (Related_KW, Historical, Keyword_Suggestions)';
+COMMENT ON COLUMN keywords.competition IS 'Poziom konkurencji Google Ads 0.00-1.00 (Related_KW, Historical, Keyword_Suggestions)';
+COMMENT ON COLUMN keywords.competition_level IS 'Poziom konkurencji tekstowo: LOW/MEDIUM/HIGH (Related_KW, Historical, Keyword_Suggestions)';
+COMMENT ON COLUMN keywords.cpc IS 'Średni koszt za kliknięcie w USD (Related_KW, Historical, Keyword_Suggestions)';
+COMMENT ON COLUMN keywords.keyword_difficulty IS 'Trudność rankowania SEO 0-100 (Related_KW, Keyword_Suggestions)';
+
+-- Intencja wyszukiwania
+COMMENT ON COLUMN keywords.main_intent IS 'Główna intencja: informational/navigational/commercial/transactional (Related_KW, Intent, Keyword_Suggestions)';
+COMMENT ON COLUMN keywords.intent_probability IS 'Prawdopodobieństwo głównej intencji 0.00-1.00 (Intent, Keyword_Suggestions)';
+
+-- Demografia
+COMMENT ON COLUMN keywords.gender_female IS 'Indeks popularności wśród kobiet 0-100, gdzie 100=najwyższa aktywność (DF_Trends, Related_KW z clickstream)';
+COMMENT ON COLUMN keywords.gender_male IS 'Indeks popularności wśród mężczyzn 0-100, gdzie 100=najwyższa aktywność (DF_Trends, Related_KW z clickstream)';
+COMMENT ON COLUMN keywords.age_18_24 IS 'Indeks popularności w grupie 18-24 lata, 0-100 gdzie 100=najaktywniejsza grupa wiekowa (DF_Trends, Related_KW z clickstream)';
+COMMENT ON COLUMN keywords.age_25_34 IS 'Indeks popularności w grupie 25-34 lata, 0-100 gdzie 100=najaktywniejsza grupa wiekowa (DF_Trends, Related_KW z clickstream)';
+COMMENT ON COLUMN keywords.age_35_44 IS 'Indeks popularności w grupie 35-44 lata, 0-100 gdzie 100=najaktywniejsza grupa wiekowa (DF_Trends, Related_KW z clickstream)';
+COMMENT ON COLUMN keywords.age_45_54 IS 'Indeks popularności w grupie 45-54 lata, 0-100 gdzie 100=najaktywniejsza grupa wiekowa (DF_Trends, Related_KW z clickstream)';
+COMMENT ON COLUMN keywords.age_55_64 IS 'Indeks popularności w grupie 55-64 lata, 0-100 gdzie 100=najaktywniejsza grupa wiekowa (DF_Trends, Related_KW z clickstream)';
+
+-- Trendy
+COMMENT ON COLUMN keywords.monthly_trend_pct IS 'Zmiana wolumenu % vs poprzedni miesiąc (Related_KW, Historical)';
+COMMENT ON COLUMN keywords.quarterly_trend_pct IS 'Zmiana wolumenu % vs poprzedni kwartał (Related_KW, Historical)';
+COMMENT ON COLUMN keywords.yearly_trend_pct IS 'Zmiana wolumenu % vs poprzedni rok (Related_KW, Historical)';
+
+-- Złożone struktury JSONB
+COMMENT ON COLUMN keywords.monthly_searches IS 'JSONB: Historia miesięczna [{year, month, search_volume}] (Related_KW, Historical, Keyword_Suggestions)';
+COMMENT ON COLUMN keywords.search_volume_trend IS 'JSONB: Trendy {monthly, quarterly, yearly} w % (Related_KW, Historical, Keyword_Suggestions)';
+COMMENT ON COLUMN keywords.trends_graph IS 'JSONB: Wykres trendów czasowych {data: [{date_from, date_to, values[]}]} (DF_Trends, GT_Explore)';
+COMMENT ON COLUMN keywords.topics_list IS 'JSONB: Powiązane tematy {top: [], rising: []} z Google Trends (GT_Explore)';
+COMMENT ON COLUMN keywords.queries_list IS 'JSONB: Powiązane zapytania {top: [], rising: []} - "People also search" (GT_Explore)';
+COMMENT ON COLUMN keywords.subregion_interests IS 'JSONB: Zainteresowanie geograficzne [{geo_id, geo_name, value}] (DF_Trends)';
+COMMENT ON COLUMN keywords.trends_map IS 'JSONB: Mapa geograficzna z Google Trends [{geo_id, geo_name, values[]}] (GT_Explore)';
+COMMENT ON COLUMN keywords.secondary_intents IS 'JSONB: Dodatkowe intencje [{label, probability}] (Intent)';
+COMMENT ON COLUMN keywords.serp_info IS 'JSONB: Dane SERP {se_results_count, serp_item_types[], check_url} (Related_KW*, Keyword_Suggestions*)';
+COMMENT ON COLUMN keywords.backlinks_info IS 'JSONB: Średnie backlinki top-10 {avg_backlinks, avg_dofollow, avg_referring_domains} (Related_KW, Keyword_Suggestions)';
+COMMENT ON COLUMN keywords.normalized_data IS 'JSONB: Dane znormalizowane z Bing/clickstream (Related_KW, Keyword_Suggestions)';
+
+-- Metadata
+COMMENT ON COLUMN keywords.seed_keyword IS 'Słowo bazowe z requestu (Related_KW, Keyword_Suggestions)';
+COMMENT ON COLUMN keywords.is_suggestion IS 'TRUE = sugestia z Keyword_Suggestions API, FALSE = regularne słowo';
+COMMENT ON COLUMN keywords.parent_keyword_id IS 'UUID parent keyword dla sugestii (link do seed keyword)';
+COMMENT ON COLUMN keywords.depth IS 'Głębokość powiązania 0-4 dla Related Keywords (0=seed, 1-4=poziomy powiązań)';
+COMMENT ON COLUMN keywords.categories IS 'Array kategorii Google Ads (Related_KW, Historical, Keyword_Suggestions)';
+COMMENT ON COLUMN keywords.core_keyword IS 'Główne słowo w grupie synonimów (Related_KW, Keyword_Suggestions)';
+COMMENT ON COLUMN keywords.detected_language IS 'Wykryty język słowa kluczowego (Related_KW, Keyword_Suggestions)';
+
+-- Tracking
+COMMENT ON COLUMN keywords.last_updated IS 'Timestamp ostatniej aktualizacji danych';
+COMMENT ON COLUMN keywords.data_sources IS 'Array źródeł danych: [related_kw, historical, intent, gt_explore, df_trends, keyword_suggestions]';
+COMMENT ON COLUMN keywords.api_costs_total IS 'Łączny koszt API w USD dla tego słowa kluczowego';
+COMMENT ON COLUMN keywords.raw_responses IS 'JSONB: Surowe odpowiedzi API do debugowania (opcjonalne)';
+
+-- Komentarze dla tabeli keyword_historical_data
+COMMENT ON TABLE keyword_historical_data IS 'Dane historyczne z Historical API - każdy miesiąc osobny rekord, historia od 2019';
+COMMENT ON COLUMN keyword_historical_data.id IS 'UUID - unikalny identyfikator rekordu historycznego';
+COMMENT ON COLUMN keyword_historical_data.keyword_id IS 'UUID - link do tabeli keywords';
+COMMENT ON COLUMN keyword_historical_data.year IS 'Rok danych historycznych';
+COMMENT ON COLUMN keyword_historical_data.month IS 'Miesiąc danych historycznych (1-12)';
+COMMENT ON COLUMN keyword_historical_data.search_volume IS 'Search volume dla tego miesiąca (Historical API)';
+COMMENT ON COLUMN keyword_historical_data.competition IS 'Konkurencja dla tego miesiąca (Historical API)';
+COMMENT ON COLUMN keyword_historical_data.competition_level IS 'Poziom konkurencji dla tego miesiąca (Historical API)';
+COMMENT ON COLUMN keyword_historical_data.cpc IS 'CPC dla tego miesiąca w USD (Historical API)';
+COMMENT ON COLUMN keyword_historical_data.low_top_of_page_bid IS 'Minimalna stawka top page dla tego miesiąca (Historical API)';
+COMMENT ON COLUMN keyword_historical_data.high_top_of_page_bid IS 'Maksymalna stawka top page dla tego miesiąca (Historical API)';
+COMMENT ON COLUMN keyword_historical_data.categories IS 'Kategorie Google Ads dla tego miesiąca (Historical API)';
+COMMENT ON COLUMN keyword_historical_data.monthly_searches IS 'JSONB: 12 miesięcy wstecz od tego okresu (Historical API)';
+COMMENT ON COLUMN keyword_historical_data.search_volume_trend IS 'JSONB: Trendy % dla tego miesiąca (Historical API)';
+
+-- Komentarze dla tabeli keyword_relations
+COMMENT ON TABLE keyword_relations IS 'Powiązania między słowami kluczowymi z Related_KW i Keyword_Suggestions';
+COMMENT ON COLUMN keyword_relations.id IS 'UUID - unikalny identyfikator powiązania';
+COMMENT ON COLUMN keyword_relations.parent_keyword_id IS 'UUID - słowo nadrzędne (seed keyword)';
+COMMENT ON COLUMN keyword_relations.related_keyword_id IS 'UUID - słowo powiązane/sugestia';
+COMMENT ON COLUMN keyword_relations.depth IS 'Głębokość powiązania: 0=sugestia, 1-4=poziomy Related Keywords';
+COMMENT ON COLUMN keyword_relations.relationship_type IS 'Typ: "related"=Related_KW, "suggestion"=Keyword_Suggestions, "topic"=tematyczne';
+COMMENT ON COLUMN keyword_relations.relevance_score IS 'Score relevance 0.00-1.00 (wyższy = bardziej powiązane)';
+COMMENT ON COLUMN keyword_relations.search_volume IS 'Search volume powiązanego słowa (kopiowane dla szybkości)';
+COMMENT ON COLUMN keyword_relations.keyword_difficulty IS 'Difficulty powiązanego słowa (kopiowane dla szybkości)';
+
+-- ============================================================================
+-- KONIEC SCHEMATU - GOTOWE DO SUPABASE
+-- ============================================================================

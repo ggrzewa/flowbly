@@ -1,0 +1,44 @@
+# ==========================================
+# SZABLON ZMIENNYCH ŚRODOWISKOWYCH
+# ==========================================
+# Skopiuj do pliku .env lokalnie
+# Na Railway ustaw w Dashboard → Variables
+# ==========================================
+
+# SUPABASE DATABASE
+SUPABASE_URL=https://twoj-projekt.supabase.co
+SUPABASE_KEY=twoj_klucz_anon_public
+
+# AI PROVIDERS
+OPENAI_API_KEY=sk-proj-...
+ANTHROPIC_API_KEY=sk-ant-...
+
+# AI CONFIGURATION
+AI_PROVIDER=gpt-5
+AI_MODEL_OPENAI=gpt-4o-mini
+AI_MODEL_CLAUDE=claude-sonnet-4-20250514
+AI_MODEL_GPT5=gpt-5
+GPT5_REASONING_EFFORT=medium
+GPT5_VERBOSITY=medium
+
+# DATAFORSEO (opcjonalne)
+DATAFORSEO_LOGIN=twoj_login
+DATAFORSEO_PASSWORD=twoje_haslo
+
+# RAILWAY (tylko na produkcji, automatycznie ustawiane)
+# RAILWAY_ENVIRONMENT=production
+# PORT=8000
+
+# ==========================================
+# INSTRUKCJE
+# ==========================================
+# LOKALNIE:
+# 1. Skopiuj ten plik jako .env
+# 2. Wypełnij wszystkie wartości rzeczywistymi kluczami
+# 3. NIGDY nie commituj pliku .env do Git!
+#
+# NA RAILWAY:
+# 1. Wejdź w Dashboard → Variables
+# 2. Dodaj każdą zmienną pojedynczo
+# 3. Railway automatycznie doda PORT i RAILWAY_ENVIRONMENT
+

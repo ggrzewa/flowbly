@@ -1,0 +1,100 @@
+╔══════════════════════════════════════════════════════════════╗
+║                                                              ║
+║   🚂 RAILWAY DEPLOYMENT - GOTOWE DO URUCHOMIENIA           ║
+║                                                              ║
+╚══════════════════════════════════════════════════════════════╝
+
+📋 WSZYSTKIE ZADANIA WYKONANE:
+  ✅ Naprawione ścieżki logów (Windows → Linux)
+  ✅ Port dynamiczny (Railway $PORT)
+  ✅ .gitignore (zabezpiecza sekrety)
+  ✅ railway.json + Procfile
+  ✅ Dokumentacja deployment
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🚀 SZYBKI START (3 KROKI):
+
+1️⃣  Stwórz repozytorium Git:
+   git init
+   git add .
+   git commit -m "Ready for Railway"
+   git push
+
+2️⃣  Wejdź na Railway.app:
+   https://railway.app/new
+   → Deploy from GitHub repo
+
+3️⃣  Ustaw zmienne środowiskowe:
+   Dashboard → Variables → Raw Editor
+   (użyj szablonu z ENV_TEMPLATE.txt)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📚 DOKUMENTACJA:
+
+  README_RAILWAY.md              → Quick Start (5 minut)
+  RAILWAY_DEPLOYMENT_GUIDE.md    → Pełna dokumentacja
+  DEPLOYMENT_CHECKLIST.md        → Checklist krok po kroku
+  ENV_TEMPLATE.txt               → Zmienne środowiskowe
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔧 TEST LOKALNY (przed deploymentem):
+
+   # Windows:
+   .\venv\Scripts\activate
+   uvicorn app.main:app --host 0.0.0.0 --port 8000
+
+   # Linux/Mac:
+   source venv/bin/activate
+   uvicorn app.main:app --host 0.0.0.0 --port 8000
+
+   Otwórz: http://localhost:8000/seo-analysis
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚙️  WYMAGANE ZMIENNE ŚRODOWISKOWE NA RAILWAY:
+
+   SUPABASE_URL              → https://xxx.supabase.co
+   SUPABASE_KEY              → eyJhbG...
+   OPENAI_API_KEY            → sk-proj-...
+   ANTHROPIC_API_KEY         → sk-ant-...
+   AI_PROVIDER               → gpt-5
+   AI_MODEL_OPENAI           → gpt-4o-mini
+   AI_MODEL_CLAUDE           → claude-sonnet-4-20250514
+   AI_MODEL_GPT5             → gpt-5
+   GPT5_REASONING_EFFORT     → medium
+   GPT5_VERBOSITY            → medium
+   RAILWAY_ENVIRONMENT       → production
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📦 ZMIENIONE PLIKI (gotowe do commit):
+
+   Modified:
+   - app/main.py (port + log_dir)
+   - app/services/content_scaffold_generator.py (log_dir)
+
+   Created:
+   - .gitignore
+   - railway.json
+   - Procfile
+   - README_RAILWAY.md
+   - RAILWAY_DEPLOYMENT_GUIDE.md
+   - DEPLOYMENT_CHECKLIST.md
+   - ENV_TEMPLATE.txt
+   - START.txt (ten plik)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎯 NASTĘPNY KROK:
+
+   Wejdź na:  https://railway.app/
+   Przeczytaj: README_RAILWAY.md
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Status: 🟢 READY TO DEPLOY
+Data:   2025-01-14
+

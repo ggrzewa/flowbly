@@ -1,0 +1,327 @@
+-- ============================================================================
+-- FLOWBLY GOOGLE AUTOCOMPLETE DATABASE SCHEMA - ROZSZERZENIE DLA DATAFORSEO
+-- ============================================================================
+-- Struktura dla endpointu DataForSEO Live Google Autocomplete Advanced
+-- Przechowuje sugestie autocomplete Google dla konkretnych słów kluczowych
+-- ============================================================================
+
+-- ============================================================================
+-- GŁÓWNA TABELA AUTOCOMPLETE RESULTS
+-- ============================================================================
+CREATE TABLE autocomplete_results (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    
+    -- POWIĄZANIE Z KEYWORDS
+    keyword_id UUID REFERENCES keywords(id) ON DELETE SET NULL,
+    keyword TEXT NOT NULL, -- duplikowane dla szybkości
+    
+    -- PODSTAWOWE PARAMETRY ZAPYTANIA
+    location_code INTEGER,
+    language_code TEXT,
+    se_domain TEXT, -- google.pl, google.com itp.
+    cursor_pointer INTEGER, -- pozycja kursora w słowie kluczowym
+    client TEXT, -- chrome, chrome-omni, gws-wiz, safari, firefox itp.
+    
+    -- METADATA WYNIKU
+    check_url TEXT, -- URL do weryfikacji wyników
+    datetime TIMESTAMPTZ, -- kiedy pobrano wyniki (UTC)
+    se_results_count BIGINT, -- całkowita liczba wyników w Google
+    items_count INTEGER, -- liczba zwróconych sugestii
+    
+    -- TYPY ELEMENTÓW
+    item_types TEXT[], -- [autocomplete] - głównie autocomplete
+    
+    -- SPELL CORRECTION
+    spell_correction JSONB, -- {keyword, type} - autokorekta Google
+    
+    -- REFINEMENT CHIPS
+    refinement_chips JSONB, -- chipy do refinowania wyszukiwania
+    
+    -- KOSZTY I TRACKING
+    api_cost DECIMAL(8,4) DEFAULT 0,
+    execution_time DECIMAL(8,4), -- czas wykonania w sekundach
+    
+    -- BUSINESS INTELLIGENCE DATA (z analizy)
+    intent_analysis JSONB, -- analiza intencji sugestii
+    trending_modifiers JSONB, -- popularne modyfikatory
+    content_opportunities JSONB, -- okazje content'owe
+    analysis_metrics JSONB, -- metryki analizy
+    analysis_summary JSONB, -- podsumowanie i rekomendacje
+    
+    -- METADATA
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    data_freshness_hours INTEGER, -- ile godzin temu pobrano dane
+    
+    -- INDEKS UNIKALNOŚCI (jedno autocomplete na kombinację parametrów)
+    UNIQUE(keyword_id, location_code, language_code, cursor_pointer, client)
+);
+
+-- ============================================================================
+-- TABELA AUTOCOMPLETE SUGGESTIONS - POSZCZEGÓLNE SUGESTIE
+-- ============================================================================
+CREATE TABLE autocomplete_suggestions (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    autocomplete_result_id UUID REFERENCES autocomplete_results(id) ON DELETE CASCADE NOT NULL,
+    
+    -- PODSTAWOWE INFORMACJE O SUGESTII
+    type TEXT NOT NULL DEFAULT 'autocomplete',
+    rank_group INTEGER, -- pozycja w grupie autocomplete
+    rank_absolute INTEGER, -- pozycja absolutna w wynikach
+    
+    -- DANE SUGESTII
+    suggestion TEXT NOT NULL, -- tekst sugestii autocomplete
+    suggestion_type TEXT, -- typ sugestii (tylko dla chrome/chrome-omni)
+    relevance INTEGER, -- relevance 500-2000 (tylko dla chrome/chrome-omni)
+    
+    -- URL I MEDIA
+    search_query_url TEXT, -- URL do wyników wyszukiwania dla sugestii
+    thumbnail_url TEXT, -- URL miniaturki (tylko dla gws-wiz/gws-wiz-serp)
+    
+    -- PODŚWIETLENIA
+    highlighted JSONB, -- array podświetlonych fragmentów tekstu
+    
+    -- ANALIZA SUGESTII (z business intelligence)
+    word_count INTEGER, -- liczba słów w sugestii
+    intent_category TEXT, -- kategoria intencji: informational, transactional, educational, etc.
+    opportunity_type TEXT, -- typ okazji: long_tail, unique_angle, intent_gap
+    difficulty_level TEXT, -- Easy, Medium, Hard
+    unique_modifiers JSONB, -- unikalne modyfikatory w tej sugestii
+    analysis_reason TEXT, -- powód klasyfikacji jako okazja
+    
+    -- METADATA
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ============================================================================
+-- INDEKSY DLA WYDAJNOŚCI
+-- ============================================================================
+
+-- Indeksy dla autocomplete_results
+CREATE INDEX idx_autocomplete_results_keyword_id ON autocomplete_results(keyword_id);
+CREATE INDEX idx_autocomplete_results_keyword ON autocomplete_results(keyword);
+CREATE INDEX idx_autocomplete_results_location_language ON autocomplete_results(location_code, language_code);
+CREATE INDEX idx_autocomplete_results_client ON autocomplete_results(client);
+CREATE INDEX idx_autocomplete_results_cursor ON autocomplete_results(cursor_pointer);
+CREATE INDEX idx_autocomplete_results_datetime ON autocomplete_results(datetime DESC);
+CREATE INDEX idx_autocomplete_results_freshness ON autocomplete_results(data_freshness_hours);
+
+-- JSONB indeksy
+CREATE INDEX idx_autocomplete_results_item_types ON autocomplete_results USING GIN (item_types);
+CREATE INDEX idx_autocomplete_results_spell ON autocomplete_results USING GIN (spell_correction);
+CREATE INDEX idx_autocomplete_results_intent ON autocomplete_results USING GIN (intent_analysis);
+CREATE INDEX idx_autocomplete_results_modifiers ON autocomplete_results USING GIN (trending_modifiers);
+CREATE INDEX idx_autocomplete_results_opportunities ON autocomplete_results USING GIN (content_opportunities);
+
+-- Indeksy dla autocomplete_suggestions
+CREATE INDEX idx_autocomplete_suggestions_result_id ON autocomplete_suggestions(autocomplete_result_id);
+CREATE INDEX idx_autocomplete_suggestions_rank_absolute ON autocomplete_suggestions(rank_absolute);
+CREATE INDEX idx_autocomplete_suggestions_rank_group ON autocomplete_suggestions(rank_group);
+CREATE INDEX idx_autocomplete_suggestions_suggestion ON autocomplete_suggestions(suggestion);
+CREATE INDEX idx_autocomplete_suggestions_relevance ON autocomplete_suggestions(relevance DESC);
+CREATE INDEX idx_autocomplete_suggestions_intent ON autocomplete_suggestions(intent_category);
+CREATE INDEX idx_autocomplete_suggestions_opportunity ON autocomplete_suggestions(opportunity_type);
+CREATE INDEX idx_autocomplete_suggestions_difficulty ON autocomplete_suggestions(difficulty_level);
+CREATE INDEX idx_autocomplete_suggestions_word_count ON autocomplete_suggestions(word_count);
+
+-- JSONB indeksy dla autocomplete_suggestions
+CREATE INDEX idx_autocomplete_suggestions_highlighted ON autocomplete_suggestions USING GIN (highlighted);
+CREATE INDEX idx_autocomplete_suggestions_unique_modifiers ON autocomplete_suggestions USING GIN (unique_modifiers);
+
+-- ============================================================================
+-- KOMENTARZE DOKUMENTACYJNE
+-- ============================================================================
+
+-- Główna tabela autocomplete_results
+COMMENT ON TABLE autocomplete_results IS 'Główna tabela wyników Google Autocomplete - zawiera metadata o sugestiach autocomplete dla danego słowa kluczowego';
+COMMENT ON COLUMN autocomplete_results.keyword_id IS 'UUID powiązania z tabelą keywords - może być NULL jeśli autocomplete nie jest powiązane z istniejącym słowem';
+COMMENT ON COLUMN autocomplete_results.keyword IS 'Słowo kluczowe dla którego pobrano sugestie autocomplete';
+COMMENT ON COLUMN autocomplete_results.location_code IS 'Kod lokalizacji DataForSEO np. 2616=Polska';
+COMMENT ON COLUMN autocomplete_results.language_code IS 'Kod języka np. "pl", "en"';
+COMMENT ON COLUMN autocomplete_results.se_domain IS 'Domena wyszukiwarki np. google.pl, google.com';
+COMMENT ON COLUMN autocomplete_results.cursor_pointer IS 'Pozycja kursora w słowie kluczowym (0 = początek, null = koniec)';
+COMMENT ON COLUMN autocomplete_results.client IS 'Klient wyszukiwania: chrome, chrome-omni, gws-wiz, gws-wiz-serp, safari, firefox, psy-ab, toolbar, youtube, gws-wiz-local, img, products-cc';
+COMMENT ON COLUMN autocomplete_results.check_url IS 'URL do weryfikacji wyników autocomplete';
+COMMENT ON COLUMN autocomplete_results.datetime IS 'Data i czas pobrania wyników w UTC';
+COMMENT ON COLUMN autocomplete_results.se_results_count IS 'Całkowita liczba wyników w wyszukiwarce (zazwyczaj 0 dla autocomplete)';
+COMMENT ON COLUMN autocomplete_results.items_count IS 'Liczba zwróconych sugestii autocomplete (zazwyczaj 10)';
+COMMENT ON COLUMN autocomplete_results.item_types IS 'Array typów elementów - głównie ["autocomplete"]';
+COMMENT ON COLUMN autocomplete_results.spell_correction IS 'JSONB: Dane autokorekty Google {keyword: "poprawione_słowo", type: "did_you_mean|showing_results_for"}';
+COMMENT ON COLUMN autocomplete_results.refinement_chips IS 'JSONB: Chipy do refinowania wyszukiwania {type, xpath, items[]}';
+COMMENT ON COLUMN autocomplete_results.intent_analysis IS 'JSONB: Analiza intencji sugestii {intent_distribution, categorized_suggestions, primary_intent}';
+COMMENT ON COLUMN autocomplete_results.trending_modifiers IS 'JSONB: Analiza popularnych modyfikatorów {top_modifiers, categorized_modifiers, highlighted_terms}';
+COMMENT ON COLUMN autocomplete_results.content_opportunities IS 'JSONB: Array okazji contentowych [{keyword, rank, opportunity_type, difficulty, reason}]';
+COMMENT ON COLUMN autocomplete_results.analysis_metrics IS 'JSONB: Metryki analizy {total_suggestions, average_suggestion_length, primary_intent, top_modifier}';
+COMMENT ON COLUMN autocomplete_results.analysis_summary IS 'JSONB: Podsumowanie i rekomendacje {recommendation, key_insights[]}';
+COMMENT ON COLUMN autocomplete_results.api_cost IS 'Koszt wywołania API w USD';
+COMMENT ON COLUMN autocomplete_results.execution_time IS 'Czas wykonania zapytania w sekundach';
+COMMENT ON COLUMN autocomplete_results.data_freshness_hours IS 'Ile godzin temu zostały pobrane dane';
+
+-- Tabela autocomplete_suggestions
+COMMENT ON TABLE autocomplete_suggestions IS 'Poszczególne sugestie Google Autocomplete dla danego słowa kluczowego';
+COMMENT ON COLUMN autocomplete_suggestions.autocomplete_result_id IS 'UUID powiązania z tabelą autocomplete_results';
+COMMENT ON COLUMN autocomplete_suggestions.type IS 'Typ elementu - zawsze "autocomplete"';
+COMMENT ON COLUMN autocomplete_suggestions.rank_group IS 'Pozycja w grupie autocomplete (1-10)';
+COMMENT ON COLUMN autocomplete_suggestions.rank_absolute IS 'Pozycja absolutna w wynikach autocomplete (1-10)';
+COMMENT ON COLUMN autocomplete_suggestions.suggestion IS 'Tekst sugestii autocomplete Google';
+COMMENT ON COLUMN autocomplete_suggestions.suggestion_type IS 'Typ sugestii Google (tylko dla chrome/chrome-omni client)';
+COMMENT ON COLUMN autocomplete_suggestions.relevance IS 'Relevance sugestii 500-2000, wyższe = bardziej relevantne (tylko chrome/chrome-omni)';
+COMMENT ON COLUMN autocomplete_suggestions.search_query_url IS 'URL do wyników wyszukiwania dla tej sugestii';
+COMMENT ON COLUMN autocomplete_suggestions.thumbnail_url IS 'URL miniaturki obrazka dla sugestii (tylko gws-wiz/gws-wiz-serp)';
+COMMENT ON COLUMN autocomplete_suggestions.highlighted IS 'JSONB: Array podświetlonych fragmentów tekstu w sugestii (tylko gws-wiz/psy-ab/gws-wiz-local)';
+COMMENT ON COLUMN autocomplete_suggestions.word_count IS 'Liczba słów w sugestii (obliczane automatycznie)';
+COMMENT ON COLUMN autocomplete_suggestions.intent_category IS 'Kategoria intencji: informational, transactional, educational, navigational, local';
+COMMENT ON COLUMN autocomplete_suggestions.opportunity_type IS 'Typ okazji SEO: long_tail, unique_angle, intent_gap, high_volume';
+COMMENT ON COLUMN autocomplete_suggestions.difficulty_level IS 'Poziom trudności rankowania: Easy, Medium, Hard';
+COMMENT ON COLUMN autocomplete_suggestions.unique_modifiers IS 'JSONB: Array unikalnych modyfikatorów w tej sugestii';
+COMMENT ON COLUMN autocomplete_suggestions.analysis_reason IS 'Powód klasyfikacji jako okazja SEO';
+
+-- ============================================================================
+-- FUNKCJE POMOCNICZE
+-- ============================================================================
+
+-- Funkcja do aktualizacji freshness
+CREATE OR REPLACE FUNCTION update_autocomplete_freshness()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    NEW.data_freshness_hours = EXTRACT(EPOCH FROM (NOW() - NEW.datetime)) / 3600;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger do automatycznego uaktualniania freshness
+CREATE TRIGGER trigger_update_autocomplete_freshness
+    BEFORE UPDATE ON autocomplete_results
+    FOR EACH ROW
+    EXECUTE FUNCTION update_autocomplete_freshness();
+
+-- Funkcja do automatycznego obliczania word_count
+CREATE OR REPLACE FUNCTION calculate_suggestion_word_count()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.word_count = array_length(string_to_array(trim(NEW.suggestion), ' '), 1);
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger do automatycznego obliczania word_count
+CREATE TRIGGER trigger_calculate_suggestion_word_count
+    BEFORE INSERT OR UPDATE ON autocomplete_suggestions
+    FOR EACH ROW
+    EXECUTE FUNCTION calculate_suggestion_word_count();
+
+-- ============================================================================
+-- PRZYKŁADOWE ZAPYTANIA
+-- ============================================================================
+
+-- Pobranie wszystkich sugestii autocomplete dla słowa kluczowego
+/*
+SELECT 
+    ar.keyword,
+    ar.location_code,
+    ar.client,
+    as_.rank_absolute,
+    as_.suggestion,
+    as_.relevance,
+    as_.intent_category,
+    as_.opportunity_type,
+    as_.difficulty_level
+FROM autocomplete_suggestions as_
+JOIN autocomplete_results ar ON as_.autocomplete_result_id = ar.id
+WHERE ar.keyword = 'dyktanda'
+  AND ar.location_code = 2616
+ORDER BY as_.rank_absolute;
+*/
+
+-- Analiza najpopularniejszych modyfikatorów w sugestiach
+/*
+SELECT 
+    ar.keyword,
+    ar.trending_modifiers->'top_modifiers' as top_modifiers,
+    ar.analysis_summary->'recommendation' as recommendation
+FROM autocomplete_results ar
+WHERE ar.keyword = 'dyktanda';
+*/
+
+-- Znajdowanie long-tail okazji z autocomplete
+/*
+SELECT 
+    ar.keyword as seed_keyword,
+    as_.suggestion,
+    as_.word_count,
+    as_.opportunity_type,
+    as_.difficulty_level,
+    as_.analysis_reason
+FROM autocomplete_suggestions as_
+JOIN autocomplete_results ar ON as_.autocomplete_result_id = ar.id
+WHERE as_.opportunity_type = 'long_tail'
+  AND as_.word_count >= 4
+ORDER BY as_.word_count DESC, as_.rank_absolute;
+*/
+
+-- Analiza intencji w sugestiach autocomplete
+/*
+SELECT 
+    as_.intent_category,
+    COUNT(*) as count,
+    AVG(as_.word_count) as avg_word_count,
+    STRING_AGG(as_.suggestion, ', ' ORDER BY as_.rank_absolute) as examples
+FROM autocomplete_suggestions as_
+JOIN autocomplete_results ar ON as_.autocomplete_result_id = ar.id
+WHERE ar.keyword = 'dyktanda'
+GROUP BY as_.intent_category
+ORDER BY count DESC;
+*/
+
+-- Korelacja z istniejącymi keywords
+/*
+SELECT 
+    k.keyword as existing_keyword,
+    k.search_volume,
+    k.competition,
+    as_.suggestion as autocomplete_suggestion,
+    as_.rank_absolute,
+    as_.opportunity_type
+FROM autocomplete_suggestions as_
+JOIN autocomplete_results ar ON as_.autocomplete_result_id = ar.id
+LEFT JOIN keywords k ON k.keyword = as_.suggestion
+WHERE ar.keyword = 'dyktanda'
+ORDER BY as_.rank_absolute;
+*/
+
+-- Top okazje contentowe z różnych źródeł
+/*
+SELECT 
+    'autocomplete' as source,
+    ar.keyword as seed_keyword,
+    as_.suggestion as opportunity_keyword,
+    as_.opportunity_type,
+    as_.difficulty_level,
+    as_.rank_absolute as position,
+    as_.analysis_reason
+FROM autocomplete_suggestions as_
+JOIN autocomplete_results ar ON as_.autocomplete_result_id = ar.id
+WHERE as_.opportunity_type IS NOT NULL
+  AND ar.keyword = 'dyktanda'
+UNION ALL
+SELECT 
+    'keywords' as source,
+    k.seed_keyword,
+    k.keyword as opportunity_keyword,
+    'existing' as opportunity_type,
+    CASE 
+        WHEN k.keyword_difficulty < 30 THEN 'Easy'
+        WHEN k.keyword_difficulty < 60 THEN 'Medium'
+        ELSE 'Hard'
+    END as difficulty_level,
+    NULL as position,
+    'Existing keyword data' as analysis_reason
+FROM keywords k
+WHERE k.seed_keyword = 'dyktanda'
+ORDER BY difficulty_level, position;
+*/
+
+-- ============================================================================
+-- KONIEC SCHEMATU AUTOCOMPLETE
+-- ============================================================================

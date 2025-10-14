@@ -1,0 +1,474 @@
+-- ============================================================================
+-- FLOWBLY SERP DATABASE SCHEMA - ROZSZERZENIE DLA DATAFORSEO SERP ENDPOINT
+-- ============================================================================
+-- Struktura dla endpointu DataForSEO Live Google Organic SERP Advanced
+-- Przechowuje wyniki wyszukiwania Google SERP dla konkretnych słów kluczowych
+-- ============================================================================
+
+-- ============================================================================
+-- GŁÓWNA TABELA SERP RESULTS
+-- ============================================================================
+CREATE TABLE serp_results (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    
+    -- POWIĄZANIE Z KEYWORDS
+    keyword_id UUID REFERENCES keywords(id) ON DELETE CASCADE NOT NULL,
+    keyword TEXT NOT NULL, -- duplikowane dla szybkości
+    
+    -- PODSTAWOWE PARAMETRY ZAPYTANIA
+    location_code INTEGER,
+    language_code TEXT,
+    se_domain TEXT, -- google.pl, google.com itp.
+    device TEXT DEFAULT 'desktop', -- desktop/mobile
+    os TEXT, -- windows/macos/android/ios
+    
+    -- METADATA WYNIKU
+    check_url TEXT, -- URL do weryfikacji wyników
+    datetime TIMESTAMPTZ, -- kiedy pobrano wyniki (UTC)
+    se_results_count BIGINT, -- całkowita liczba wyników w Google
+    items_count INTEGER, -- liczba zwróconych elementów
+    
+    -- TYPY ELEMENTÓW W SERP
+    item_types TEXT[], -- [organic, paid, featured_snippet, knowledge_graph, ...]
+    
+    -- AUTOKOREKTA I REFINEMENT
+    spell_correction JSONB, -- {keyword, type} - czy Google poprawił zapytanie
+    refinement_chips JSONB, -- chipy do refinowania wyszukiwania
+    
+    -- KOSZTY I TRACKING
+    api_cost DECIMAL(8,4) DEFAULT 0,
+    execution_time DECIMAL(8,4), -- czas wykonania w sekundach
+    
+    -- METADATA
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    data_freshness_hours INTEGER, -- ile godzin temu pobrano dane
+    
+    -- INDEKS UNIKALNOŚCI (jedno SERP na kombinację parametrów)
+    UNIQUE(keyword_id, location_code, language_code, device, se_domain)
+);
+
+-- ============================================================================
+-- TABELA SERP ITEMS - POSZCZEGÓLNE ELEMENTY WYNIKÓW
+-- ============================================================================
+CREATE TABLE serp_items (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    serp_result_id UUID REFERENCES serp_results(id) ON DELETE CASCADE NOT NULL,
+    
+    -- PODSTAWOWE INFORMACJE O ELEMENCIE
+    type TEXT NOT NULL, -- organic, paid, featured_snippet, knowledge_graph, etc.
+    rank_group INTEGER, -- pozycja w grupie tego samego typu
+    rank_absolute INTEGER, -- pozycja absolutna w SERP
+    position TEXT, -- left/right
+    xpath TEXT, -- XPath elementu na stronie
+    
+    -- PODSTAWOWE DANE WYNIKU
+    domain TEXT,
+    title TEXT,
+    url TEXT,
+    breadcrumb TEXT,
+    website_name TEXT,
+    description TEXT,
+    pre_snippet TEXT, -- np. "05/24/2025 00:00:00"
+    extended_snippet TEXT,
+    
+    -- FLAGI BOOLEAN
+    is_image BOOLEAN DEFAULT FALSE,
+    is_video BOOLEAN DEFAULT FALSE,
+    is_featured_snippet BOOLEAN DEFAULT FALSE,
+    is_malicious BOOLEAN DEFAULT FALSE,
+    is_web_story BOOLEAN DEFAULT FALSE,
+    is_amp BOOLEAN DEFAULT FALSE,
+    
+    -- DANE CZASOWE
+    timestamp TIMESTAMPTZ, -- data publikacji artykułu
+    
+    -- OCENY I CENY
+    rating_value DECIMAL(3,2),
+    rating_type TEXT, -- Max5, Percents, CustomMax
+    rating_votes_count INTEGER,
+    rating_max INTEGER,
+    
+    price_current DECIMAL(10,2),
+    price_regular DECIMAL(10,2),
+    price_max DECIMAL(10,2),
+    price_currency TEXT,
+    price_is_range BOOLEAN DEFAULT FALSE,
+    price_displayed TEXT,
+    
+    -- ZŁOŻONE STRUKTURY JSONB
+    images JSONB, -- [{type, alt, url, image_url}]
+    links JSONB, -- sitelinki [{type, title, description, url, domain}]
+    highlighted JSONB, -- podświetlone fragmenty tekstu
+    faq JSONB, -- FAQ box {type, items[]}
+    table_data JSONB, -- tabele {table_header[], table_content[]}
+    graph_data JSONB, -- wykresy dla stocks/currency
+    
+    -- SPECJALNE POLA DLA RÓŻNYCH TYPÓW
+    extended_snippet TEXT,
+    pre_snippet TEXT,
+    featured_title TEXT, -- dla featured_snippet
+    cache_url TEXT,
+    related_search_url TEXT,
+    votes_count INTEGER, -- dla related_result z głosami
+    
+    -- DANE CZASOWE DODATKOWE
+    date_published DATE, -- z top_stories
+    hours_ago INTEGER, -- "20 godzin temu" -> 20
+    
+    -- DANE O LOKALIZACJI (pixel positioning)
+    rectangle_x DECIMAL(8,2),
+    rectangle_y DECIMAL(8,2),
+    rectangle_width DECIMAL(8,2),
+    rectangle_height DECIMAL(8,2),
+    
+    -- PEŁNE DANE RAW DLA ZŁOŻONYCH STRUKTUR
+    raw_data JSONB, -- pełny JSON elementu dla typu knowledge_graph, ai_overview itp.
+    
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ============================================================================
+-- TABELA RELATED RESULTS - POWIĄZANE WYNIKI Z TEJ SAMEJ DOMENY
+-- ============================================================================
+CREATE TABLE serp_related_results (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    parent_serp_item_id UUID REFERENCES serp_items(id) ON DELETE CASCADE NOT NULL,
+    
+    -- PODSTAWOWE DANE
+    type TEXT DEFAULT 'related_result',
+    xpath TEXT,
+    domain TEXT,
+    title TEXT,
+    url TEXT,
+    breadcrumb TEXT,
+    description TEXT,
+    
+    -- FLAGI
+    is_image BOOLEAN DEFAULT FALSE,
+    is_video BOOLEAN DEFAULT FALSE,
+    is_amp BOOLEAN DEFAULT FALSE,
+    
+    -- DANE DODATKOWE
+    timestamp TIMESTAMPTZ,
+    highlighted JSONB,
+    images JSONB,
+    rating_data JSONB,
+    price_data JSONB,
+    
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ============================================================================
+-- TABELA AI OVERVIEW REFERENCES - REFERENCJE W AI OVERVIEW
+-- ============================================================================
+CREATE TABLE serp_ai_references (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    serp_item_id UUID REFERENCES serp_items(id) ON DELETE CASCADE NOT NULL,
+    
+    -- DANE REFERENCJI
+    type TEXT DEFAULT 'ai_overview_reference',
+    source TEXT, -- nazwa źródła
+    domain TEXT,
+    title TEXT,
+    url TEXT,
+    date DATE,
+    timestamp TIMESTAMPTZ,
+    text_fragment TEXT, -- fragment tekstu użyty przez AI
+    image_url TEXT,
+    badges JSONB, -- odznaki artykułu
+    is_amp BOOLEAN DEFAULT FALSE,
+    
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ============================================================================
+-- TABELA PEOPLE ALSO ASK - PYTANIA "LUDZIE TAKŻE PYTAJĄ"
+-- ============================================================================
+CREATE TABLE serp_people_also_ask (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    serp_result_id UUID REFERENCES serp_results(id) ON DELETE CASCADE NOT NULL,
+    
+    -- DANE PYTANIA
+    question TEXT NOT NULL,
+    seed_question TEXT, -- pytanie wywołujące
+    xpath TEXT,
+    
+    -- ROZWINIĘTA ODPOWIEDŹ
+    expanded_title TEXT,
+    expanded_url TEXT,
+    expanded_domain TEXT,
+    expanded_description TEXT,
+    expanded_timestamp TIMESTAMPTZ,
+    
+    -- DODATKOWE DANE
+    images JSONB,
+    table_data JSONB,
+    is_ai_overview BOOLEAN DEFAULT FALSE,
+    ai_references JSONB, -- jeśli odpowiedź generowana przez AI
+    
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ============================================================================
+-- TABELA SHOPPING RESULTS - WYNIKI ZAKUPOWE
+-- ============================================================================
+CREATE TABLE serp_shopping_results (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    serp_result_id UUID REFERENCES serp_results(id) ON DELETE CASCADE NOT NULL,
+    
+    -- DANE PRODUKTU
+    title TEXT NOT NULL,
+    description TEXT,
+    source TEXT,
+    marketplace TEXT,
+    marketplace_url TEXT,
+    url TEXT,
+    
+    -- CENA
+    price_current DECIMAL(10,2),
+    price_regular DECIMAL(10,2),
+    price_currency TEXT,
+    price_displayed TEXT,
+    
+    -- OCENA
+    rating_value DECIMAL(3,2),
+    rating_votes_count INTEGER,
+    rating_max INTEGER,
+    
+    -- DODATKOWE
+    images JSONB,
+    xpath TEXT,
+    
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ============================================================================
+-- TABELA LOCAL PACK - WYNIKI LOKALNE
+-- ============================================================================
+CREATE TABLE serp_local_results (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    serp_result_id UUID REFERENCES serp_results(id) ON DELETE CASCADE NOT NULL,
+    
+    -- DANE FIRMY/MIEJSCA
+    title TEXT NOT NULL,
+    description TEXT,
+    domain TEXT,
+    url TEXT,
+    phone TEXT,
+    cid TEXT, -- Google client ID
+    place_id TEXT, -- Google Place ID
+    
+    -- OCENA
+    rating_value DECIMAL(3,2),
+    rating_votes_count INTEGER,
+    
+    -- FLAGI
+    is_paid BOOLEAN DEFAULT FALSE,
+    
+    -- DODATKOWE
+    xpath TEXT,
+    
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ============================================================================
+-- TABELA RELATED SEARCHES - POWIĄZANE WYSZUKIWANIA
+-- ============================================================================
+CREATE TABLE serp_related_searches (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    serp_result_id UUID REFERENCES serp_results(id) ON DELETE CASCADE NOT NULL,
+    keyword TEXT NOT NULL,
+    position INTEGER,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ============================================================================
+-- INDEKSY DLA WYDAJNOŚCI
+-- ============================================================================
+
+-- Indeksy dla serp_results
+CREATE INDEX idx_serp_results_keyword_id ON serp_results(keyword_id);
+CREATE INDEX idx_serp_results_keyword ON serp_results(keyword);
+CREATE INDEX idx_serp_results_location_language ON serp_results(location_code, language_code);
+CREATE INDEX idx_serp_results_device ON serp_results(device);
+CREATE INDEX idx_serp_results_datetime ON serp_results(datetime DESC);
+CREATE INDEX idx_serp_results_se_count ON serp_results(se_results_count DESC);
+CREATE INDEX idx_serp_results_freshness ON serp_results(data_freshness_hours);
+
+-- JSONB indeksy
+CREATE INDEX idx_serp_results_item_types ON serp_results USING GIN (item_types);
+CREATE INDEX idx_serp_results_spell ON serp_results USING GIN (spell_correction);
+
+-- Indeksy dla serp_items
+CREATE INDEX idx_serp_items_serp_id ON serp_items(serp_result_id);
+CREATE INDEX idx_serp_items_type ON serp_items(type);
+CREATE INDEX idx_serp_items_rank_absolute ON serp_items(rank_absolute);
+CREATE INDEX idx_serp_items_rank_group ON serp_items(rank_group);
+CREATE INDEX idx_serp_items_domain ON serp_items(domain);
+CREATE INDEX idx_serp_items_is_featured ON serp_items(is_featured_snippet);
+CREATE INDEX idx_serp_items_rating ON serp_items(rating_value DESC);
+CREATE INDEX idx_serp_items_price ON serp_items(price_current);
+
+-- JSONB indeksy dla serp_items
+CREATE INDEX idx_serp_items_images ON serp_items USING GIN (images);
+CREATE INDEX idx_serp_items_links ON serp_items USING GIN (links);
+CREATE INDEX idx_serp_items_highlighted ON serp_items USING GIN (highlighted);
+CREATE INDEX idx_serp_items_raw_data ON serp_items USING GIN (raw_data);
+
+-- Indeksy dla pozostałych tabel
+CREATE INDEX idx_serp_related_parent ON serp_related_results(parent_serp_item_id);
+CREATE INDEX idx_serp_ai_ref_item ON serp_ai_references(serp_item_id);
+CREATE INDEX idx_serp_paa_serp ON serp_people_also_ask(serp_result_id);
+CREATE INDEX idx_serp_shopping_serp ON serp_shopping_results(serp_result_id);
+CREATE INDEX idx_serp_local_serp ON serp_local_results(serp_result_id);
+CREATE INDEX idx_serp_related_searches_serp ON serp_related_searches(serp_result_id);
+CREATE INDEX idx_serp_related_searches_keyword ON serp_related_searches(keyword);
+CREATE INDEX idx_serp_related_searches_position ON serp_related_searches(position);
+
+-- ============================================================================
+-- KOMENTARZE DOKUMENTACYJNE
+-- ============================================================================
+
+-- Główna tabela serp_results
+COMMENT ON TABLE serp_results IS 'Główna tabela wyników SERP - zawiera metadata o całym wyniku wyszukiwania dla danego słowa kluczowego';
+COMMENT ON COLUMN serp_results.keyword_id IS 'UUID powiązania z tabelą keywords';
+COMMENT ON COLUMN serp_results.se_results_count IS 'Całkowita liczba wyników zwróconych przez Google (np. "About 1,830,000 results")';
+COMMENT ON COLUMN serp_results.item_types IS 'Array typów elementów znalezionych w SERP: organic, paid, featured_snippet, knowledge_graph, local_pack, etc.';
+COMMENT ON COLUMN serp_results.spell_correction IS 'JSONB: Dane autokorekty Google {keyword: "poprawione_słowo", type: "did_you_mean|showing_results_for"}';
+COMMENT ON COLUMN serp_results.refinement_chips IS 'JSONB: Chipy do refinowania wyszukiwania z dodatkowymi filtrami';
+COMMENT ON COLUMN serp_results.data_freshness_hours IS 'Ile godzin temu zostały pobrane dane (dla cache/aktualizacji)';
+
+-- Tabela serp_items
+COMMENT ON TABLE serp_items IS 'Poszczególne elementy wyników SERP - organiczne, płatne, featured snippets, knowledge graph itp.';
+COMMENT ON COLUMN serp_items.type IS 'Typ elementu: organic, paid, featured_snippet, knowledge_graph, local_pack, people_also_ask, etc.';
+COMMENT ON COLUMN serp_items.rank_absolute IS 'Pozycja absolutna w SERP (1-100+)';
+COMMENT ON COLUMN serp_items.rank_group IS 'Pozycja w grupie tego samego typu (np. 3 organiczny wynik)';
+COMMENT ON COLUMN serp_items.images IS 'JSONB: Array obrazów [{type, alt, url, image_url}]';
+COMMENT ON COLUMN serp_items.links IS 'JSONB: Sitelinki [{type, title, description, url, domain}]';
+COMMENT ON COLUMN serp_items.highlighted IS 'JSONB: Array podświetlonych fragmentów tekstu w opisie';
+COMMENT ON COLUMN serp_items.faq IS 'JSONB: FAQ box {type: "faq_box", items: [{title, description, links}]}';
+COMMENT ON COLUMN serp_items.raw_data IS 'JSONB: Pełne surowe dane dla złożonych typów (knowledge_graph, ai_overview, carousel)';
+
+-- Tabela related_results
+COMMENT ON TABLE serp_related_results IS 'Powiązane wyniki z tej samej domeny (grouped organic results)';
+
+-- Tabela ai_references
+COMMENT ON TABLE serp_ai_references IS 'Referencje/źródła wykorzystane w AI Overview Google';
+
+-- Tabela people_also_ask
+COMMENT ON TABLE serp_people_also_ask IS 'Pytania "Ludzie także pytają" z rozwiniętymi odpowiedziami';
+
+-- Tabela shopping_results
+COMMENT ON TABLE serp_shopping_results IS 'Wyniki zakupowe z Google Shopping w SERP';
+
+-- Tabela local_results
+COMMENT ON TABLE serp_local_results IS 'Wyniki lokalne z Google My Business (Local Pack)';
+
+-- Tabela related_searches
+COMMENT ON TABLE serp_related_searches IS 'Powiązane wyszukiwania sugerowane przez Google na końcu strony SERP';
+COMMENT ON COLUMN serp_related_searches.keyword IS 'Sugerowane słowo kluczowe powiązane z głównym zapytaniem';
+COMMENT ON COLUMN serp_related_searches.position IS 'Pozycja sugerowanego wyszukiwania (1-8 zazwyczaj)';
+
+-- ============================================================================
+-- FUNKCJE POMOCNICZE
+-- ============================================================================
+
+-- Funkcja do aktualizacji freshness
+CREATE OR REPLACE FUNCTION update_serp_freshness()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    NEW.data_freshness_hours = EXTRACT(EPOCH FROM (NOW() - NEW.datetime)) / 3600;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger do automatycznego uaktualniania freshness
+CREATE TRIGGER trigger_update_serp_freshness
+    BEFORE UPDATE ON serp_results
+    FOR EACH ROW
+    EXECUTE FUNCTION update_serp_freshness();
+
+-- ============================================================================
+-- PRZYKŁADOWE ZAPYTANIA
+-- ============================================================================
+
+-- Pobranie top 10 organicznych wyników dla słowa kluczowego
+/*
+SELECT 
+    si.rank_absolute,
+    si.domain,
+    si.title,
+    si.url,
+    si.description,
+    si.rating_value,
+    si.price_current
+FROM serp_items si
+JOIN serp_results sr ON si.serp_result_id = sr.id
+WHERE sr.keyword = 'dyktanda' 
+  AND si.type = 'organic'
+  AND sr.location_code = 2616
+ORDER BY si.rank_absolute
+LIMIT 10;
+*/
+
+-- Analiza typów elementów w SERP
+/*
+SELECT 
+    sr.keyword,
+    si.type,
+    COUNT(*) as count,
+    AVG(si.rank_absolute) as avg_position
+FROM serp_results sr
+JOIN serp_items si ON sr.id = si.serp_result_id
+WHERE sr.keyword_id = 'your-keyword-uuid'
+GROUP BY sr.keyword, si.type
+ORDER BY avg_position;
+*/
+
+-- Konkurencja w SERP - które domeny najczęściej
+/*
+SELECT 
+    si.domain,
+    COUNT(*) as appearances,
+    AVG(si.rank_absolute) as avg_position,
+    MIN(si.rank_absolute) as best_position
+FROM serp_items si
+JOIN serp_results sr ON si.serp_result_id = sr.id
+WHERE sr.keyword IN ('keyword1', 'keyword2', 'keyword3')
+  AND si.type = 'organic'
+GROUP BY si.domain
+HAVING COUNT(*) > 1
+ORDER BY avg_position;
+*/
+
+-- Powiązane wyszukiwania dla słowa kluczowego
+/*
+SELECT 
+    sr.keyword as main_keyword,
+    srs.keyword as related_keyword,
+    srs.position
+FROM serp_related_searches srs
+JOIN serp_results sr ON srs.serp_result_id = sr.id
+WHERE sr.keyword = 'dyktanda'
+ORDER BY srs.position;
+*/
+
+-- Analiza powiązanych wyszukiwań - najczęściej sugerowane
+/*
+SELECT 
+    srs.keyword,
+    COUNT(*) as frequency,
+    AVG(srs.position) as avg_position,
+    STRING_AGG(DISTINCT sr.keyword, ', ') as main_keywords
+FROM serp_related_searches srs
+JOIN serp_results sr ON srs.serp_result_id = sr.id
+GROUP BY srs.keyword
+HAVING COUNT(*) > 1
+ORDER BY frequency DESC, avg_position;
+*/
+
+-- ============================================================================
+-- KONIEC SCHEMATU SERP
+-- ============================================================================

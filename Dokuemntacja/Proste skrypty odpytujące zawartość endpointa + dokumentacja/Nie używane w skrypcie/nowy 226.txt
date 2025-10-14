@@ -1,0 +1,1273 @@
+https://docs.dataforseo.com/v3/dataforseo_labs/google/keyword_overview/live/?bash&
+
+Keyword Overview - 0.010100$
+📄 dataforseo_labs_google_keyword_overview_live_request_info.py
+
+📄 ..._response_info.py, ..._result_info.py
+
+➡️ Najlepszy punkt startowy dla podstawowych metryk frazy (wolumen, CPC, trudność, itd.)
+
+
+
+# DataForSEO Keyword Overview API - Szybka Dokumentacja
+
+## PODSTAWOWE INFO
+- Endpoint: /v3/dataforseo_labs/google/keyword_overview/live
+- Method: POST (Live - instant results)
+- Format: JSON (UTF-8)
+- Źródło: Google Ads API + clickstream data
+- Update: miesięcznie
+
+---
+
+## POLA ŻĄDANIA (POST REQUEST)
+
+| Pole | Typ | Wymagane | Opis |
+|------|-----|----------|------|
+| keywords | array | TAK | Słowa kluczowe do analizy |
+| language_code | string | TAK | Kod języka (np. "en") |
+| location_code | integer | TAK | Kod lokalizacji (np. 2840) |
+| include_clickstream_data | boolean | NIE | Dołączenie danych clickstream |
+| include_serp_info | boolean | NIE | Dołączenie informacji SERP |
+| search_partners | boolean | NIE | Partnerzy wyszukiwania Google |
+
+---
+
+## GŁÓWNA STRUKTURA ODPOWIEDZI
+
+```
+response
+├── version (string)
+├── status_code (integer)
+├── status_message (string)
+├── time (string)
+├── cost (float)
+├── tasks_count (integer)
+├── tasks_error (integer)
+└── tasks (array)
+    └── [task_object]
+```
+
+---
+
+## OBIEKT ZADANIA (tasks[])
+
+| Pole | Typ | Opis |
+|------|-----|------|
+| id | string | UUID zadania |
+| status_code | integer | Status kod |
+| status_message | string | Wiadomość statusu |
+| time | string | Czas wykonania |
+| cost | float | Koszt w USD |
+| result_count | integer | Liczba wyników |
+| path | array | Ścieżka URL |
+| data | object | Parametry z POST request |
+| result | array | Tablica wyników |
+
+---
+
+## STRUKTURA WYNIKU (result[])
+
+### PODSTAWOWE POLA WYNIKU
+| Pole | Typ | Opis |
+|------|-----|------|
+| se_type | string | "google" |
+| location_code | integer | Kod lokalizacji |
+| language_code | string | Kod języka |
+| items_count | integer | Liczba elementów |
+| items | array | Główne dane wyników |
+
+---
+
+## ELEMENTY W ITEMS[]
+
+### PODSTAWOWE POLA ITEM
+| Pole | Typ | Opis |
+|------|-----|------|
+| se_type | string | "google" |
+| keyword | string | Analizowane słowo kluczowe |
+| location_code | integer | Kod lokalizacji |
+| language_code | string | Kod języka |
+| search_partners | boolean | Czy uwzględniono partnerów |
+
+---
+
+## SZCZEGÓŁOWE SEKCJE DANYCH
+
+### 1. KEYWORD_INFO (Google Ads API)
+```
+keyword_info
+├── se_type (string) - "google"
+├── last_updated_time (string) - data ostatniej aktualizacji
+├── competition (float) - konkurencja (0-1)
+├── competition_level (string) - "LOW"/"MEDIUM"/"HIGH"
+├── cpc (float) - koszt za kliknięcie USD
+├── search_volume (integer) - wolumen wyszukiwań miesięcznie
+├── low_top_of_page_bid (float) - minimalna stawka top USD
+├── high_top_of_page_bid (float) - maksymalna stawka top USD
+├── categories (array) - kategorie Google Ads
+├── monthly_searches (array) - dane miesięczne
+�?  ├── year (integer) - rok
+�?  ├── month (integer) - miesiąc
+�?  └── search_volume (integer) - wolumen
+└── search_volume_trend (object)
+    ├── monthly (integer) - trend miesięczny %
+    ├── quarterly (integer) - trend kwartalny %
+    └── yearly (integer) - trend roczny %
+```
+
+### 2. KEYWORD_INFO_NORMALIZED_WITH_BING
+```
+keyword_info_normalized_with_bing
+├── last_updated_time (string)
+├── search_volume (integer) - znormalizowany wolumen z Bing
+├── is_normalized (boolean) - czy dane znormalizowane
+└── monthly_searches (array)
+    ├── year (integer)
+    ├── month (integer)
+    └── search_volume (integer)
+```
+
+### 3. KEYWORD_INFO_NORMALIZED_WITH_CLICKSTREAM
+```
+keyword_info_normalized_with_clickstream
+├── last_updated_time (string)
+├── search_volume (integer) - znormalizowany wolumen z clickstream
+├── is_normalized (boolean) - czy dane znormalizowane
+└── monthly_searches (array)
+    ├── year (integer)
+    ├── month (integer)
+    └── search_volume (integer)
+```
+
+### 4. CLICKSTREAM_KEYWORD_INFO
+```
+clickstream_keyword_info
+├── search_volume (integer) - wolumen z clickstream
+├── last_updated_time (string)
+├── gender_distribution (object)
+�?  ├── female (integer) - % kobiet
+�?  └── male (integer) - % mężczyzn
+├── age_distribution (object)
+�?  ├── 18-24 (integer) - % w wieku 18-24
+�?  ├── 25-34 (integer) - % w wieku 25-34
+�?  ├── 35-44 (integer) - % w wieku 35-44
+�?  ├── 45-54 (integer) - % w wieku 45-54
+�?  └── 55-64 (integer) - % w wieku 55-64
+└── monthly_searches (array)
+    ├── year (integer)
+    ├── month (integer)
+    └── search_volume (integer)
+```
+
+### 5. KEYWORD_PROPERTIES
+```
+keyword_properties
+├── se_type (string) - "google"
+├── core_keyword (string/null) - główne słowo kluczowe
+├── synonym_clustering_algorithm (string) - algorytm grupowania
+├── keyword_difficulty (integer) - trudność słowa (0-100)
+├── detected_language (string) - wykryty język
+└── is_another_language (boolean) - czy inne języki
+```
+
+### 6. SERP_INFO
+```
+serp_info
+├── se_type (string) - "google"
+├── check_url (string) - URL do sprawdzenia SERP
+├── serp_item_types (array) - typy elementów SERP
+├── se_results_count (integer) - liczba wyników wyszukiwania
+├── last_updated_time (string) - ostatnia aktualizacja
+└── previous_updated_time (string) - poprzednia aktualizacja
+```
+
+### 7. AVG_BACKLINKS_INFO
+```
+avg_backlinks_info
+├── se_type (string) - "google"
+├── backlinks (float) - średnia liczba backlinków
+├── dofollow (float) - średnia liczba backlinków dofollow
+├── referring_pages (float) - średnia liczba stron odnoszących
+├── referring_domains (float) - średnia liczba domen odnoszących
+├── referring_main_domains (float) - średnia głównych domen
+├── rank (float) - średni ranking
+├── main_domain_rank (float) - średni ranking głównej domeny
+└── last_updated_time (string) - ostatnia aktualizacja
+```
+
+### 8. SEARCH_INTENT_INFO
+```
+search_intent_info
+├── se_type (string) - "google"
+├── main_intent (string) - główna intencja
+├── foreign_intent (string/null) - intencja obca
+└── last_updated_time (string) - ostatnia aktualizacja
+```
+
+---
+
+## MOŻLIWE WARTOŚCI
+
+### COMPETITION_LEVEL:
+- "LOW" - niska konkurencja
+- "MEDIUM" - średnia konkurencja  
+- "HIGH" - wysoka konkurencja
+
+### MAIN_INTENT:
+- "informational" - informacyjna
+- "navigational" - nawigacyjna
+- "transactional" - transakcyjna
+- "commercial" - komercyjna
+
+### SERP_ITEM_TYPES:
+- "organic" - wyniki organiczne
+- "paid" - wyniki płatne
+- "featured_snippet" - wyróżniony fragment
+- "knowledge_graph" - graf wiedzy
+- "people_also_ask" - ludzie pytają też
+- "images" - obrazy
+- "videos" - wideo
+- "news" - aktualności
+- "shopping" - zakupy
+- "maps" - mapy
+- "related_searches" - powiązane wyszukiwania
+- "popular_products" - popularne produkty
+- "perspectives" - perspektywy
+- "people_also_search" - ludzie wyszukują też
+
+---
+
+
+---
+
+## WAŻNE NOTATKI
+
+**ŹRÓDŁA DANYCH:**
+- **keyword_info**: Google Ads API (oficjalne dane)
+- **clickstream_keyword_info**: dane clickstream (zachowania użytkowników)
+- **normalized**: dane znormalizowane z Bing/clickstream dla lepszej dokładności
+
+**DEMOGRAFICZNE DANE:**
+- **Płeć**: procenty female/male
+- **Wiek**: 5 grup wiekowych (18-24, 25-34, 35-44, 45-54, 55-64)
+- **Tylko w clickstream_keyword_info**
+
+**TRENDY:**
+- **monthly/quarterly/yearly**: % zmiana w search_volume_trend
+- **monthly_searches**: historyczne dane do ~5 lat wstecz
+
+**KONKURENCJA:**
+- **competition**: wartość 0-1 (float)
+- **competition_level**: kategoryzacja LOW/MEDIUM/HIGH
+- **keyword_difficulty**: 0-100 (trudność SEO)
+
+**BACKLINKI:**
+- **Średnie wartości** dla stron w top 10
+- **dofollow**: backlinki przekazujące autorytet
+- **referring_domains**: unikalne domeny linkujące
+
+**SERP:**
+- **serp_item_types**: jakie elementy pojawiają się w wynikach
+- **se_results_count**: łączna liczba wyników Google
+- **check_url**: bezpośredni link do sprawdzenia SERP
+
+**KOSZTY:**
+- **CPC**: koszt za kliknięcie w USD
+- **low/high_top_of_page_bid**: zakres stawek dla górnych pozycji
+- **Dane z Google Ads auction insights**
+
+
+
+keyword_overview z pełnym użyciem SDK, loggerem i pełnym result.to_dict(). Będzie wyglądał i działał jak Twój /analyze, tylko z nowym endpointem /labs/overview.
+
+import os
+import logging
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
+from dotenv import load_dotenv
+from dataforseo_client import configuration as dfs_config, api_client as dfs_api_provider
+from dataforseo_client.api.dataforseo_labs_api import DataforseoLabsApi
+from dataforseo_client.models.dataforseo_labs_google_keyword_overview_live_request_info import (
+    DataforseoLabsGoogleKeywordOverviewLiveRequestInfo,
+)
+
+load_dotenv()
+
+router = APIRouter()
+
+# Konfiguracja logowania
+logger = logging.getLogger("dfs_labs")
+logger.setLevel(logging.DEBUG)
+handler = logging.StreamHandler()
+formatter = logging.Formatter("%(asctime)s | %(levelname)s | %(message)s")
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+
+# Dane logowania
+DFS_LOGIN = os.getenv("DATAFORSEO_LOGIN")
+DFS_PASSWORD = os.getenv("DATAFORSEO_PASSWORD")
+
+# Model danych wejściowych
+class KeywordOverviewInput(BaseModel):
+    keyword: str
+    location_code: int = 2616  # Domyślnie USA
+    language_code: str = "pl"  # Domyślnie angielski
+
+@router.post("/labs/overview")
+async def get_keyword_overview(data: KeywordOverviewInput):
+    if not DFS_LOGIN or not DFS_PASSWORD:
+        logger.error("�?Brak danych logowania do API")
+        raise HTTPException(status_code=500, detail="Brak danych logowania do API DataForSEO.")
+
+    logger.info(f"➡️ Otrzymano zapytanie dla słowa kluczowego: {data.keyword}")
+
+    config = dfs_config.Configuration(username=DFS_LOGIN, password=DFS_PASSWORD)
+
+    request_data = [
+        DataforseoLabsGoogleKeywordOverviewLiveRequestInfo(
+            keywords=[data.keyword],
+            location_code=data.location_code,
+            language_code=data.language_code
+        )
+    ]
+
+    try:
+        with dfs_api_provider.ApiClient(config) as api_client:
+            api_instance = DataforseoLabsApi(api_client)
+
+            logger.debug("➡️ Wysyłanie żądania do DataForSEO Labs API...")
+            api_response = api_instance.google_keyword_overview_live(request_data)
+
+            task = api_response.tasks[0]
+            if not task.result:
+                logger.warning("⚠️ Brak wyników dla tego słowa kluczowego.")
+                raise HTTPException(status_code=404, detail="Brak danych dla podanego słowa kluczowego.")
+
+            logger.info("�?Pobrano dane z DFS Labs API.")
+            return task.result[0].to_dict()
+
+    except Exception as e:
+        logger.exception("�?Błąd podczas pobierania danych z DataForSEO Labs API")
+        raise HTTPException(status_code=500, detail=f"Błąd serwera:\n{str(e)}")
+
+
+		
+*****
+*****
+
+{
+  "se_type": "google",
+  "location_code": 2616,
+  "language_code": "pl",
+  "items_count": 1,
+  "items": [
+    {
+      "se_type": "google",
+      "keyword": "soczewki",
+      "location_code": 2616,
+      "language_code": "pl",
+      "search_partners": false,
+      "keyword_info": {
+        "se_type": "google",
+        "last_updated_time": "2025-05-12 11:37:13 +00:00",
+        "competition": 1,
+        "competition_level": "HIGH",
+        "cpc": 1.73,
+        "search_volume": 18100,
+        "low_top_of_page_bid": 0.43,
+        "high_top_of_page_bid": 1.82,
+        "categories": [
+          10011,
+          10085,
+          10460,
+          12867,
+          12868
+        ],
+        "monthly_searches": [
+          {
+            "year": 2025,
+            "month": 4,
+            "search_volume": 18100
+          },
+          {
+            "year": 2025,
+            "month": 3,
+            "search_volume": 18100
+          },
+          {
+            "year": 2025,
+            "month": 2,
+            "search_volume": 14800
+          },
+          {
+            "year": 2025,
+            "month": 1,
+            "search_volume": 18100
+          },
+          {
+            "year": 2024,
+            "month": 12,
+            "search_volume": 14800
+          },
+          {
+            "year": 2024,
+            "month": 11,
+            "search_volume": 18100
+          },
+          {
+            "year": 2024,
+            "month": 10,
+            "search_volume": 22200
+          },
+          {
+            "year": 2024,
+            "month": 9,
+            "search_volume": 18100
+          },
+          {
+            "year": 2024,
+            "month": 8,
+            "search_volume": 18100
+          },
+          {
+            "year": 2024,
+            "month": 7,
+            "search_volume": 22200
+          },
+          {
+            "year": 2024,
+            "month": 6,
+            "search_volume": 22200
+          },
+          {
+            "year": 2024,
+            "month": 5,
+            "search_volume": 22200
+          },
+          {
+            "year": 2024,
+            "month": 4,
+            "search_volume": 22200
+          },
+          {
+            "year": 2024,
+            "month": 3,
+            "search_volume": 22200
+          },
+          {
+            "year": 2024,
+            "month": 2,
+            "search_volume": 18100
+          },
+          {
+            "year": 2024,
+            "month": 1,
+            "search_volume": 18100
+          },
+          {
+            "year": 2023,
+            "month": 12,
+            "search_volume": 18100
+          },
+          {
+            "year": 2023,
+            "month": 11,
+            "search_volume": 18100
+          },
+          {
+            "year": 2023,
+            "month": 10,
+            "search_volume": 22200
+          },
+          {
+            "year": 2023,
+            "month": 9,
+            "search_volume": 18100
+          },
+          {
+            "year": 2023,
+            "month": 8,
+            "search_volume": 18100
+          },
+          {
+            "year": 2023,
+            "month": 7,
+            "search_volume": 18100
+          },
+          {
+            "year": 2023,
+            "month": 6,
+            "search_volume": 18100
+          },
+          {
+            "year": 2023,
+            "month": 5,
+            "search_volume": 22200
+          },
+          {
+            "year": 2023,
+            "month": 4,
+            "search_volume": 18100
+          },
+          {
+            "year": 2023,
+            "month": 3,
+            "search_volume": 18100
+          },
+          {
+            "year": 2023,
+            "month": 2,
+            "search_volume": 18100
+          },
+          {
+            "year": 2023,
+            "month": 1,
+            "search_volume": 18100
+          },
+          {
+            "year": 2022,
+            "month": 12,
+            "search_volume": 14800
+          },
+          {
+            "year": 2022,
+            "month": 11,
+            "search_volume": 18100
+          },
+          {
+            "year": 2022,
+            "month": 10,
+            "search_volume": 22200
+          },
+          {
+            "year": 2022,
+            "month": 9,
+            "search_volume": 14800
+          },
+          {
+            "year": 2022,
+            "month": 8,
+            "search_volume": 14800
+          },
+          {
+            "year": 2022,
+            "month": 7,
+            "search_volume": 14800
+          },
+          {
+            "year": 2022,
+            "month": 6,
+            "search_volume": 18100
+          },
+          {
+            "year": 2022,
+            "month": 5,
+            "search_volume": 22200
+          },
+          {
+            "year": 2022,
+            "month": 4,
+            "search_volume": 22200
+          },
+          {
+            "year": 2022,
+            "month": 3,
+            "search_volume": 22200
+          },
+          {
+            "year": 2022,
+            "month": 2,
+            "search_volume": 18100
+          },
+          {
+            "year": 2022,
+            "month": 1,
+            "search_volume": 22200
+          },
+          {
+            "year": 2021,
+            "month": 12,
+            "search_volume": 18100
+          },
+          {
+            "year": 2021,
+            "month": 11,
+            "search_volume": 22200
+          },
+          {
+            "year": 2021,
+            "month": 10,
+            "search_volume": 22200
+          },
+          {
+            "year": 2021,
+            "month": 9,
+            "search_volume": 18100
+          },
+          {
+            "year": 2021,
+            "month": 8,
+            "search_volume": 18100
+          },
+          {
+            "year": 2021,
+            "month": 7,
+            "search_volume": 18100
+          },
+          {
+            "year": 2021,
+            "month": 6,
+            "search_volume": 22200
+          },
+          {
+            "year": 2021,
+            "month": 5,
+            "search_volume": 22200
+          },
+          {
+            "year": 2021,
+            "month": 4,
+            "search_volume": 22200
+          },
+          {
+            "year": 2021,
+            "month": 3,
+            "search_volume": 22200
+          },
+          {
+            "year": 2021,
+            "month": 2,
+            "search_volume": 18100
+          },
+          {
+            "year": 2021,
+            "month": 1,
+            "search_volume": 18100
+          },
+          {
+            "year": 2020,
+            "month": 12,
+            "search_volume": 18100
+          },
+          {
+            "year": 2020,
+            "month": 11,
+            "search_volume": 22200
+          },
+          {
+            "year": 2020,
+            "month": 10,
+            "search_volume": 22200
+          },
+          {
+            "year": 2020,
+            "month": 9,
+            "search_volume": 18100
+          },
+          {
+            "year": 2020,
+            "month": 8,
+            "search_volume": 22200
+          },
+          {
+            "year": 2020,
+            "month": 7,
+            "search_volume": 22200
+          },
+          {
+            "year": 2020,
+            "month": 6,
+            "search_volume": 22200
+          },
+          {
+            "year": 2020,
+            "month": 5,
+            "search_volume": 22200
+          },
+          {
+            "year": 2020,
+            "month": 4,
+            "search_volume": 22200
+          },
+          {
+            "year": 2020,
+            "month": 3,
+            "search_volume": 22200
+          },
+          {
+            "year": 2020,
+            "month": 2,
+            "search_volume": 22200
+          },
+          {
+            "year": 2020,
+            "month": 1,
+            "search_volume": 22200
+          },
+          {
+            "year": 2019,
+            "month": 12,
+            "search_volume": 18100
+          },
+          {
+            "year": 2019,
+            "month": 11,
+            "search_volume": 22200
+          },
+          {
+            "year": 2019,
+            "month": 10,
+            "search_volume": 27100
+          },
+          {
+            "year": 2019,
+            "month": 9,
+            "search_volume": 18100
+          },
+          {
+            "year": 2019,
+            "month": 8,
+            "search_volume": 22200
+          },
+          {
+            "year": 2019,
+            "month": 7,
+            "search_volume": 22200
+          },
+          {
+            "year": 2019,
+            "month": 6,
+            "search_volume": 22200
+          },
+          {
+            "year": 2019,
+            "month": 5,
+            "search_volume": 22200
+          },
+          {
+            "year": 2019,
+            "month": 4,
+            "search_volume": 22200
+          },
+          {
+            "year": 2019,
+            "month": 3,
+            "search_volume": 22200
+          },
+          {
+            "year": 2019,
+            "month": 2,
+            "search_volume": 22200
+          },
+          {
+            "year": 2019,
+            "month": 1,
+            "search_volume": 22200
+          },
+          {
+            "year": 2018,
+            "month": 12,
+            "search_volume": 18100
+          },
+          {
+            "year": 2018,
+            "month": 11,
+            "search_volume": 22200
+          }
+        ],
+        "search_volume_trend": {
+          "monthly": 0,
+          "quarterly": 22,
+          "yearly": -18
+        }
+      },
+      "keyword_properties": {
+        "se_type": "google",
+        "keyword_difficulty": 42,
+        "detected_language": "pl",
+        "is_another_language": false,
+        "core_keyword": null,
+        "synonym_clustering_algorithm": null
+      },
+      "avg_backlinks_info": {
+        "se_type": "google",
+        "backlinks": 1648.6,
+        "dofollow": 1601.5,
+        "referring_pages": 1643.6,
+        "referring_domains": 31.7,
+        "referring_main_domains": 29.9,
+        "rank": 175.6,
+        "main_domain_rank": 275.3,
+        "last_updated_time": "2025-04-29 23:59:39 +00:00"
+      },
+      "search_intent_info": {
+        "se_type": "google",
+        "main_intent": "transactional",
+        "last_updated_time": "2023-03-01 19:08:15 +00:00",
+        "foreign_intent": null
+      },
+      "clickstream_keyword_info": null
+    }
+  ]
+}
+
+
+*****
+*****
+{
+  "se_type": "google",
+  "location_code": 2616,
+  "language_code": "pl",
+  "items_count": 1,
+  "items": [
+    {
+      "se_type": "google",
+      "keyword": "grzegrzółka",
+      "location_code": 2616,
+      "language_code": "pl",
+      "search_partners": false,
+      "keyword_info": {
+        "se_type": "google",
+        "last_updated_time": "2025-05-09 18:19:58 +00:00",
+        "competition": 0.01,
+        "competition_level": "LOW",
+        "cpc": 1.43,
+        "search_volume": 9900,
+        "low_top_of_page_bid": 0.58,
+        "high_top_of_page_bid": 1.35,
+        "categories": [
+          10010,
+          10082,
+          11613,
+          12832
+        ],
+        "monthly_searches": [
+          {
+            "year": 2025,
+            "month": 4,
+            "search_volume": 9900
+          },
+          {
+            "year": 2025,
+            "month": 3,
+            "search_volume": 12100
+          },
+          {
+            "year": 2025,
+            "month": 2,
+            "search_volume": 12100
+          },
+          {
+            "year": 2025,
+            "month": 1,
+            "search_volume": 9900
+          },
+          {
+            "year": 2024,
+            "month": 12,
+            "search_volume": 9900
+          },
+          {
+            "year": 2024,
+            "month": 11,
+            "search_volume": 9900
+          },
+          {
+            "year": 2024,
+            "month": 10,
+            "search_volume": 12100
+          },
+          {
+            "year": 2024,
+            "month": 9,
+            "search_volume": 8100
+          },
+          {
+            "year": 2024,
+            "month": 8,
+            "search_volume": 6600
+          },
+          {
+            "year": 2024,
+            "month": 7,
+            "search_volume": 6600
+          },
+          {
+            "year": 2024,
+            "month": 6,
+            "search_volume": 8100
+          },
+          {
+            "year": 2024,
+            "month": 5,
+            "search_volume": 9900
+          },
+          {
+            "year": 2024,
+            "month": 4,
+            "search_volume": 12100
+          },
+          {
+            "year": 2024,
+            "month": 3,
+            "search_volume": 12100
+          },
+          {
+            "year": 2024,
+            "month": 2,
+            "search_volume": 12100
+          },
+          {
+            "year": 2024,
+            "month": 1,
+            "search_volume": 12100
+          },
+          {
+            "year": 2023,
+            "month": 12,
+            "search_volume": 9900
+          },
+          {
+            "year": 2023,
+            "month": 11,
+            "search_volume": 12100
+          },
+          {
+            "year": 2023,
+            "month": 10,
+            "search_volume": 9900
+          },
+          {
+            "year": 2023,
+            "month": 9,
+            "search_volume": 9900
+          },
+          {
+            "year": 2023,
+            "month": 8,
+            "search_volume": 8100
+          },
+          {
+            "year": 2023,
+            "month": 7,
+            "search_volume": 8100
+          },
+          {
+            "year": 2023,
+            "month": 6,
+            "search_volume": 8100
+          },
+          {
+            "year": 2023,
+            "month": 5,
+            "search_volume": 9900
+          },
+          {
+            "year": 2023,
+            "month": 4,
+            "search_volume": 12100
+          },
+          {
+            "year": 2023,
+            "month": 3,
+            "search_volume": 12100
+          },
+          {
+            "year": 2023,
+            "month": 2,
+            "search_volume": 14800
+          },
+          {
+            "year": 2023,
+            "month": 1,
+            "search_volume": 18100
+          },
+          {
+            "year": 2022,
+            "month": 12,
+            "search_volume": 9900
+          },
+          {
+            "year": 2022,
+            "month": 11,
+            "search_volume": 9900
+          },
+          {
+            "year": 2022,
+            "month": 10,
+            "search_volume": 9900
+          },
+          {
+            "year": 2022,
+            "month": 9,
+            "search_volume": 8100
+          },
+          {
+            "year": 2022,
+            "month": 8,
+            "search_volume": 4400
+          },
+          {
+            "year": 2022,
+            "month": 7,
+            "search_volume": 5400
+          },
+          {
+            "year": 2022,
+            "month": 6,
+            "search_volume": 6600
+          },
+          {
+            "year": 2022,
+            "month": 5,
+            "search_volume": 9900
+          },
+          {
+            "year": 2022,
+            "month": 4,
+            "search_volume": 12100
+          },
+          {
+            "year": 2022,
+            "month": 3,
+            "search_volume": 14800
+          },
+          {
+            "year": 2022,
+            "month": 2,
+            "search_volume": 12100
+          },
+          {
+            "year": 2022,
+            "month": 1,
+            "search_volume": 12100
+          },
+          {
+            "year": 2021,
+            "month": 12,
+            "search_volume": 8100
+          },
+          {
+            "year": 2021,
+            "month": 11,
+            "search_volume": 8100
+          },
+          {
+            "year": 2021,
+            "month": 10,
+            "search_volume": 8100
+          },
+          {
+            "year": 2021,
+            "month": 9,
+            "search_volume": 8100
+          },
+          {
+            "year": 2021,
+            "month": 8,
+            "search_volume": 5400
+          },
+          {
+            "year": 2021,
+            "month": 7,
+            "search_volume": 6600
+          },
+          {
+            "year": 2021,
+            "month": 6,
+            "search_volume": 9900
+          },
+          {
+            "year": 2021,
+            "month": 5,
+            "search_volume": 12100
+          },
+          {
+            "year": 2021,
+            "month": 4,
+            "search_volume": 12100
+          },
+          {
+            "year": 2021,
+            "month": 3,
+            "search_volume": 14800
+          },
+          {
+            "year": 2021,
+            "month": 2,
+            "search_volume": 14800
+          },
+          {
+            "year": 2021,
+            "month": 1,
+            "search_volume": 12100
+          },
+          {
+            "year": 2020,
+            "month": 12,
+            "search_volume": 9900
+          },
+          {
+            "year": 2020,
+            "month": 11,
+            "search_volume": 9900
+          },
+          {
+            "year": 2020,
+            "month": 10,
+            "search_volume": 8100
+          },
+          {
+            "year": 2020,
+            "month": 9,
+            "search_volume": 8100
+          },
+          {
+            "year": 2020,
+            "month": 8,
+            "search_volume": 5400
+          },
+          {
+            "year": 2020,
+            "month": 7,
+            "search_volume": 5400
+          },
+          {
+            "year": 2020,
+            "month": 6,
+            "search_volume": 8100
+          },
+          {
+            "year": 2020,
+            "month": 5,
+            "search_volume": 9900
+          },
+          {
+            "year": 2020,
+            "month": 4,
+            "search_volume": 9900
+          },
+          {
+            "year": 2020,
+            "month": 3,
+            "search_volume": 12100
+          },
+          {
+            "year": 2020,
+            "month": 2,
+            "search_volume": 33100
+          },
+          {
+            "year": 2020,
+            "month": 1,
+            "search_volume": 27100
+          },
+          {
+            "year": 2019,
+            "month": 12,
+            "search_volume": 22200
+          },
+          {
+            "year": 2019,
+            "month": 11,
+            "search_volume": 33100
+          },
+          {
+            "year": 2019,
+            "month": 10,
+            "search_volume": 27100
+          },
+          {
+            "year": 2019,
+            "month": 9,
+            "search_volume": 18100
+          },
+          {
+            "year": 2019,
+            "month": 8,
+            "search_volume": 18100
+          },
+          {
+            "year": 2019,
+            "month": 7,
+            "search_volume": 14800
+          },
+          {
+            "year": 2019,
+            "month": 6,
+            "search_volume": 14800
+          },
+          {
+            "year": 2019,
+            "month": 5,
+            "search_volume": 22200
+          },
+          {
+            "year": 2019,
+            "month": 4,
+            "search_volume": 22200
+          },
+          {
+            "year": 2019,
+            "month": 3,
+            "search_volume": 27100
+          },
+          {
+            "year": 2019,
+            "month": 2,
+            "search_volume": 22200
+          },
+          {
+            "year": 2019,
+            "month": 1,
+            "search_volume": 22200
+          },
+          {
+            "year": 2018,
+            "month": 12,
+            "search_volume": 18100
+          },
+          {
+            "year": 2018,
+            "month": 11,
+            "search_volume": 18100
+          }
+        ],
+        "search_volume_trend": {
+          "monthly": -18,
+          "quarterly": -18,
+          "yearly": -18
+        }
+      },
+      "keyword_properties": {
+        "se_type": "google",
+        "keyword_difficulty": 0,
+        "detected_language": "pl",
+        "is_another_language": false,
+        "core_keyword": null,
+        "synonym_clustering_algorithm": null
+      },
+      "avg_backlinks_info": {
+        "se_type": "google",
+        "backlinks": 3.5,
+        "dofollow": 2.1,
+        "referring_pages": 3.5,
+        "referring_domains": 3,
+        "referring_main_domains": 3,
+        "rank": 23.1,
+        "main_domain_rank": 384.9,
+        "last_updated_time": "2025-04-30 02:53:18 +00:00"
+      },
+      "search_intent_info": {
+        "se_type": "google",
+        "main_intent": "commercial",
+        "foreign_intent": [
+          "informational"
+        ],
+        "last_updated_time": "2023-03-06 13:39:52 +00:00"
+      },
+      "clickstream_keyword_info": null
+    }
+  ]
+}

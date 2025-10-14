@@ -1,0 +1,5330 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEO Analysis Tool - Deweloperska</title>
+    <style>
+        /* Minimalne style CSS */
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+            line-height: 1.6;
+        }
+        
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+        
+        button {
+            width: 100%;
+            padding: 15px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            background: #45a049;
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .progress-container {
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #f0f0f0;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #45a049);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .progress-text {
+            text-align: center;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .steps-list {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 4px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .step-item {
+            padding: 8px;
+            margin: 3px 0;
+            border-radius: 3px;
+            font-size: 14px;
+        }
+        
+        .step-item.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .step-item.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .step-item.timeout {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .message {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            display: none;
+        }
+        
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+        }
+        
+        /* SEKCJA 1: EXTENDED HEADER - Style */
+        .results-container {
+            margin-top: 30px;
+            display: none;
+        }
+        
+        .section-header {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .section-header h2 {
+            margin: 0;
+            font-size: 20px;
+        }
+        
+        .keyword-header {
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .keyword-identity {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+        
+        .geo-info {
+            font-size: 16px;
+            color: #7f8c8d;
+            margin-bottom: 15px;
+        }
+        
+        .badges-container {
+            margin: 15px 0;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-right: 8px;
+            margin-bottom: 5px;
+        }
+        
+        .badge.suggestion {
+            background: #f39c12;
+            color: white;
+        }
+        
+        .badge.depth {
+            background: #9b59b6;
+            color: white;
+        }
+        
+        .badge.language-warning {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .badge.category {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .metadata-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .metadata-item {
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .metadata-label {
+            font-size: 12px;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        
+        .metadata-value {
+            font-size: 14px;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+        
+        /* SEKCJA 2: EXTENDED CORE SEO METRICS - Style */
+        .seo-metrics {
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+        
+        .metrics-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        .metrics-table th,
+        .metrics-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+            vertical-align: middle;
+        }
+        
+        .metrics-table th {
+            background: #f1f3f4;
+            font-weight: bold;
+            color: #2c3e50;
+            font-size: 14px;
+        }
+        
+        .metrics-table tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        
+        .metrics-table td {
+            font-size: 14px;
+        }
+        
+        .metric-value-large {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .difficulty-bar {
+            width: 100%;
+            height: 20px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .difficulty-fill {
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+        
+        .difficulty-fill.easy {
+            background: linear-gradient(90deg, #27ae60, #2ecc71);
+        }
+        
+        .difficulty-fill.medium {
+            background: linear-gradient(90deg, #f39c12, #e67e22);
+        }
+        
+        .difficulty-fill.hard {
+            background: linear-gradient(90deg, #e74c3c, #c0392b);
+        }
+        
+        .difficulty-text {
+            position: absolute;
+            width: 100%;
+            text-align: center;
+            line-height: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+        
+        .competition-badge {
+            padding: 2px 6px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .competition-low { background: #d4edda; color: #155724; }
+        .competition-medium { background: #fff3cd; color: #856404; }
+        .competition-high { background: #f8d7da; color: #721c24; }
+        
+        .trend-arrow {
+            font-size: 16px;
+            font-weight: bold;
+            margin-right: 5px;
+        }
+        
+        .trend-positive {
+            color: #27ae60;
+        }
+        
+        .trend-negative {
+            color: #e74c3c;
+        }
+        
+        .trend-neutral {
+            color: #7f8c8d;
+        }
+        
+        .currency {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        /* SEKCJA 3: COMPLETE INTENT ANALYSIS - Style */
+        .intent-analysis {
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+        
+        .intent-section {
+            margin-bottom: 30px;
+        }
+        
+        .intent-section h4 {
+            color: #8e44ad;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        
+        .intent-badge {
+            display: inline-block;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .intent-badge.large {
+            font-size: 18px;
+            padding: 12px 20px;
+        }
+        
+        .intent-informational {
+            background: #e8f4fd;
+            color: #2980b9;
+        }
+        
+        .intent-transactional {
+            background: #fff8e1;
+            color: #f57c00;
+        }
+        
+        .intent-navigational {
+            background: #e8f5e8;
+            color: #388e3c;
+        }
+        
+        .intent-commercial {
+            background: #fce4ec;
+            color: #c2185b;
+        }
+        
+        .intent-local {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+        
+        .intent-unknown {
+            background: #f5f5f5;
+            color: #757575;
+        }
+        
+        .intent-probability {
+            margin-top: 10px;
+        }
+        
+        .probability-bar {
+            width: 100%;
+            height: 15px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+            margin-top: 5px;
+        }
+        
+        .probability-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3498db, #2980b9);
+            transition: width 0.3s ease;
+        }
+        
+        .probability-text {
+            position: absolute;
+            width: 100%;
+            text-align: center;
+            line-height: 15px;
+            font-size: 11px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+        
+        .secondary-intents {
+            margin-top: 15px;
+        }
+        
+        .secondary-intent-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .secondary-intent-item:last-child {
+            border-bottom: none;
+        }
+        
+        .autocomplete-section {
+            background: #f8f9fa;
+            border-left: 4px solid #8e44ad;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        
+        .intent-distribution {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .intent-category {
+            text-align: center;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        
+        .intent-category.intent-informational {
+            background: #e8f4fd;
+            border-color: #2980b9;
+        }
+        
+        .intent-category.intent-transactional {
+            background: #fff8e1;
+            border-color: #f57c00;
+        }
+        
+        .intent-category.intent-navigational {
+            background: #e8f5e8;
+            border-color: #388e3c;
+        }
+        
+        .intent-category.intent-commercial {
+            background: #fce4ec;
+            border-color: #c2185b;
+        }
+        
+        .intent-category.intent-local {
+            background: #f3e5f5;
+            border-color: #7b1fa2;
+        }
+        
+        .intent-category.intent-unknown {
+            background: #f5f5f5;
+            border-color: #757575;
+        }
+        
+        .intent-category-name {
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+        
+        .intent-category-count {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .categorized-suggestions {
+            margin-top: 15px;
+        }
+        
+        .suggestion-category {
+            margin-bottom: 15px;
+        }
+        
+        .suggestion-category-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #2c3e50;
+        }
+        
+        .suggestion-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        
+        .suggestion-item {
+            background: #e9ecef;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            color: #495057;
+        }
+        
+        /* ========================================= */
+        /* SEKCJA 4: COMPLETE DEMOGRAPHICS STYLES */
+        /* ========================================= */
+        
+        .demographics-analysis {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .demographics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 15px;
+        }
+        
+        .gender-chart-container,
+        .age-chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .chart-title {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* Gender Pie Chart */
+        .gender-pie-chart {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            margin: 0 auto 15px auto;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .gender-legend {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 10px;
+        }
+        
+        .gender-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+        
+        .gender-color-box {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+        }
+        
+        .gender-female-color { background: #e91e63; }
+        .gender-male-color { background: #2196f3; }
+        
+        /* Age Bar Chart */
+        .age-groups {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .age-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .age-label {
+            min-width: 80px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #495057;
+        }
+        
+        .age-bar-container {
+            flex: 1;
+            height: 24px;
+            background: #e9ecef;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .age-bar {
+            height: 100%;
+            border-radius: 12px;
+            transition: width 0.6s ease;
+            position: relative;
+        }
+        
+        .age-bar-18-24 { background: linear-gradient(90deg, #ff9800 0%, #ff5722 100%); }
+        .age-bar-25-34 { background: linear-gradient(90deg, #4caf50 0%, #2e7d32 100%); }
+        .age-bar-35-44 { background: linear-gradient(90deg, #2196f3 0%, #1565c0 100%); }
+        .age-bar-45-54 { background: linear-gradient(90deg, #9c27b0 0%, #6a1b9a 100%); }
+        .age-bar-55-64 { background: linear-gradient(90deg, #f44336 0%, #c62828 100%); }
+        
+        .age-value {
+            min-width: 40px;
+            text-align: right;
+            font-size: 14px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .demographics-explanation {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .demographics-explanation p {
+            margin: 0;
+            color: #1565c0;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .demographics-no-data {
+            text-align: center;
+            color: #6c757d;
+            font-style: italic;
+            padding: 40px 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 2px dashed #dee2e6;
+        }
+        
+        /* ========================================= */
+        /* SEKCJA 5: EXTENDED TRENDS & SEASONALITY STYLES */
+        /* ========================================= */
+        
+        .trends-analysis {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .trends-subsection {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .subsection-title {
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 10px;
+        }
+        
+        /* Chart Containers */
+        .trends-charts-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .main-trends-chart {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .mini-trends-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .mini-trend-chart {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+            text-align: center;
+        }
+        
+        .chart-placeholder {
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+            font-style: italic;
+            background: #f1f3f4;
+            border: 2px dashed #dee2e6;
+            border-radius: 8px;
+        }
+        
+        .mini-chart-placeholder {
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+            font-size: 12px;
+            background: #f1f3f4;
+            border: 1px dashed #dee2e6;
+            border-radius: 4px;
+        }
+        
+        /* Historical Data Table */
+        .historical-table-container {
+            overflow-x: auto;
+            margin-top: 15px;
+        }
+        
+        .historical-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            background: white;
+        }
+        
+        .historical-table th,
+        .historical-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .historical-table th {
+            background: #f8f9fa;
+            font-weight: bold;
+            color: #495057;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+        
+        .historical-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .historical-date {
+            font-weight: bold;
+            color: #2c3e50;
+            min-width: 80px;
+        }
+        
+        .historical-volume {
+            font-weight: bold;
+            color: #28a745;
+        }
+        
+        .historical-cpc {
+            color: #007bff;
+        }
+        
+        .historical-competition {
+            color: #dc3545;
+        }
+        
+        .historical-categories {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+        
+        .historical-category-tag {
+            background: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-size: 10px;
+            color: #495057;
+        }
+        
+        .bid-range {
+            font-size: 12px;
+            color: #6c757d;
+        }
+        
+        .trends-no-data {
+            text-align: center;
+            color: #6c757d;
+            font-style: italic;
+            padding: 40px 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 2px dashed #dee2e6;
+        }
+        
+        .current-trends-info {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .current-trends-info p {
+            margin: 0;
+            color: #1565c0;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .historical-summary {
+            background: #f0f8ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #b6d7ff;
+        }
+        
+        .historical-summary h4 {
+            margin: 0 0 10px 0;
+            color: #0056b3;
+        }
+        
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+        }
+        
+        .summary-stat {
+            text-align: center;
+        }
+        
+        .summary-stat-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .summary-stat-label {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 4px;
+        }
+        
+        /* NOWE STYLE dla SEKCJA 5 Subsekcja A - Current Trends Data */
+        .trends-chart-data, .monthly-searches-data, .volume-trends-data {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 12px;
+            margin-top: 8px;
+        }
+        
+        .trends-chart-header, .monthly-chart-header {
+            font-weight: bold;
+            color: #495057;
+            margin-bottom: 10px;
+            font-size: 12px;
+        }
+        
+        .trends-timeline, .monthly-timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .trend-point, .monthly-point {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 8px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+        
+        .trend-date, .monthly-date {
+            color: #6c757d;
+            font-size: 10px;
+        }
+        
+        .trend-value, .monthly-volume {
+            font-weight: bold;
+            color: #28a745;
+            font-size: 11px;
+        }
+        
+        .trend-more, .monthly-more {
+            text-align: center;
+            color: #6c757d;
+            font-style: italic;
+            font-size: 10px;
+            margin-top: 6px;
+        }
+        
+        .volume-trends-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .trend-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 10px;
+            border-radius: 4px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .trend-label {
+            font-size: 11px;
+            color: #495057;
+            font-weight: 500;
+        }
+        
+        .trend-value {
+            font-size: 11px;
+            font-weight: bold;
+        }
+        
+        .trend-positive .trend-value {
+            color: #28a745;
+        }
+        
+        .trend-negative .trend-value {
+            color: #dc3545;
+        }
+        
+        .trend-neutral .trend-value {
+            color: #6c757d;
+        }
+        
+        .trend-positive {
+            background: #f8fff8;
+            border-color: #d4edda;
+        }
+        
+        .trend-negative {
+            background: #fff8f8;
+            border-color: #f5c6cb;
+        }
+        
+        .trend-neutral {
+            background: #f8f9fa;
+            border-color: #e9ecef;
+        }
+        
+        /* SEKCJA 6: COMPLETE GEOGRAPHIC DATA STYLES */
+        .geographic-analysis {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 10px;
+        }
+        
+        .geographic-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .geographic-section {
+            padding: 15px;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            background: #f8f9fa;
+        }
+        
+        .geographic-section h4 {
+            margin: 0 0 15px 0;
+            color: #495057;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        .target-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .target-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .target-flag {
+            font-size: 24px;
+            line-height: 1;
+        }
+        
+        .target-details {
+            flex: 1;
+        }
+        
+        .target-label {
+            font-size: 12px;
+            color: #6c757d;
+            margin-bottom: 2px;
+        }
+        
+        .target-value {
+            font-weight: bold;
+            color: #495057;
+        }
+        
+        .subregion-list, .trends-map-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            background: white;
+        }
+        
+        .region-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            border-bottom: 1px solid #f1f3f4;
+        }
+        
+        .region-item:last-child {
+            border-bottom: none;
+        }
+        
+        .region-item:hover {
+            background: #f8f9fa;
+        }
+        
+        .region-name {
+            font-weight: 500;
+            color: #495057;
+        }
+        
+        .region-value {
+            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+        
+        .region-value.high {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .region-value.medium {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .region-value.low {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .geographic-no-data {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6c757d;
+            font-style: italic;
+        }
+        
+        .geographic-summary {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e7f3ff;
+            border-radius: 6px;
+            border-left: 4px solid #007bff;
+        }
+        
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .summary-stat {
+            text-align: center;
+        }
+        
+        .summary-stat-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #007bff;
+        }
+        
+        .summary-stat-label {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 4px;
+        }
+        
+        /* SEKCJA 7: ENHANCED COMPETITION ANALYSIS STYLES */
+        .competition-analysis {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 10px;
+        }
+        
+        .competition-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .competition-section {
+            padding: 15px;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            background: #f8f9fa;
+        }
+        
+        .competition-section h4 {
+            margin: 0 0 15px 0;
+            color: #495057;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        .serp-info-grid {
+            display: grid;
+            gap: 12px;
+        }
+        
+        .serp-info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            background: white;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .serp-info-label {
+            font-weight: 500;
+            color: #495057;
+        }
+        
+        .serp-info-value {
+            font-weight: bold;
+            color: #007bff;
+        }
+        
+        .serp-results-count {
+            font-size: 18px;
+            color: #dc3545;
+        }
+        
+        .serp-item-types {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        
+        .serp-type-badge {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .serp-type-organic {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .serp-type-paid {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .serp-type-features {
+            background: #cce5ff;
+            color: #004085;
+        }
+        
+        .serp-type-default {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+        
+        .serp-check-url {
+            font-family: monospace;
+            font-size: 11px;
+            color: #6c757d;
+            word-break: break-all;
+            background: #f1f3f4;
+            padding: 4px 6px;
+            border-radius: 3px;
+        }
+        
+        .backlinks-metrics {
+            display: grid;
+            gap: 12px;
+        }
+        
+        .backlinks-metric {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            background: white;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .backlinks-label {
+            font-weight: 500;
+            color: #495057;
+        }
+        
+        .backlinks-value {
+            font-weight: bold;
+            font-size: 16px;
+        }
+        
+        .backlinks-high {
+            color: #dc3545;
+        }
+        
+        .backlinks-medium {
+            color: #fd7e14;
+        }
+        
+        .backlinks-low {
+            color: #28a745;
+        }
+        
+        .competition-no-data {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6c757d;
+            font-style: italic;
+        }
+        
+        .competition-summary {
+            margin-top: 20px;
+            padding: 15px;
+            background: #fff3cd;
+            border-radius: 6px;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .competition-summary h4 {
+            margin: 0 0 10px 0;
+            color: #856404;
+        }
+        
+        .competition-summary p {
+            margin: 0;
+            color: #856404;
+            font-size: 14px;
+        }
+        
+        /* SEKCJA 8: ENHANCED RELATED KEYWORDS WITH HIERARCHY STYLES */
+        .related-keywords-analysis {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 10px;
+        }
+        
+        .related-keywords-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .related-keywords-section {
+            padding: 15px;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            background: #f8f9fa;
+        }
+        
+        .related-keywords-section h4 {
+            margin: 0 0 15px 0;
+            color: #495057;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        .google-trends-topics, .google-trends-queries {
+            margin-bottom: 20px;
+        }
+        
+        .trends-topics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .topics-section, .queries-section {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 12px;
+        }
+        
+        .topics-section h5, .queries-section h5 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            font-weight: bold;
+            color: #495057;
+        }
+        
+        .topic-cloud {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        
+        .topic-tag {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            background: #e7f3ff;
+            color: #0056b3;
+            border: 1px solid #b3d9ff;
+        }
+        
+        .topic-tag.rising {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .queries-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .query-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 8px;
+            border-bottom: 1px solid #f1f3f4;
+            font-size: 13px;
+        }
+        
+        .query-item:last-child {
+            border-bottom: none;
+        }
+        
+        .query-text {
+            flex: 1;
+            color: #495057;
+        }
+        
+        .query-value {
+            font-weight: bold;
+            color: #007bff;
+            font-size: 11px;
+        }
+        
+        .related-keywords-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .related-keywords-table th {
+            background: #f8f9fa;
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: bold;
+            font-size: 12px;
+            color: #495057;
+            border-bottom: 2px solid #dee2e6;
+        }
+        
+        .related-keywords-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #f1f3f4;
+            font-size: 13px;
+            vertical-align: middle;
+        }
+        
+        .related-keywords-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .keyword-name {
+            font-weight: bold;
+            color: #495057;
+        }
+        
+        .suggestion-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: bold;
+            background: #fff3cd;
+            color: #856404;
+            margin-left: 6px;
+        }
+        
+        .relation-type {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .relation-type.suggestion {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .relation-type.related {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .depth-indicator {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 20px;
+            font-size: 11px;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .depth-0 { background: #007bff; }
+        .depth-1 { background: #28a745; }
+        .depth-2 { background: #ffc107; color: #212529; }
+        .depth-3 { background: #fd7e14; }
+        .depth-4 { background: #dc3545; }
+        
+        .relevance-score {
+            font-weight: bold;
+            color: #28a745;
+        }
+        
+        .search-volume-cell {
+            font-weight: bold;
+            color: #007bff;
+        }
+        
+        .difficulty-cell {
+            font-weight: bold;
+        }
+        
+        .difficulty-low { color: #28a745; }
+        .difficulty-medium { color: #ffc107; }
+        .difficulty-high { color: #dc3545; }
+        
+        .cpc-cell {
+            font-weight: bold;
+            color: #6f42c1;
+        }
+        
+        .competition-cell {
+            font-weight: bold;
+        }
+        
+        .competition-low { color: #28a745; }
+        .competition-medium { color: #ffc107; }
+        .competition-high { color: #dc3545; }
+        
+        .bid-range {
+            font-size: 11px;
+            color: #6c757d;
+        }
+        
+        .intent-cell {
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+        
+        .intent-commercial {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .intent-informational {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .intent-navigational {
+            background: #cce5ff;
+            color: #004085;
+        }
+        
+        .intent-transactional {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .trend-cell {
+            font-weight: bold;
+        }
+        
+        .trend-positive { color: #28a745; }
+        .trend-negative { color: #dc3545; }
+        .trend-neutral { color: #6c757d; }
+        
+        .related-keywords-no-data {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6c757d;
+            font-style: italic;
+        }
+        
+        .related-keywords-summary {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e7f3ff;
+            border-radius: 6px;
+            border-left: 4px solid #007bff;
+        }
+        
+        .related-keywords-summary h4 {
+            margin: 0 0 10px 0;
+            color: #004085;
+        }
+        
+        .related-keywords-summary p {
+            margin: 0;
+            color: #004085;
+            font-size: 14px;
+        }
+        
+        .hierarchy-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .hierarchy-stat {
+            text-align: center;
+            padding: 10px;
+            background: white;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .hierarchy-stat-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #007bff;
+        }
+        
+        .hierarchy-stat-label {
+            font-size: 11px;
+            color: #6c757d;
+            margin-top: 4px;
+        }
+        
+        /* ========================================= */
+        /* SEKCJA 9: ENHANCED SERP ANALYSIS STYLES */
+        /* ========================================= */
+        
+        .serp-analysis {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 10px;
+        }
+        
+        .serp-subsection {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #007bff;
+        }
+        
+        .serp-subsection h4 {
+            margin: 0 0 15px 0;
+            color: #007bff;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        /* Subsekcja A: Extended SERP Metadata */
+        .serp-metadata-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .serp-metadata-item {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .serp-metadata-label {
+            font-size: 12px;
+            font-weight: bold;
+            color: #6c757d;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        
+        .serp-metadata-value {
+            font-size: 14px;
+            color: #495057;
+            font-weight: 500;
+        }
+        
+        .device-badge, .os-badge, .se-domain-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .device-badge.desktop {
+            background: #e7f3ff;
+            color: #004085;
+        }
+        
+        .device-badge.mobile {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .os-badge.windows {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .os-badge.android {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .se-domain-badge {
+            background: #f8d7da;
+            color: #721c24;
+            font-family: monospace;
+        }
+        
+        .serp-check-url {
+            font-family: monospace;
+            font-size: 11px;
+            color: #6c757d;
+            word-break: break-all;
+            background: #f8f9fa;
+            padding: 6px 8px;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .serp-results-count {
+            font-size: 18px;
+            font-weight: bold;
+            color: #dc3545;
+        }
+        
+        .item-types-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+        
+        .item-type-badge {
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .item-type-organic {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .item-type-paid {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .item-type-featured {
+            background: #cce5ff;
+            color: #004085;
+        }
+        
+        .item-type-ai {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+        
+        .item-type-default {
+            background: #e9ecef;
+            color: #6c757d;
+        }
+        
+        .freshness-time {
+            font-size: 12px;
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .refinement-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 10px;
+        }
+        
+        .refinement-chip {
+            background: #e9ecef;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            color: #495057;
+            border: 1px solid #ced4da;
+        }
+        
+        /* Subsekcja B: Complete SERP Items Table */
+        .serp-items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .serp-items-table th {
+            background: #f8f9fa;
+            padding: 10px 6px;
+            text-align: left;
+            font-weight: bold;
+            font-size: 11px;
+            color: #495057;
+            border-bottom: 2px solid #dee2e6;
+        }
+        
+        .serp-items-table td {
+            padding: 8px 6px;
+            border-bottom: 1px solid #f1f3f4;
+            font-size: 12px;
+            vertical-align: top;
+        }
+        
+        .serp-items-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .rank-badge {
+            display: inline-block;
+            background: #007bff;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: bold;
+            min-width: 20px;
+            text-align: center;
+        }
+        
+        .serp-type-badge {
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .position-badge {
+            padding: 1px 4px;
+            border-radius: 6px;
+            font-size: 9px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .position-left {
+            background: #e7f3ff;
+            color: #004085;
+        }
+        
+        .position-right {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .position-center {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .domain-cell {
+            font-family: monospace;
+            font-size: 11px;
+            color: #495057;
+            font-weight: bold;
+        }
+        
+        .website-name {
+            font-size: 10px;
+            color: #6c757d;
+            margin-top: 2px;
+        }
+        
+        .serp-title {
+            font-weight: bold;
+            color: #1a0dab;
+            font-size: 12px;
+            line-height: 1.3;
+        }
+        
+        .featured-title {
+            font-weight: bold;
+            color: #d73527;
+            font-size: 11px;
+            margin-top: 4px;
+        }
+        
+        .rating-display {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .rating-stars {
+            color: #ffc107;
+            font-size: 12px;
+        }
+        
+        .rating-value {
+            font-weight: bold;
+            color: #495057;
+            font-size: 11px;
+        }
+        
+        .rating-votes {
+            color: #6c757d;
+            font-size: 10px;
+        }
+        
+        .price-display {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        
+        .price-current {
+            font-weight: bold;
+            color: #dc3545;
+            font-size: 12px;
+        }
+        
+        .price-regular {
+            text-decoration: line-through;
+            color: #6c757d;
+            font-size: 10px;
+        }
+        
+        .price-currency {
+            font-size: 10px;
+            color: #495057;
+        }
+        
+        .timestamp-display {
+            font-size: 10px;
+            color: #6c757d;
+        }
+        
+        .snippet-container {
+            max-width: 200px;
+        }
+        
+        .description-text {
+            font-size: 11px;
+            color: #495057;
+            line-height: 1.3;
+            margin-bottom: 4px;
+        }
+        
+        .breadcrumb-text {
+            font-size: 10px;
+            color: #28a745;
+            margin-bottom: 2px;
+        }
+        
+        .highlighted-text {
+            background: #fff3cd;
+            padding: 1px 2px;
+            border-radius: 2px;
+            font-weight: bold;
+        }
+        
+        .content-flags {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+        
+        .content-flag {
+            font-size: 14px;
+            filter: grayscale(0.5);
+        }
+        
+        .content-flag.active {
+            filter: grayscale(0);
+        }
+        
+        /* Subsekcja C: SERP Items Dekompozycja by Type */
+        .serp-type-sections {
+            display: grid;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .serp-type-section {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 15px;
+        }
+        
+        .serp-type-title {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: #495057;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .ai-overview-section .serp-type-title {
+            color: #7b1fa2;
+        }
+        
+        .knowledge-graph-section .serp-type-title {
+            color: #2196f3;
+        }
+        
+        .people-also-ask-section .serp-type-title {
+            color: #ff9800;
+        }
+        
+        .local-pack-section .serp-type-title {
+            color: #4caf50;
+        }
+        
+        .ai-text-content {
+            background: #f3e5f5;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            border-left: 4px solid #7b1fa2;
+        }
+        
+        .ai-references-grid {
+            display: grid;
+            gap: 10px;
+        }
+        
+        .ai-reference-item {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .ai-reference-title {
+            font-weight: bold;
+            color: #495057;
+            font-size: 13px;
+            margin-bottom: 5px;
+        }
+        
+        .ai-reference-url {
+            font-family: monospace;
+            font-size: 11px;
+            color: #007bff;
+            margin-bottom: 5px;
+        }
+        
+        .ai-reference-source {
+            font-size: 12px;
+            color: #6c757d;
+            margin-bottom: 8px;
+        }
+        
+        .ai-reference-fragment {
+            font-size: 12px;
+            color: #495057;
+            line-height: 1.4;
+            font-style: italic;
+        }
+        
+        .ai-reference-badges {
+            display: flex;
+            gap: 4px;
+            margin-top: 8px;
+        }
+        
+        .ai-reference-badge {
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: bold;
+            background: #e9ecef;
+            color: #495057;
+        }
+        
+        .knowledge-graph-content {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 15px;
+            align-items: start;
+        }
+        
+        .kg-image {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .kg-details {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .kg-title {
+            font-weight: bold;
+            font-size: 18px;
+            color: #495057;
+        }
+        
+        .kg-type {
+            font-size: 12px;
+            color: #6c757d;
+            text-transform: uppercase;
+        }
+        
+        .kg-description {
+            font-size: 13px;
+            color: #495057;
+            line-height: 1.4;
+        }
+        
+        .kg-attributes {
+            display: grid;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .kg-attribute {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .kg-attribute-label {
+            font-weight: bold;
+            color: #6c757d;
+            font-size: 12px;
+            min-width: 80px;
+        }
+        
+        .kg-attribute-value {
+            color: #495057;
+            font-size: 12px;
+        }
+        
+        .faq-items-list {
+            display: grid;
+            gap: 12px;
+        }
+        
+        .faq-item {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 6px;
+            border-left: 4px solid #ff9800;
+        }
+        
+        .faq-question {
+            font-weight: bold;
+            color: #495057;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+        
+        .faq-answer {
+            color: #6c757d;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+        
+        /* Subsekcja D: Additional SERP Tables */
+        .additional-serp-tables {
+            display: grid;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .additional-serp-table {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        
+        .additional-serp-table h5 {
+            background: #f8f9fa;
+            margin: 0;
+            padding: 12px 15px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #495057;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .simple-serp-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .simple-serp-table th {
+            background: #f8f9fa;
+            padding: 8px 12px;
+            text-align: left;
+            font-weight: bold;
+            font-size: 11px;
+            color: #495057;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .simple-serp-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #f1f3f4;
+            font-size: 12px;
+            vertical-align: top;
+        }
+        
+        .simple-serp-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .serp-no-data {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6c757d;
+            font-style: italic;
+        }
+        
+        .serp-explanation {
+            background: #e7f3ff;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .serp-explanation p {
+            margin: 0;
+            color: #1565c0;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        /* ========================================= */
+        /* SEKCJA 10: ENHANCED AUTOCOMPLETE ANALYSIS STYLES */
+        /* ========================================= */
+        
+        .autocomplete-analysis {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 10px;
+        }
+        
+        .autocomplete-subsection {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #17a2b8;
+        }
+        
+        .autocomplete-subsection h4 {
+            margin: 0 0 15px 0;
+            color: #17a2b8;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        /* Subsekcja A: Enhanced Autocomplete Metadata */
+        .autocomplete-metadata-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .autocomplete-metadata-item {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .autocomplete-metadata-label {
+            font-size: 12px;
+            font-weight: bold;
+            color: #6c757d;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        
+        .autocomplete-metadata-value {
+            font-size: 14px;
+            color: #495057;
+            font-weight: 500;
+        }
+        
+        .client-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .client-badge.chrome {
+            background: #e7f3ff;
+            color: #004085;
+        }
+        
+        .client-badge.safari {
+            background: #f0f8ff;
+            color: #0056b3;
+        }
+        
+        .client-badge.firefox {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .cursor-position {
+            font-family: monospace;
+            font-size: 12px;
+            background: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+        }
+        
+        /* Subsekcja B: Enhanced Autocomplete Suggestions Table */
+        .autocomplete-suggestions-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .autocomplete-suggestions-table th {
+            background: #f8f9fa;
+            padding: 10px 6px;
+            text-align: left;
+            font-weight: bold;
+            font-size: 11px;
+            color: #495057;
+            border-bottom: 2px solid #dee2e6;
+        }
+        
+        .autocomplete-suggestions-table td {
+            padding: 8px 6px;
+            border-bottom: 1px solid #f1f3f4;
+            font-size: 12px;
+            vertical-align: top;
+        }
+        
+        .autocomplete-suggestions-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .suggestion-rank {
+            background: #28a745;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 50%;
+            font-weight: bold;
+            font-size: 10px;
+            min-width: 20px;
+            text-align: center;
+            display: inline-block;
+        }
+        
+        .suggestion-text {
+            font-weight: 500;
+            color: #495057;
+        }
+        
+        .suggestion-type-badge {
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .suggestion-type-autocomplete {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .suggestion-type-search {
+            background: #cce5ff;
+            color: #004085;
+        }
+        
+        .relevance-score {
+            font-weight: bold;
+            color: #dc3545;
+        }
+        
+        .relevance-high {
+            color: #28a745;
+        }
+        
+        .relevance-medium {
+            color: #ffc107;
+        }
+        
+        .relevance-low {
+            color: #dc3545;
+        }
+        
+        .word-count-badge {
+            background: #6c757d;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+        
+        .word-count-long-tail {
+            background: #28a745;
+        }
+        
+        .intent-category-badge {
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: capitalize;
+        }
+        
+        .intent-informational {
+            background: #cce5ff;
+            color: #004085;
+        }
+        
+        .intent-transactional {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .intent-navigational {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .intent-local {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .opportunity-type-badge {
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: capitalize;
+        }
+        
+        .opportunity-long-tail {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .opportunity-unique-angle {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+        
+        .opportunity-intent-gap {
+            background: #fdf2e9;
+            color: #d68910;
+        }
+        
+        .difficulty-badge {
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .difficulty-easy {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .difficulty-medium {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .difficulty-hard {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .autocomplete-content-flags {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+        
+        .autocomplete-content-flag {
+            font-size: 14px;
+            filter: grayscale(0.5);
+        }
+        
+        .autocomplete-content-flag.active {
+            filter: grayscale(0);
+        }
+        
+        /* Subsekcja C: Enhanced Autocomplete Categories & Business Intelligence */
+        .autocomplete-categories {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .autocomplete-category-section {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 15px;
+        }
+        
+        .autocomplete-category-title {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: #495057;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .bi-section {
+            background: #e7f3ff;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            border-radius: 0 6px 6px 0;
+            margin-top: 20px;
+        }
+        
+        .bi-title {
+            font-weight: bold;
+            color: #1565c0;
+            margin-bottom: 10px;
+        }
+        
+        .content-opportunities-grid {
+            display: grid;
+            gap: 10px;
+        }
+        
+        .content-opportunity-item {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .opportunity-keyword {
+            font-weight: bold;
+            color: #495057;
+            margin-bottom: 5px;
+        }
+        
+        .opportunity-details {
+            font-size: 12px;
+            color: #6c757d;
+            margin-bottom: 8px;
+        }
+        
+        .opportunity-reason {
+            font-size: 12px;
+            color: #495057;
+            font-style: italic;
+        }
+        
+        .analysis-metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+        
+        .analysis-metric {
+            text-align: center;
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #17a2b8;
+            margin-bottom: 5px;
+        }
+        
+        .metric-label {
+            font-size: 12px;
+            color: #6c757d;
+            text-transform: uppercase;
+        }
+        
+        .analysis-summary-content {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .summary-recommendation {
+            font-weight: bold;
+            color: #17a2b8;
+            margin-bottom: 10px;
+        }
+        
+        .key-insights-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .key-insights-list li {
+            padding: 5px 0;
+            color: #495057;
+            font-size: 14px;
+        }
+        
+        .key-insights-list li:before {
+            content: "💡 ";
+            margin-right: 8px;
+        }
+        
+        .autocomplete-no-data {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6c757d;
+            font-style: italic;
+        }
+        
+        .autocomplete-explanation {
+            background: #e7f3ff;
+            border-left: 4px solid #17a2b8;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .autocomplete-explanation p {
+            margin: 0;
+            color: #1565c0;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 SEO Analysis Tool</h1>
+        <p style="text-align: center; color: #666; margin-bottom: 30px;">
+            Wersja deweloperska - tylko analiza i zapis do bazy
+        </p>
+        
+        <form id="analysisForm">
+            <div class="form-group">
+                <label for="keyword">Słowo kluczowe:</label>
+                <input type="text" id="keyword" name="keyword" required 
+                       placeholder="np. marketing online" minlength="2">
+            </div>
+            
+            <div class="form-group">
+                <label for="country">Kraj analizy:</label>
+                <select id="country" name="country" required>
+                    <option value="">Ładowanie krajów...</option>
+                </select>
+            </div>
+            
+            <button type="submit" id="analyzeBtn">
+                🚀 Rozpocznij analizę
+            </button>
+        </form>
+        
+        <!-- Progress Section -->
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-text" id="progressText">Przygotowuję analizę...</div>
+            
+            <div class="steps-list" id="stepsList"></div>
+        </div>
+        
+        <!-- Messages -->
+        <div class="message" id="messageContainer"></div>
+        
+        <!-- SEKCJA 1: EXTENDED HEADER -->
+        <div class="results-container" id="resultsContainer">
+            <div class="section-header">
+                <h2>🏗️ SEKCJA 1: EXTENDED HEADER - KOMPLETNA IDENTYFIKACJA KEYWORD</h2>
+            </div>
+            
+            <div class="keyword-header" id="keywordHeader">
+                <!-- Zawartość będzie wypełniona przez JavaScript -->
+            </div>
+            
+            <!-- SEKCJA 2: EXTENDED CORE SEO METRICS -->
+            <div class="section-header">
+                <h2>📊 SEKCJA 2: EXTENDED CORE SEO METRICS - KOMPLETNA TABELA METRYK</h2>
+            </div>
+            
+            <div class="seo-metrics" id="seoMetrics">
+                <!-- Zawartość będzie wypełniona przez JavaScript -->
+            </div>
+            
+            <!-- SEKCJA 3: COMPLETE INTENT ANALYSIS -->
+            <div class="section-header">
+                <h2>🧠 SEKCJA 3: COMPLETE INTENT ANALYSIS - DEKOMPOZYCJA INTENCJI</h2>
+            </div>
+            
+            <div class="intent-analysis" id="intentAnalysis">
+                <!-- Zawartość będzie wypełniona przez JavaScript -->
+            </div>
+            
+            <!-- SEKCJA 4: COMPLETE DEMOGRAPHICS -->
+            <div class="section-header">
+                <h2>👥 SEKCJA 4: COMPLETE DEMOGRAPHICS - PEŁNY BREAKDOWN DEMOGRAFICZNY</h2>
+            </div>
+            
+            <div class="demographics-analysis" id="demographicsAnalysis">
+                <!-- Zawartość będzie wypełniona przez JavaScript -->
+            </div>
+            
+            <!-- SEKCJA 5: EXTENDED TRENDS & SEASONALITY -->
+            <div class="section-header">
+                <h2>📈 SEKCJA 5: EXTENDED TRENDS & SEASONALITY - KOMPLETNE DANE CZASOWE</h2>
+            </div>
+            
+            <div class="trends-analysis" id="trendsAnalysis">
+                <!-- Zawartość będzie wypełniona przez JavaScript -->
+            </div>
+            
+            <!-- ========================================= -->
+            <!-- SEKCJA 6: COMPLETE GEOGRAPHIC DATA -->
+            <!-- ========================================= -->
+            <div class="section-header">
+                <h2>🗺️ SEKCJA 6: COMPLETE GEOGRAPHIC DATA - PEŁNE DANE GEOGRAFICZNE</h2>
+            </div>
+            
+            <div class="geographic-analysis" id="geographicAnalysis">
+                <!-- Zawartość będzie wypełniona przez JavaScript -->
+            </div>
+            
+            <!-- ========================================= -->
+            <!-- SEKCJA 7: ENHANCED COMPETITION ANALYSIS -->
+            <!-- ========================================= -->
+            <div class="section-header">
+                <h2>⚔️ SEKCJA 7: ENHANCED COMPETITION ANALYSIS - ANALIZA KONKURENCJI</h2>
+            </div>
+            
+            <div class="competition-analysis" id="competitionAnalysis">
+                <!-- Zawartość będzie wypełniona przez JavaScript -->
+            </div>
+            
+            <!-- ========================================= -->
+            <!-- SEKCJA 8: ENHANCED RELATED KEYWORDS WITH HIERARCHY -->
+            <!-- ========================================= -->
+            <div class="section-header">
+                <h2>🔗 SEKCJA 8: ENHANCED RELATED KEYWORDS WITH HIERARCHY - SŁOWA POWIĄZANE Z HIERARCHIĄ</h2>
+            </div>
+            
+            <div class="related-keywords-analysis" id="relatedKeywordsAnalysis">
+                <!-- Zawartość będzie wypełniona przez JavaScript -->
+            </div>
+            
+            <!-- ========================================= -->
+            <!-- SEKCJA 9: ENHANCED SERP ANALYSIS -->
+            <!-- ========================================= -->
+            <div class="section-header">
+                <h2>🔍 SEKCJA 9: ENHANCED SERP ANALYSIS - KOMPLETNA DEKOMPOZYCJA SERP</h2>
+            </div>
+            
+            <div class="serp-analysis" id="serpAnalysis">
+                <!-- Zawartość będzie wypełniona przez JavaScript -->
+            </div>
+            
+            <!-- ========================================= -->
+            <!-- SEKCJA 10: ENHANCED AUTOCOMPLETE ANALYSIS -->
+            <!-- ========================================= -->
+            <div class="section-header">
+                <h2>🔮 SEKCJA 10: ENHANCED AUTOCOMPLETE ANALYSIS - KOMPLETNE DANE AUTOCOMPLETE</h2>
+            </div>
+            
+            <div class="autocomplete-analysis" id="autocompleteAnalysis">
+                <!-- Zawartość będzie wypełniona przez JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Prosty JavaScript - tylko podstawowa funkcjonalność
+        let analysisForm = document.getElementById('analysisForm');
+        let analyzeBtn = document.getElementById('analyzeBtn');
+        let progressContainer = document.getElementById('progressContainer');
+        let progressFill = document.getElementById('progressFill');
+        let progressText = document.getElementById('progressText');
+        let stepsList = document.getElementById('stepsList');
+        let messageContainer = document.getElementById('messageContainer');
+        let countrySelect = document.getElementById('country');
+        
+        // Załaduj kraje na start
+        loadCountries();
+        
+        // Obsługa formularza
+        analysisForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            runAnalysis();
+        });
+        
+        async function loadCountries() {
+            try {
+                const response = await fetch('/api/v6/countries');
+                const data = await response.json();
+                
+                countrySelect.innerHTML = '<option value="">Wybierz kraj...</option>';
+                
+                if (data.success && data.countries) {
+                    data.countries.forEach(country => {
+                        const option = document.createElement('option');
+                        option.value = country.value;
+                        option.textContent = `${country.text} (${country.iso_code})`;
+                        countrySelect.appendChild(option);
+                    });
+                } else {
+                    throw new Error('Brak danych krajów');
+                }
+                
+            } catch (error) {
+                console.error('Błąd ładowania krajów:', error);
+                countrySelect.innerHTML = '<option value="">Błąd ładowania krajów</option>';
+            }
+        }
+        
+        async function runAnalysis() {
+            const formData = new FormData(analysisForm);
+            const data = {
+                keyword: formData.get('keyword').trim(),
+                country: formData.get('country')
+            };
+            
+            // Validacja
+            if (!data.keyword || data.keyword.length < 2) {
+                showMessage('Słowo kluczowe musi mieć co najmniej 2 znaki', 'error');
+                return;
+            }
+            
+            if (!data.country) {
+                showMessage('Wybierz kraj analizy', 'error');
+                return;
+            }
+            
+            console.log('🚀 Rozpoczynanie analizy:', data);
+            
+            // UI changes
+            analyzeBtn.disabled = true;
+            analyzeBtn.textContent = '⏳ Analizuję...';
+            hideMessage();
+            showProgress();
+            
+            try {
+                const response = await fetch('/api/v6/analyze-complete', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || `HTTP ${response.status}`);
+                }
+                
+                const result = await response.json();
+                console.log('📊 Wynik analizy:', result);
+                
+                // Aktualizuj progress
+                updateProgress(result);
+                
+                if (result.success) {
+                    showMessage(`✅ Analiza zakończona pomyślnie! Ukończono ${result.completed_steps}/${result.total_steps} kroków. Koszt: $${result.total_cost.toFixed(4)}`, 'success');
+                    
+                    // Załaduj i wyświetl dane
+                    loadKeywordData(data.keyword, data.country);
+                } else {
+                    showMessage(`⚠️ Analiza częściowo nie powiodła się. Ukończono ${result.completed_steps}/${result.total_steps} kroków.`, 'error');
+                }
+                
+            } catch (error) {
+                console.error('❌ Błąd podczas analizy:', error);
+                showMessage(`❌ Błąd podczas analizy: ${error.message}`, 'error');
+            } finally {
+                // Reset UI
+                analyzeBtn.disabled = false;
+                analyzeBtn.textContent = '🚀 Rozpocznij analizę';
+            }
+        }
+        
+        function showProgress() {
+            progressContainer.style.display = 'block';
+            progressFill.style.width = '0%';
+            progressText.textContent = 'Przygotowuję analizę...';
+            stepsList.innerHTML = '';
+        }
+        
+        function updateProgress(result) {
+            const progress = (result.completed_steps / result.total_steps) * 100;
+            
+            progressFill.style.width = progress + '%';
+            progressText.textContent = `Ukończono ${result.completed_steps}/${result.total_steps} kroków (${Math.round(progress)}%)`;
+            
+            // Pokaż listę kroków
+            stepsList.innerHTML = '';
+            result.results.forEach(step => {
+                const stepElement = document.createElement('div');
+                stepElement.className = `step-item ${step.status}`;
+                
+                const icon = getStatusIcon(step.status);
+                const duration = step.duration_seconds ? ` (${step.duration_seconds.toFixed(1)}s)` : '';
+                const cost = step.cost ? ` - $${step.cost.toFixed(4)}` : '';
+                
+                stepElement.textContent = `${icon} ${step.name}${duration}${cost}`;
+                stepsList.appendChild(stepElement);
+            });
+        }
+        
+        function getStatusIcon(status) {
+            const icons = {
+                'success': '✅',
+                'error': '❌', 
+                'timeout': '⏰'
+            };
+            return icons[status] || '❓';
+        }
+        
+        function showMessage(text, type) {
+            messageContainer.textContent = text;
+            messageContainer.className = `message ${type}`;
+            messageContainer.style.display = 'block';
+        }
+        
+        function hideMessage() {
+            messageContainer.style.display = 'none';
+        }
+        
+        // SEKCJA 1: EXTENDED HEADER - Funkcje wyświetlania
+        async function loadKeywordData(keyword, country) {
+            try {
+                console.log('📊 Ładowanie danych słowa kluczowego:', keyword, country);
+                
+                // Parsuj country do location_code i language_code
+                const [location_code, language_code] = country.split('|');
+                
+                const response = await fetch(`/api/v6/keyword-data/${encodeURIComponent(keyword)}?location_code=${location_code}&language_code=${language_code}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const result = await response.json();
+                console.log('📊 Dane słowa kluczowego:', result);
+                
+                if (result.success) {
+                    displayKeywordHeader(result.data);
+                    displaySeoMetrics(result.data);
+                    displayIntentAnalysis(result.data);
+                    displayDemographicsAnalysis(result.data);
+                    displayTrendsAnalysis(result.data);
+                    displayGeographicAnalysis(result.data);
+                    displayCompetitionAnalysis(result.data);
+                    displayRelatedKeywordsAnalysis(result.data);
+                    displaySerpAnalysis(result.data);
+                    displayAutocompleteAnalysis(result.data);
+                    showResults();
+                } else {
+                    throw new Error('Brak danych');
+                }
+                
+            } catch (error) {
+                console.error('❌ Błąd ładowania danych:', error);
+                showMessage(`❌ Błąd ładowania danych: ${error.message}`, 'error');
+            }
+        }
+        
+        function displayKeywordHeader(data) {
+            const headerContainer = document.getElementById('keywordHeader');
+            
+            // Główne słowo kluczowe
+            let html = `
+                <div class="keyword-identity">🎯 ${data.keyword_name}</div>
+                <div class="geo-info">📍 GEO: ${data.location_code} | ${data.language_code.toUpperCase()}</div>
+            `;
+            
+            // Badges
+            html += '<div class="badges-container">';
+            
+            // Badge Sugestia
+            if (data.is_suggestion) {
+                html += '<span class="badge suggestion">🏷️ SUGESTIA</span>';
+            }
+            
+            // Badge Depth
+            if (data.depth && data.depth > 0) {
+                html += `<span class="badge depth">📊 DEPTH: ${data.depth}</span>`;
+            }
+            
+            // Badge ostrzeżenie o języku
+            if (data.is_another_language) {
+                html += '<span class="badge language-warning">⚠️ INNY JĘZYK</span>';
+            }
+            
+            // Badges kategorii
+            if (data.categories && data.categories.length > 0) {
+                data.categories.forEach(category => {
+                    html += `<span class="badge category">🏷️ ${category}</span>`;
+                });
+            }
+            
+            html += '</div>';
+            
+            // Seed keyword (jeśli różne)
+            if (data.seed_keyword && data.seed_keyword !== data.keyword_name) {
+                html += `<div style="margin: 10px 0; font-weight: bold;">🌱 SEED: ${data.seed_keyword}</div>`;
+            }
+            
+            // Metadata grid
+            html += '<div class="metadata-grid">';
+            
+            // Detected Language
+            if (data.detected_language) {
+                html += `
+                    <div class="metadata-item">
+                        <div class="metadata-label">🗣️ Wykryty język</div>
+                        <div class="metadata-value">${data.detected_language.toUpperCase()}</div>
+                    </div>
+                `;
+            }
+            
+            // Core Keyword
+            if (data.core_keyword) {
+                html += `
+                    <div class="metadata-item">
+                        <div class="metadata-label">🏷️ Słowo główne</div>
+                        <div class="metadata-value">${data.core_keyword}</div>
+                    </div>
+                `;
+            }
+            
+            // Clustering Algorithm
+            if (data.synonym_clustering_algorithm) {
+                html += `
+                    <div class="metadata-item">
+                        <div class="metadata-label">🧠 Algorytm</div>
+                        <div class="metadata-value">${data.synonym_clustering_algorithm}</div>
+                    </div>
+                `;
+            }
+            
+            // Last Updated
+            if (data.last_updated) {
+                const date = new Date(data.last_updated).toLocaleString('pl-PL');
+                html += `
+                    <div class="metadata-item">
+                        <div class="metadata-label">📅 Ostatnia aktualizacja</div>
+                        <div class="metadata-value">${date}</div>
+                    </div>
+                `;
+            }
+            
+            // Total Cost
+            html += `
+                <div class="metadata-item">
+                    <div class="metadata-label">💰 Koszt całkowity</div>
+                    <div class="metadata-value">$${(data.api_costs_total || 0).toFixed(4)}</div>
+                </div>
+            `;
+            
+            // Data Sources
+            if (data.data_sources && data.data_sources.length > 0) {
+                html += `
+                    <div class="metadata-item">
+                        <div class="metadata-label">🔗 Źródła danych</div>
+                        <div class="metadata-value">${data.data_sources.join(', ')}</div>
+                    </div>
+                `;
+            }
+            
+            html += '</div>';
+            
+            headerContainer.innerHTML = html;
+        }
+        
+        function displaySeoMetrics(data) {
+            const metricsContainer = document.getElementById('seoMetrics');
+            
+            let html = `
+                <table class="metrics-table">
+                    <thead>
+                        <tr>
+                            <th>Metryka SEO</th>
+                            <th>Wartość</th>
+                            <th>Wizualizacja</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            // Search Volume
+            if (data.search_volume !== null && data.search_volume !== undefined) {
+                html += `
+                    <tr>
+                        <td><strong>Search Volume</strong></td>
+                        <td><span class="metric-value-large">${formatNumber(data.search_volume)}</span></td>
+                        <td>📈 Miesięczne wyszukiwania</td>
+                    </tr>
+                `;
+            }
+            
+            // Traffic Potential (jeśli dostępne)
+            if (data.traffic_potential !== null && data.traffic_potential !== undefined) {
+                html += `
+                    <tr>
+                        <td><strong>Traffic Potential</strong></td>
+                        <td><span class="metric-value-large">${formatNumber(data.traffic_potential)}</span></td>
+                        <td>🎯 Potencjalny ruch</td>
+                    </tr>
+                `;
+            }
+            
+            // Keyword Difficulty
+            if (data.keyword_difficulty !== null && data.keyword_difficulty !== undefined) {
+                const difficultyLevel = getDifficultyLevel(data.keyword_difficulty);
+                html += `
+                    <tr>
+                        <td><strong>Keyword Difficulty</strong></td>
+                        <td>${data.keyword_difficulty}/100</td>
+                        <td>
+                            <div class="difficulty-bar">
+                                <div class="difficulty-fill ${difficultyLevel}" style="width: ${data.keyword_difficulty}%"></div>
+                                <div class="difficulty-text">${data.keyword_difficulty}%</div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }
+            
+            // CPC
+            if (data.cpc !== null && data.cpc !== undefined) {
+                html += `
+                    <tr>
+                        <td><strong>CPC</strong></td>
+                        <td><span class="currency">$${data.cpc.toFixed(2)}</span></td>
+                        <td>💰 Koszt kliknięcia</td>
+                    </tr>
+                `;
+            }
+            
+            // Competition Score
+            if (data.competition !== null && data.competition !== undefined) {
+                const competitionPct = (data.competition * 100).toFixed(1);
+                html += `
+                    <tr>
+                        <td><strong>Competition Score</strong></td>
+                        <td>${competitionPct}%</td>
+                        <td>🎯 Konkurencja w reklamach</td>
+                    </tr>
+                `;
+            }
+            
+            // Competition Level
+            if (data.competition_level) {
+                html += `
+                    <tr>
+                        <td><strong>Competition Level</strong></td>
+                        <td><span class="competition-badge ${data.competition_level.toLowerCase()}">${data.competition_level}</span></td>
+                        <td>📊 Poziom konkurencji</td>
+                    </tr>
+                `;
+            }
+            
+            // Bid Range
+            if (data.low_top_of_page_bid !== null && data.high_top_of_page_bid !== null) {
+                html += `
+                    <tr>
+                        <td><strong>Top Page Bid Range</strong></td>
+                        <td><span class="currency">$${data.low_top_of_page_bid?.toFixed(2) || '0.00'} - $${data.high_top_of_page_bid?.toFixed(2) || '0.00'}</span></td>
+                        <td>💸 Zakres stawek PPC</td>
+                    </tr>
+                `;
+            }
+            
+            // Monthly Trend
+            if (data.monthly_trend_pct !== null && data.monthly_trend_pct !== undefined) {
+                const trendInfo = getTrendInfo(data.monthly_trend_pct);
+                html += `
+                    <tr>
+                        <td><strong>Monthly Trend</strong></td>
+                        <td>${data.monthly_trend_pct}%</td>
+                        <td><span class="trend-arrow ${trendInfo.class}">${trendInfo.arrow}</span> Miesięczny trend</td>
+                    </tr>
+                `;
+            }
+            
+            // Quarterly Trend
+            if (data.quarterly_trend_pct !== null && data.quarterly_trend_pct !== undefined) {
+                const trendInfo = getTrendInfo(data.quarterly_trend_pct);
+                html += `
+                    <tr>
+                        <td><strong>Quarterly Trend</strong></td>
+                        <td>${data.quarterly_trend_pct}%</td>
+                        <td><span class="trend-arrow ${trendInfo.class}">${trendInfo.arrow}</span> Kwartalny trend</td>
+                    </tr>
+                `;
+            }
+            
+            // Yearly Trend
+            if (data.yearly_trend_pct !== null && data.yearly_trend_pct !== undefined) {
+                const trendInfo = getTrendInfo(data.yearly_trend_pct);
+                html += `
+                    <tr>
+                        <td><strong>Yearly Trend</strong></td>
+                        <td>${data.yearly_trend_pct}%</td>
+                        <td><span class="trend-arrow ${trendInfo.class}">${trendInfo.arrow}</span> Roczny trend</td>
+                    </tr>
+                `;
+            }
+            
+            html += `
+                    </tbody>
+                </table>
+            `;
+            
+            metricsContainer.innerHTML = html;
+        }
+        
+        function formatNumber(num) {
+            if (num === null || num === undefined) return 'N/A';
+            return num.toLocaleString('pl-PL');
+        }
+        
+        function getDifficultyLevel(difficulty) {
+            if (difficulty <= 30) return 'easy';
+            if (difficulty <= 70) return 'medium';
+            return 'hard';
+        }
+        
+        function getTrendInfo(trendPct) {
+            if (trendPct > 0) {
+                return { arrow: '↗', class: 'trend-positive' };
+            } else if (trendPct < 0) {
+                return { arrow: '↘', class: 'trend-negative' };
+            } else {
+                return { arrow: '→', class: 'trend-neutral' };
+            }
+        }
+        
+        // SEKCJA 3: COMPLETE INTENT ANALYSIS - Funkcje wyświetlania
+        function displayIntentAnalysis(data) {
+            const intentContainer = document.getElementById('intentAnalysis');
+            
+            // DEBUG: Loguj wszystkie dane intent
+            console.log('🔍 SEKCJA 3 DEBUG - displayIntentAnalysis data:', data);
+            console.log('  main_intent:', data.main_intent);
+            console.log('  intent_probability:', data.intent_probability);
+            console.log('  secondary_intents:', data.secondary_intents);
+            console.log('  autocomplete_intent_analysis type:', typeof data.autocomplete_intent_analysis);
+            console.log('  autocomplete_intent_analysis:', data.autocomplete_intent_analysis);
+            
+            let html = '<div class="intent-analysis-content">';
+            
+            // GŁÓWNA INTENCJA Z TABELI KEYWORDS
+            html += '<div class="intent-section">';
+            html += '<h4>Główna intencja wyszukiwania (z tabeli keywords):</h4>';
+            
+            if (data.main_intent) {
+                const intentClass = getIntentClass(data.main_intent);
+                html += `<div class="intent-badge large ${intentClass}">${data.main_intent.toUpperCase()}</div>`;
+                
+                // Prawdopodobieństwo intencji
+                if (data.intent_probability !== null && data.intent_probability !== undefined) {
+                    const probability = Math.round(data.intent_probability * 100);
+                    html += `
+                        <div class="intent-probability">
+                            <div>Prawdopodobieństwo: <strong>${probability}%</strong></div>
+                            <div class="probability-bar">
+                                <div class="probability-fill" style="width: ${probability}%"></div>
+                                <div class="probability-text">${probability}%</div>
+                            </div>
+                        </div>
+                    `;
+                }
+            } else {
+                html += '<div class="intent-badge large intent-unknown">BRAK DANYCH</div>';
+            }
+            
+            // DODATKOWE INTENCJE
+            if (data.secondary_intents && data.secondary_intents.length > 0) {
+                html += '<h4 style="margin-top: 20px;">Dodatkowe intencje:</h4>';
+                html += '<div class="secondary-intents">';
+                
+                data.secondary_intents.forEach(intent => {
+                    const intentClass = getIntentClass(intent.label || intent.intent);
+                    const probability = intent.probability ? Math.round(intent.probability * 100) : 0;
+                    
+                    html += `
+                        <div class="secondary-intent-item">
+                            <div class="intent-badge ${intentClass}">${(intent.label || intent.intent).toUpperCase()}</div>
+                            <div><strong>${probability}%</strong></div>
+                        </div>
+                    `;
+                });
+                
+                html += '</div>';
+            }
+            
+            html += '</div>'; // Koniec intent-section
+            
+            // ANALIZA AUTOCOMPLETE (jeśli dostępna)
+            if (data.autocomplete_intent_analysis) {
+                try {
+                    const autocompleteData = typeof data.autocomplete_intent_analysis === 'string' 
+                        ? JSON.parse(data.autocomplete_intent_analysis) 
+                        : data.autocomplete_intent_analysis;
+                    
+                    html += '<div class="autocomplete-section">';
+                    html += '<h4>Analiza intencji z Autocomplete:</h4>';
+                    
+                    // Primary Intent z autocomplete
+                    if (autocompleteData.primary_intent) {
+                        const intentClass = getIntentClass(autocompleteData.primary_intent);
+                        html += `<div class="intent-badge ${intentClass}">AC: ${autocompleteData.primary_intent.toUpperCase()}</div>`;
+                    }
+                    
+                    // Intent Distribution
+                    if (autocompleteData.intent_distribution && Object.keys(autocompleteData.intent_distribution).length > 0) {
+                        html += '<div style="margin-top: 15px;"><strong>Rozkład intencji w sugestiach:</strong></div>';
+                        html += '<div class="intent-distribution">';
+                        
+                        Object.entries(autocompleteData.intent_distribution).forEach(([intent, count]) => {
+                            const intentClass = getIntentClass(intent);
+                            html += `
+                                <div class="intent-category ${intentClass}">
+                                    <div class="intent-category-name">${intent}</div>
+                                    <div class="intent-category-count">${count}</div>
+                                </div>
+                            `;
+                        });
+                        
+                        html += '</div>';
+                    } else {
+                        html += '<div style="margin-top: 15px; color: #666;"><em>Brak zidentyfikowanych intencji w sugestiach autocomplete</em></div>';
+                    }
+                    
+                    // Categorized Suggestions
+                    if (autocompleteData.categorized_suggestions && Object.keys(autocompleteData.categorized_suggestions).length > 0) {
+                        // Sprawdź czy faktycznie są jakieś sugestie (nie wszystkie puste arrays)
+                        const hasAnySuggestions = Object.values(autocompleteData.categorized_suggestions).some(arr => arr && arr.length > 0);
+                        
+                        if (hasAnySuggestions) {
+                            html += '<div style="margin-top: 20px;"><strong>Sugestie pogrupowane według intencji:</strong></div>';
+                            html += '<div class="categorized-suggestions">';
+                            
+                            Object.entries(autocompleteData.categorized_suggestions).forEach(([category, suggestions]) => {
+                                if (suggestions && suggestions.length > 0) {
+                                    html += `
+                                        <div class="suggestion-category">
+                                            <div class="suggestion-category-title">${category.toUpperCase()} (${suggestions.length})</div>
+                                            <div class="suggestion-list">
+                                    `;
+                                    
+                                    suggestions.forEach(suggestion => {
+                                        html += `<span class="suggestion-item">${suggestion}</span>`;
+                                    });
+                                    
+                                    html += '</div></div>';
+                                }
+                            });
+                            
+                            html += '</div>';
+                        } else {
+                            html += '<div style="margin-top: 20px; color: #666;"><em>Wszystkie kategorie autocomplete są puste</em></div>';
+                        }
+                    } else {
+                        html += '<div style="margin-top: 20px; color: #666;"><em>Brak kategoryzacji sugestii</em></div>';
+                    }
+                    
+                    html += '</div>'; // Koniec autocomplete-section
+                    
+                } catch (error) {
+                    console.error('Błąd parsowania danych autocomplete:', error);
+                    html += '<div class="autocomplete-section">⚠️ Błąd parsowania danych autocomplete</div>';
+                }
+            }
+            
+            html += '</div>'; // Koniec intent-analysis-content
+            
+            intentContainer.innerHTML = html;
+        }
+        
+        function getIntentClass(intent) {
+            const intentLower = intent.toLowerCase();
+            
+            if (intentLower.includes('informational') || intentLower.includes('info')) {
+                return 'intent-informational';
+            } else if (intentLower.includes('transactional') || intentLower.includes('commercial') || intentLower.includes('buy')) {
+                return 'intent-transactional';
+            } else if (intentLower.includes('navigational') || intentLower.includes('nav')) {
+                return 'intent-navigational';
+            } else if (intentLower.includes('local')) {
+                return 'intent-local';
+            } else if (intentLower.includes('commercial')) {
+                return 'intent-commercial';
+            } else {
+                return 'intent-unknown';
+            }
+        }
+        
+        // SEKCJA 4: COMPLETE DEMOGRAPHICS - Funkcje wyświetlania
+        function displayDemographicsAnalysis(data) {
+            const demographicsContainer = document.getElementById('demographicsAnalysis');
+            
+            console.log('👥 SEKCJA 4 DEBUG - demographicsAnalysis data:', data);
+            console.log('  gender_female:', data.gender_female);
+            console.log('  gender_male:', data.gender_male);
+            console.log('  age_18_24:', data.age_18_24);
+            console.log('  age_25_34:', data.age_25_34);
+            console.log('  age_35_44:', data.age_35_44);
+            console.log('  age_45_54:', data.age_45_54);
+            console.log('  age_55_64:', data.age_55_64);
+            
+            // Sprawdź czy mamy jakiekolwiek dane demograficzne
+            const hasGenderData = (data.gender_female !== null && data.gender_female !== undefined) || 
+                                (data.gender_male !== null && data.gender_male !== undefined);
+            
+            const hasAgeData = [data.age_18_24, data.age_25_34, data.age_35_44, data.age_45_54, data.age_55_64]
+                              .some(age => age !== null && age !== undefined);
+            
+            if (!hasGenderData && !hasAgeData) {
+                demographicsContainer.innerHTML = `
+                    <div class="demographics-no-data">
+                        <h3>👥 Brak danych demograficznych</h3>
+                        <p>Dane demograficzne nie są dostępne dla tego słowa kluczowego.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '<div class="demographics-grid">';
+            
+            // GENDER DISTRIBUTION (wykres kołowy)
+            if (hasGenderData) {
+                html += '<div class="gender-chart-container">';
+                html += '<div class="chart-title">♀♂ Gender Distribution</div>';
+                
+                const femaleIndex = data.gender_female || 0;
+                const maleIndex = data.gender_male || 0;
+                const totalGender = femaleIndex + maleIndex;
+                
+                if (totalGender > 0) {
+                    const femalePercent = (femaleIndex / totalGender * 100).toFixed(1);
+                    const malePercent = (maleIndex / totalGender * 100).toFixed(1);
+                    
+                    // Conic gradient dla pie chart
+                    const femaleAngle = (femaleIndex / totalGender) * 360;
+                    const pieStyle = `background: conic-gradient(#e91e63 0deg ${femaleAngle}deg, #2196f3 ${femaleAngle}deg 360deg);`;
+                    
+                    html += `
+                        <div class="gender-pie-chart" style="${pieStyle}">
+                            <div style="
+                                background: white; 
+                                width: 120px; 
+                                height: 120px; 
+                                border-radius: 50%; 
+                                display: flex; 
+                                align-items: center; 
+                                justify-content: center;
+                                font-weight: bold;
+                                font-size: 14px;
+                                color: #2c3e50;
+                            ">Gender<br/>Index</div>
+                        </div>
+                        
+                        <div class="gender-legend">
+                            <div class="gender-legend-item">
+                                <div class="gender-color-box gender-female-color"></div>
+                                <span>♀ Female: ${femaleIndex} (${femalePercent}%)</span>
+                            </div>
+                            <div class="gender-legend-item">
+                                <div class="gender-color-box gender-male-color"></div>
+                                <span>♂ Male: ${maleIndex} (${malePercent}%)</span>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    html += '<div style="text-align: center; color: #666;">Brak danych gender</div>';
+                }
+                
+                html += '</div>';
+            }
+            
+            // AGE DISTRIBUTION (horizontal bar chart)
+            if (hasAgeData) {
+                html += '<div class="age-chart-container">';
+                html += '<div class="chart-title">🎂 Age Distribution</div>';
+                
+                const ageGroups = [
+                    { label: '18-24', value: data.age_18_24 || 0, className: 'age-bar-18-24' },
+                    { label: '25-34', value: data.age_25_34 || 0, className: 'age-bar-25-34' },
+                    { label: '35-44', value: data.age_35_44 || 0, className: 'age-bar-35-44' },
+                    { label: '45-54', value: data.age_45_54 || 0, className: 'age-bar-45-54' },
+                    { label: '55-64', value: data.age_55_64 || 0, className: 'age-bar-55-64' }
+                ];
+                
+                const maxAge = Math.max(...ageGroups.map(group => group.value));
+                
+                if (maxAge > 0) {
+                    html += '<div class="age-groups">';
+                    
+                    ageGroups.forEach(group => {
+                        const widthPercent = maxAge > 0 ? (group.value / maxAge * 100) : 0;
+                        
+                        html += `
+                            <div class="age-group">
+                                <div class="age-label">${group.label}</div>
+                                <div class="age-bar-container">
+                                    <div class="age-bar ${group.className}" style="width: ${widthPercent}%"></div>
+                                </div>
+                                <div class="age-value">${group.value}</div>
+                            </div>
+                        `;
+                    });
+                    
+                    html += '</div>';
+                } else {
+                    html += '<div style="text-align: center; color: #666;">Brak danych wiekowych</div>';
+                }
+                
+                html += '</div>';
+            }
+            
+            html += '</div>'; // Koniec demographics-grid
+            
+            // Wyjaśnienie demografii
+            html += `
+                <div class="demographics-explanation">
+                    <p><strong>Wyjaśnienie demografii:</strong> Wartości to indeksy popularności 0-100, gdzie 100 oznacza najwyższą popularność w danej grupie demograficznej. Gender distribution pokazany jako wykres kołowy z proporcjami. Age distribution jako poziomy wykres słupkowy gdzie intensywność koloru odpowiada wysokości indeksu - im wyższy indeks, tym ciemniejszy kolor paska.</p>
+                </div>
+            `;
+            
+            demographicsContainer.innerHTML = html;
+        }
+        
+        // SEKCJA 5: EXTENDED TRENDS & SEASONALITY - Funkcje wyświetlania
+        function displayTrendsAnalysis(data) {
+            const trendsContainer = document.getElementById('trendsAnalysis');
+            
+            console.log('📈 SEKCJA 5 DEBUG - trendsAnalysis data:', data);
+            console.log('  monthly_searches:', data.monthly_searches);
+            console.log('  search_volume_trend:', data.search_volume_trend);
+            console.log('  trends_graph:', data.trends_graph);
+            console.log('  historical_data length:', data.historical_data ? data.historical_data.length : 0);
+            
+            let html = '<div class="trends-analysis-content">';
+            
+            // SUBSEKCJA A: Current Trends & Patterns
+            html += '<div class="trends-subsection">';
+            html += '<div class="subsection-title">📊 Subsekcja A: Current Trends & Patterns</div>';
+            
+            // Current trends info box
+            html += `
+                <div class="current-trends-info">
+                    <p><strong>Źródło:</strong> Tabela keywords - dane current (najnowszy snapshot) vs historical (per-month z keyword_historical_data)</p>
+                </div>
+            `;
+            
+            // Charts grid for current trends
+            html += '<div class="trends-charts-grid">';
+            
+            // Main trends graph
+            html += '<div class="main-trends-chart">';
+            html += '<h4>Google Trends Graph</h4>';
+            
+            if (data.trends_graph) {
+                try {
+                    const trendsData = typeof data.trends_graph === 'string' ? JSON.parse(data.trends_graph) : data.trends_graph;
+                    if (trendsData && Array.isArray(trendsData) && trendsData.length > 0) {
+                        // Renderuj prawdziwe dane Google Trends
+                        html += '<div class="trends-chart-data">';
+                        html += `<div class="trends-chart-header">📈 Google Trends (${trendsData.length} punktów danych)</div>`;
+                        html += '<div class="trends-timeline">';
+                        
+                        // Pokaż pierwsze 10 punktów jako przykład
+                        const displayPoints = trendsData.slice(0, 10);
+                        displayPoints.forEach((point, index) => {
+                            const dateFrom = new Date(point.date_from).toLocaleDateString('pl-PL');
+                            const dateTo = new Date(point.date_to).toLocaleDateString('pl-PL');
+                            const value = point.values && point.values[0] ? point.values[0] : 'N/A';
+                            
+                            html += `
+                                <div class="trend-point">
+                                    <span class="trend-date">${dateFrom} - ${dateTo}</span>
+                                    <span class="trend-value">${value}</span>
+                                </div>
+                            `;
+                        });
+                        
+                        if (trendsData.length > 10) {
+                            html += `<div class="trend-more">... i ${trendsData.length - 10} więcej punktów</div>`;
+                        }
+                        
+                        html += '</div></div>';
+                    } else {
+                        html += '<div class="chart-placeholder">📈 Brak danych Google Trends</div>';
+                    }
+                } catch (e) {
+                    console.error('Błąd parsowania trends_graph:', e);
+                    html += '<div class="chart-placeholder">📈 Błąd parsowania Google Trends</div>';
+                }
+            } else {
+                html += '<div class="chart-placeholder">📈 Brak danych Google Trends</div>';
+            }
+            
+            html += '</div>';
+            
+            // Mini trend charts
+            html += '<div class="mini-trends-container">';
+            
+            // Monthly searches chart
+            html += '<div class="mini-trend-chart">';
+            html += '<h5>Monthly Searches</h5>';
+            if (data.monthly_searches) {
+                try {
+                    const monthlyData = typeof data.monthly_searches === 'string' ? JSON.parse(data.monthly_searches) : data.monthly_searches;
+                    if (monthlyData && Array.isArray(monthlyData) && monthlyData.length > 0) {
+                        // Renderuj prawdziwe dane monthly searches
+                        html += '<div class="monthly-searches-data">';
+                        html += `<div class="monthly-chart-header">📅 Monthly Searches (${monthlyData.length} miesięcy)</div>`;
+                        html += '<div class="monthly-timeline">';
+                        
+                        // Pokaż ostatnie 6 miesięcy
+                        const recentMonths = monthlyData.slice(0, 6);
+                        recentMonths.forEach(month => {
+                            const yearMonth = `${month.year}-${String(month.month).padStart(2, '0')}`;
+                            const volume = month.search_volume ? formatNumber(month.search_volume) : 'N/A';
+                            
+                            html += `
+                                <div class="monthly-point">
+                                    <span class="monthly-date">${yearMonth}</span>
+                                    <span class="monthly-volume">${volume}</span>
+                                </div>
+                            `;
+                        });
+                        
+                        if (monthlyData.length > 6) {
+                            html += `<div class="monthly-more">... i ${monthlyData.length - 6} starszych miesięcy</div>`;
+                        }
+                        
+                        html += '</div></div>';
+                    } else {
+                        html += '<div class="mini-chart-placeholder">📅 Brak danych</div>';
+                    }
+                } catch (e) {
+                    console.error('Błąd parsowania monthly_searches:', e);
+                    html += '<div class="mini-chart-placeholder">📅 Błąd parsowania</div>';
+                }
+            } else {
+                html += '<div class="mini-chart-placeholder">📅 Brak danych</div>';
+            }
+            html += '</div>';
+            
+            // Search volume trend chart
+            html += '<div class="mini-trend-chart">';
+            html += '<h5>Volume Trends</h5>';
+            if (data.search_volume_trend) {
+                try {
+                    const trendData = typeof data.search_volume_trend === 'string' ? JSON.parse(data.search_volume_trend) : data.search_volume_trend;
+                    if (trendData && typeof trendData === 'object') {
+                        // Renderuj prawdziwe dane volume trends
+                        html += '<div class="volume-trends-data">';
+                        html += '<div class="volume-trends-list">';
+                        
+                        // Monthly trend
+                        if (trendData.monthly !== undefined) {
+                            const monthlyTrend = trendData.monthly;
+                            const monthlyClass = monthlyTrend > 0 ? 'trend-positive' : monthlyTrend < 0 ? 'trend-negative' : 'trend-neutral';
+                            const monthlyIcon = monthlyTrend > 0 ? '📈' : monthlyTrend < 0 ? '📉' : '➖';
+                            html += `
+                                <div class="trend-item ${monthlyClass}">
+                                    <span class="trend-label">Monthly:</span>
+                                    <span class="trend-value">${monthlyIcon} ${monthlyTrend}%</span>
+                                </div>
+                            `;
+                        }
+                        
+                        // Quarterly trend
+                        if (trendData.quarterly !== undefined) {
+                            const quarterlyTrend = trendData.quarterly;
+                            const quarterlyClass = quarterlyTrend > 0 ? 'trend-positive' : quarterlyTrend < 0 ? 'trend-negative' : 'trend-neutral';
+                            const quarterlyIcon = quarterlyTrend > 0 ? '📈' : quarterlyTrend < 0 ? '📉' : '➖';
+                            html += `
+                                <div class="trend-item ${quarterlyClass}">
+                                    <span class="trend-label">Quarterly:</span>
+                                    <span class="trend-value">${quarterlyIcon} ${quarterlyTrend}%</span>
+                                </div>
+                            `;
+                        }
+                        
+                        // Yearly trend
+                        if (trendData.yearly !== undefined) {
+                            const yearlyTrend = trendData.yearly;
+                            const yearlyClass = yearlyTrend > 0 ? 'trend-positive' : yearlyTrend < 0 ? 'trend-negative' : 'trend-neutral';
+                            const yearlyIcon = yearlyTrend > 0 ? '📈' : yearlyTrend < 0 ? '📉' : '➖';
+                            html += `
+                                <div class="trend-item ${yearlyClass}">
+                                    <span class="trend-label">Yearly:</span>
+                                    <span class="trend-value">${yearlyIcon} ${yearlyTrend}%</span>
+                                </div>
+                            `;
+                        }
+                        
+                        html += '</div></div>';
+                    } else {
+                        html += '<div class="mini-chart-placeholder">📈 Brak trendów</div>';
+                    }
+                } catch (e) {
+                    console.error('Błąd parsowania search_volume_trend:', e);
+                    html += '<div class="mini-chart-placeholder">📈 Błąd parsowania</div>';
+                }
+            } else {
+                html += '<div class="mini-chart-placeholder">📈 Brak danych</div>';
+            }
+            html += '</div>';
+            
+            html += '</div>'; // Koniec mini-trends-container
+            html += '</div>'; // Koniec trends-charts-grid
+            html += '</div>'; // Koniec subsekcji A
+            
+            // SUBSEKCJA B: Complete Historical Data
+            if (data.historical_data && data.historical_data.length > 0) {
+                html += '<div class="trends-subsection">';
+                html += '<div class="subsection-title">🗓️ Subsekcja B: Complete Historical Data</div>';
+                
+                // Historical summary
+                const totalRecords = data.historical_data.length;
+                const latestRecord = data.historical_data[0];
+                const oldestRecord = data.historical_data[data.historical_data.length - 1];
+                
+                html += `
+                    <div class="historical-summary">
+                        <h4>📊 Podsumowanie danych historycznych</h4>
+                        <div class="summary-stats">
+                            <div class="summary-stat">
+                                <div class="summary-stat-value">${totalRecords}</div>
+                                <div class="summary-stat-label">Miesięcy danych</div>
+                            </div>
+                            <div class="summary-stat">
+                                <div class="summary-stat-value">${latestRecord.year}-${String(latestRecord.month).padStart(2, '0')}</div>
+                                <div class="summary-stat-label">Najnowsze dane</div>
+                            </div>
+                            <div class="summary-stat">
+                                <div class="summary-stat-value">${oldestRecord.year}-${String(oldestRecord.month).padStart(2, '0')}</div>
+                                <div class="summary-stat-label">Najstarsze dane</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // Historical data table
+                html += '<div class="historical-table-container">';
+                html += `
+                    <table class="historical-table">
+                        <thead>
+                            <tr>
+                                <th>Year-Month</th>
+                                <th>Search Volume</th>
+                                <th>CPC</th>
+                                <th>Competition</th>
+                                <th>Competition Level</th>
+                                <th>Bid Range</th>
+                                <th>Categories</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                data.historical_data.forEach(record => {
+                    const yearMonth = `${record.year}-${String(record.month).padStart(2, '0')}`;
+                    const volume = record.search_volume ? formatNumber(record.search_volume) : 'N/A';
+                    const cpc = record.cpc ? `$${record.cpc.toFixed(2)}` : 'N/A';
+                    const competition = record.competition ? (record.competition * 100).toFixed(1) + '%' : 'N/A';
+                    
+                    const competitionLevel = record.competition_level || 'unknown';
+                    const competitionClass = getCompetitionClass(competitionLevel);
+                    
+                    const lowBid = record.low_top_of_page_bid ? `$${record.low_top_of_page_bid.toFixed(2)}` : 'N/A';
+                    const highBid = record.high_top_of_page_bid ? `$${record.high_top_of_page_bid.toFixed(2)}` : 'N/A';
+                    const bidRange = `${lowBid} - ${highBid}`;
+                    
+                    let categoriesHtml = '';
+                    if (record.categories && record.categories.length > 0) {
+                        categoriesHtml = '<div class="historical-categories">';
+                        record.categories.forEach(category => {
+                            categoriesHtml += `<span class="historical-category-tag">${category}</span>`;
+                        });
+                        categoriesHtml += '</div>';
+                    } else {
+                        categoriesHtml = '<span style="color: #6c757d; font-style: italic;">Brak kategorii</span>';
+                    }
+                    
+                    html += `
+                        <tr>
+                            <td class="historical-date">${yearMonth}</td>
+                            <td class="historical-volume">${volume}</td>
+                            <td class="historical-cpc">${cpc}</td>
+                            <td class="historical-competition">${competition}</td>
+                            <td><span class="competition-badge ${competitionClass}">${competitionLevel}</span></td>
+                            <td class="bid-range">${bidRange}</td>
+                            <td>${categoriesHtml}</td>
+                        </tr>
+                    `;
+                });
+                
+                html += '</tbody></table>';
+                html += '</div>'; // Koniec historical-table-container
+                html += '</div>'; // Koniec subsekcji B
+                
+            } else {
+                // Brak danych historycznych
+                html += '<div class="trends-subsection">';
+                html += '<div class="subsection-title">🗓️ Subsekcja B: Complete Historical Data</div>';
+                html += `
+                    <div class="trends-no-data">
+                        <h3>📊 Brak danych historycznych</h3>
+                        <p>Dane historyczne nie są dostępne dla tego słowa kluczowego w tabeli keyword_historical_data.</p>
+                    </div>
+                `;
+                html += '</div>';
+            }
+            
+            html += '</div>'; // Koniec trends-analysis-content
+            
+            trendsContainer.innerHTML = html;
+        }
+        
+        function getCompetitionClass(level) {
+            const levelLower = (level || '').toLowerCase();
+            if (levelLower === 'low') return 'competition-low';
+            if (levelLower === 'medium') return 'competition-medium';
+            if (levelLower === 'high') return 'competition-high';
+            return 'competition-low'; // fallback
+        }
+        
+        // SEKCJA 6: COMPLETE GEOGRAPHIC DATA - Funkcje wyświetlania
+        function displayGeographicAnalysis(data) {
+            console.log('🗺️ SEKCJA 6 DEBUG - geographicAnalysis data:', data);
+            
+            const geographicContainer = document.getElementById('geographicAnalysis');
+            
+            let html = '<div class="geographic-analysis-content">';
+            
+            // Grid z dwoma sekcjami: Target Location/Language + Geographic Data
+            html += '<div class="geographic-grid">';
+            
+            // SEKCJA A: Target Location & Language Info
+            html += '<div class="geographic-section">';
+            html += '<h4>🎯 Informacje o lokalizacji i języku</h4>';
+            html += '<div class="target-info">';
+            
+            // Target Location
+            const locationName = getLocationName(data.location_code);
+            const locationFlag = getLocationFlag(data.location_code);
+            html += `
+                <div class="target-item">
+                    <div class="target-flag">${locationFlag}</div>
+                    <div class="target-details">
+                        <div class="target-label">Target Location</div>
+                        <div class="target-value">${locationName}</div>
+                        <div class="target-label">Code: ${data.location_code}</div>
+                    </div>
+                </div>
+            `;
+            
+            // Target Language
+            const languageName = getLanguageName(data.language_code);
+            const languageFlag = getLanguageFlag(data.language_code);
+            html += `
+                <div class="target-item">
+                    <div class="target-flag">${languageFlag}</div>
+                    <div class="target-details">
+                        <div class="target-label">Target Language</div>
+                        <div class="target-value">${languageName}</div>
+                        <div class="target-label">Code: ${data.language_code.toUpperCase()}</div>
+                    </div>
+                </div>
+            `;
+            
+            html += '</div>'; // Koniec target-info
+            html += '</div>'; // Koniec geographic-section A
+            
+            // SEKCJA B: Subregion Interests (DataForSEO Trends)
+            html += '<div class="geographic-section">';
+            html += '<h4>📊 Zainteresowanie regionalne (DataForSEO)</h4>';
+            
+            if (data.subregion_interests) {
+                try {
+                    const subregionData = typeof data.subregion_interests === 'string' ? 
+                        JSON.parse(data.subregion_interests) : data.subregion_interests;
+                    
+                    if (Array.isArray(subregionData) && subregionData.length > 0) {
+                        // Sortuj według wartości malejąco
+                        const sortedRegions = [...subregionData].sort((a, b) => (b.value || 0) - (a.value || 0));
+                        
+                        html += '<div class="subregion-list">';
+                        sortedRegions.forEach(region => {
+                            const value = region.value || 0;
+                            const valueClass = getRegionValueClass(value);
+                            html += `
+                                <div class="region-item">
+                                    <span class="region-name">${region.geo_name || 'Nieznany region'}</span>
+                                    <span class="region-value ${valueClass}">${value}</span>
+                                </div>
+                            `;
+                        });
+                        html += '</div>';
+                    } else {
+                        html += '<div class="geographic-no-data">📊 Brak danych regionalnych DataForSEO</div>';
+                    }
+                } catch (e) {
+                    console.error('Błąd parsowania subregion_interests:', e);
+                    html += '<div class="geographic-no-data">❌ Błąd parsowania danych regionalnych</div>';
+                }
+            } else {
+                html += '<div class="geographic-no-data">📊 Brak danych subregion_interests</div>';
+            }
+            
+            html += '</div>'; // Koniec geographic-section B
+            html += '</div>'; // Koniec geographic-grid
+            
+            // SEKCJA C: Google Trends Map (pełna szerokość)
+            html += '<div class="geographic-section" style="margin-top: 20px;">';
+            html += '<h4>🗺️ Mapa Google Trends</h4>';
+            
+            if (data.trends_map) {
+                try {
+                    const trendsMapData = typeof data.trends_map === 'string' ? 
+                        JSON.parse(data.trends_map) : data.trends_map;
+                    
+                    if (Array.isArray(trendsMapData) && trendsMapData.length > 0) {
+                        // Sortuj według wartości malejąco (pobierz pierwszą wartość z values array)
+                        const sortedTrendsRegions = [...trendsMapData].sort((a, b) => {
+                            const aValue = (a.values && a.values[0]) || 0;
+                            const bValue = (b.values && b.values[0]) || 0;
+                            return bValue - aValue;
+                        });
+                        
+                        html += '<div class="trends-map-list">';
+                        sortedTrendsRegions.forEach(region => {
+                            const value = (region.values && region.values[0]) || 0;
+                            const valueClass = getRegionValueClass(value);
+                            html += `
+                                <div class="region-item">
+                                    <span class="region-name">${region.geo_name || region.geo_id || 'Nieznany region'}</span>
+                                    <span class="region-value ${valueClass}">${value}</span>
+                                </div>
+                            `;
+                        });
+                        html += '</div>';
+                        
+                        // Dodaj summary statistics
+                        const totalRegions = trendsMapData.length;
+                        const maxValue = Math.max(...trendsMapData.map(r => (r.values && r.values[0]) || 0));
+                        const minValue = Math.min(...trendsMapData.map(r => (r.values && r.values[0]) || 0));
+                        const avgValue = (trendsMapData.reduce((sum, r) => sum + ((r.values && r.values[0]) || 0), 0) / totalRegions).toFixed(1);
+                        
+                        html += `
+                            <div class="geographic-summary">
+                                <h4>📈 Statystyki mapy Google Trends</h4>
+                                <div class="summary-stats">
+                                    <div class="summary-stat">
+                                        <div class="summary-stat-value">${totalRegions}</div>
+                                        <div class="summary-stat-label">Regionów</div>
+                                    </div>
+                                    <div class="summary-stat">
+                                        <div class="summary-stat-value">${maxValue}</div>
+                                        <div class="summary-stat-label">Max wartość</div>
+                                    </div>
+                                    <div class="summary-stat">
+                                        <div class="summary-stat-value">${minValue}</div>
+                                        <div class="summary-stat-label">Min wartość</div>
+                                    </div>
+                                    <div class="summary-stat">
+                                        <div class="summary-stat-value">${avgValue}</div>
+                                        <div class="summary-stat-label">Średnia</div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        
+                    } else {
+                        html += '<div class="geographic-no-data">🗺️ Brak danych mapy Google Trends</div>';
+                    }
+                } catch (e) {
+                    console.error('Błąd parsowania trends_map:', e);
+                    html += '<div class="geographic-no-data">❌ Błąd parsowania danych mapy</div>';
+                }
+            } else {
+                html += '<div class="geographic-no-data">🗺️ Brak danych trends_map</div>';
+            }
+            
+            html += '</div>'; // Koniec geographic-section C
+            html += '</div>'; // Koniec geographic-analysis-content
+            
+            geographicContainer.innerHTML = html;
+        }
+        
+        // Helper functions dla SEKCJI 6
+        function getLocationName(locationCode) {
+            const locations = {
+                2616: 'Poland',
+                2840: 'United States',
+                2276: 'Germany',
+                2826: 'United Kingdom',
+                2250: 'France'
+            };
+            return locations[locationCode] || `Location ${locationCode}`;
+        }
+        
+        function getLocationFlag(locationCode) {
+            const flags = {
+                2616: '🇵🇱',
+                2840: '🇺🇸',
+                2276: '🇩🇪',
+                2826: '🇬🇧',
+                2250: '🇫🇷'
+            };
+            return flags[locationCode] || '🏳️';
+        }
+        
+        function getLanguageName(languageCode) {
+            const languages = {
+                'pl': 'Polish',
+                'en': 'English',
+                'de': 'German',
+                'fr': 'French',
+                'es': 'Spanish'
+            };
+            return languages[languageCode] || languageCode.toUpperCase();
+        }
+        
+        function getLanguageFlag(languageCode) {
+            const languageFlags = {
+                'pl': '🇵🇱',
+                'en': '🇺🇸',
+                'de': '🇩🇪',
+                'fr': '🇫🇷',
+                'es': '🇪🇸'
+            };
+            return languageFlags[languageCode] || '🗣️';
+        }
+        
+        function getRegionValueClass(value) {
+            if (value >= 80) return 'high';
+            if (value >= 40) return 'medium';
+            return 'low';
+        }
+        
+        // SEKCJA 7: ENHANCED COMPETITION ANALYSIS - Funkcje wyświetlania
+        function displayCompetitionAnalysis(data) {
+            console.log('⚔️ SEKCJA 7 DEBUG - competitionAnalysis data:', data);
+            
+            const competitionContainer = document.getElementById('competitionAnalysis');
+            
+            let html = '<div class="competition-analysis-content">';
+            
+            // Grid z dwoma sekcjami: SERP Info + Backlinks Analysis
+            html += '<div class="competition-grid">';
+            
+            // SEKCJA A: SERP Snapshot Info
+            html += '<div class="competition-section">';
+            html += '<h4>🔍 SERP Snapshot Info</h4>';
+            
+            if (data.serp_info) {
+                try {
+                    const serpData = typeof data.serp_info === 'string' ? 
+                        JSON.parse(data.serp_info) : data.serp_info;
+                    
+                    html += '<div class="serp-info-grid">';
+                    
+                    // Results Count
+                    if (serpData.se_results_count) {
+                        html += `
+                            <div class="serp-info-item">
+                                <span class="serp-info-label">Results Count</span>
+                                <span class="serp-info-value serp-results-count">${formatNumber(serpData.se_results_count)}</span>
+                            </div>
+                        `;
+                    }
+                    
+                    // SERP Item Types
+                    if (serpData.serp_item_types && Array.isArray(serpData.serp_item_types)) {
+                        html += `
+                            <div class="serp-info-item">
+                                <span class="serp-info-label">SERP Types</span>
+                                <div class="serp-item-types">
+                        `;
+                        serpData.serp_item_types.forEach(type => {
+                            const typeClass = getSerpTypeClass(type);
+                            html += `<span class="serp-type-badge ${typeClass}">${type}</span>`;
+                        });
+                        html += '</div></div>';
+                    }
+                    
+                    // Check URL
+                    if (serpData.check_url) {
+                        html += `
+                            <div class="serp-info-item" style="flex-direction: column; align-items: flex-start;">
+                                <span class="serp-info-label">Check URL</span>
+                                <div class="serp-check-url">${serpData.check_url}</div>
+                            </div>
+                        `;
+                    }
+                    
+                    // SE Type
+                    if (serpData.se_type) {
+                        html += `
+                            <div class="serp-info-item">
+                                <span class="serp-info-label">Search Engine</span>
+                                <span class="serp-info-value">${serpData.se_type.toUpperCase()}</span>
+                            </div>
+                        `;
+                    }
+                    
+                    // Last Updated
+                    if (serpData.last_updated_time) {
+                        const lastUpdated = new Date(serpData.last_updated_time).toLocaleString('pl-PL');
+                        html += `
+                            <div class="serp-info-item">
+                                <span class="serp-info-label">Last Updated</span>
+                                <span class="serp-info-value" style="font-size: 12px;">${lastUpdated}</span>
+                            </div>
+                        `;
+                    }
+                    
+                    html += '</div>'; // Koniec serp-info-grid
+                    
+                } catch (e) {
+                    console.error('Błąd parsowania serp_info:', e);
+                    html += '<div class="competition-no-data">❌ Błąd parsowania danych SERP</div>';
+                }
+            } else {
+                html += '<div class="competition-no-data">🔍 Brak danych SERP</div>';
+            }
+            
+            html += '</div>'; // Koniec competition-section A
+            
+            // SEKCJA B: Backlinks Analysis
+            html += '<div class="competition-section">';
+            html += '<h4>🔗 Backlinks Analysis (TOP-10 średnie)</h4>';
+            
+            if (data.backlinks_info) {
+                try {
+                    const backlinksData = typeof data.backlinks_info === 'string' ? 
+                        JSON.parse(data.backlinks_info) : data.backlinks_info;
+                    
+                    html += '<div class="backlinks-metrics">';
+                    
+                    // Avg Backlinks
+                    if (backlinksData.backlinks !== undefined) {
+                        const backlinksClass = getBacklinksClass(backlinksData.backlinks);
+                        html += `
+                            <div class="backlinks-metric">
+                                <span class="backlinks-label">Avg Backlinks</span>
+                                <span class="backlinks-value ${backlinksClass}">${formatNumber(backlinksData.backlinks)}</span>
+                            </div>
+                        `;
+                    }
+                    
+                    // Avg Dofollow
+                    if (backlinksData.dofollow !== undefined) {
+                        const dofollowClass = getBacklinksClass(backlinksData.dofollow);
+                        html += `
+                            <div class="backlinks-metric">
+                                <span class="backlinks-label">Avg Dofollow</span>
+                                <span class="backlinks-value ${dofollowClass}">${formatNumber(backlinksData.dofollow)}</span>
+                            </div>
+                        `;
+                    }
+                    
+                    // Avg Referring Domains
+                    if (backlinksData.referring_domains !== undefined) {
+                        const refDomainsClass = getBacklinksClass(backlinksData.referring_domains);
+                        html += `
+                            <div class="backlinks-metric">
+                                <span class="backlinks-label">Avg Ref Domains</span>
+                                <span class="backlinks-value ${refDomainsClass}">${formatNumber(backlinksData.referring_domains)}</span>
+                            </div>
+                        `;
+                    }
+                    
+                    // Avg Referring Pages
+                    if (backlinksData.referring_pages !== undefined) {
+                        const refPagesClass = getBacklinksClass(backlinksData.referring_pages);
+                        html += `
+                            <div class="backlinks-metric">
+                                <span class="backlinks-label">Avg Ref Pages</span>
+                                <span class="backlinks-value ${refPagesClass}">${formatNumber(backlinksData.referring_pages)}</span>
+                            </div>
+                        `;
+                    }
+                    
+                    // Domain Rank
+                    if (backlinksData.main_domain_rank !== undefined) {
+                        html += `
+                            <div class="backlinks-metric">
+                                <span class="backlinks-label">Main Domain Rank</span>
+                                <span class="backlinks-value backlinks-medium">${backlinksData.main_domain_rank.toFixed(1)}</span>
+                            </div>
+                        `;
+                    }
+                    
+                    // Overall Rank
+                    if (backlinksData.rank !== undefined) {
+                        html += `
+                            <div class="backlinks-metric">
+                                <span class="backlinks-label">Overall Rank</span>
+                                <span class="backlinks-value backlinks-medium">${backlinksData.rank.toFixed(1)}</span>
+                            </div>
+                        `;
+                    }
+                    
+                    html += '</div>'; // Koniec backlinks-metrics
+                    
+                } catch (e) {
+                    console.error('Błąd parsowania backlinks_info:', e);
+                    html += '<div class="competition-no-data">❌ Błąd parsowania danych backlinks</div>';
+                }
+            } else {
+                html += '<div class="competition-no-data">🔗 Brak danych backlinks</div>';
+            }
+            
+            html += '</div>'; // Koniec competition-section B
+            html += '</div>'; // Koniec competition-grid
+            
+            // Summary
+            html += `
+                <div class="competition-summary">
+                    <h4>⚔️ Analiza konkurencji</h4>
+                    <p>Dane SERP snapshot pochodzą z momentu analizy słowa kluczowego. 
+                    Backlinks analysis pokazuje średnie metryki linkowe dla TOP-10 wyników organicznych, 
+                    co daje wgląd w poziom trudności pozycjonowania dla tego słowa kluczowego.</p>
+                </div>
+            `;
+            
+            html += '</div>'; // Koniec competition-analysis-content
+            
+            competitionContainer.innerHTML = html;
+        }
+        
+        // Helper functions dla SEKCJI 7
+        function getSerpTypeClass(type) {
+            const typeLower = type.toLowerCase();
+            if (typeLower.includes('organic')) return 'serp-type-organic';
+            if (typeLower.includes('paid') || typeLower.includes('ads')) return 'serp-type-paid';
+            if (typeLower.includes('features') || typeLower.includes('snippet') || typeLower.includes('knowledge')) return 'serp-type-features';
+            return 'serp-type-default';
+        }
+        
+        function getBacklinksClass(value) {
+            if (value >= 1000) return 'backlinks-high';
+            if (value >= 100) return 'backlinks-medium';
+            return 'backlinks-low';
+        }
+        
+        // SEKCJA 8: ENHANCED RELATED KEYWORDS WITH HIERARCHY - Funkcje wyświetlania
+        function displayRelatedKeywordsAnalysis(data) {
+            console.log('🔗 SEKCJA 8 DEBUG - relatedKeywordsAnalysis data:', data);
+            
+            const relatedContainer = document.getElementById('relatedKeywordsAnalysis');
+            
+            let html = '<div class="related-keywords-analysis-content">';
+            
+            // SUBSEKCJA A: Google Trends Related Data
+            html += '<div class="google-trends-topics">';
+            html += '<h4>🏷️ Subsekcja A: Google Trends Related Data</h4>';
+            
+            html += '<div class="trends-topics-grid">';
+            
+            // Topics List
+            html += '<div class="topics-section">';
+            html += '<h5>📊 Related Topics</h5>';
+            
+            if (data.topics_list) {
+                try {
+                    const topicsData = typeof data.topics_list === 'string' ? 
+                        JSON.parse(data.topics_list) : data.topics_list;
+                    
+                    // Top Topics
+                    if (topicsData.top && topicsData.top.length > 0) {
+                        html += '<div style="margin-bottom: 10px;"><strong>🔝 Top Topics:</strong></div>';
+                        html += '<div class="topic-cloud">';
+                        topicsData.top.slice(0, 10).forEach(topic => {
+                            html += `<span class="topic-tag">${topic.topic_title} (${topic.value})</span>`;
+                        });
+                        html += '</div>';
+                    }
+                    
+                    // Rising Topics
+                    if (topicsData.rising && topicsData.rising.length > 0) {
+                        html += '<div style="margin: 15px 0 10px 0;"><strong>📈 Rising Topics:</strong></div>';
+                        html += '<div class="topic-cloud">';
+                        topicsData.rising.slice(0, 8).forEach(topic => {
+                            html += `<span class="topic-tag rising">${topic.topic_title} (+${topic.value}%)</span>`;
+                        });
+                        html += '</div>';
+                    }
+                    
+                } catch (e) {
+                    console.error('Błąd parsowania topics_list:', e);
+                    html += '<div class="related-keywords-no-data">❌ Błąd parsowania topics</div>';
+                }
+            } else {
+                html += '<div class="related-keywords-no-data">🏷️ Brak danych topics</div>';
+            }
+            
+            html += '</div>'; // Koniec topics-section
+            
+            // Queries List
+            html += '<div class="queries-section">';
+            html += '<h5>🔍 Related Queries</h5>';
+            
+            if (data.queries_list) {
+                try {
+                    const queriesData = typeof data.queries_list === 'string' ? 
+                        JSON.parse(data.queries_list) : data.queries_list;
+                    
+                    html += '<div class="queries-list">';
+                    
+                    // Top Queries
+                    if (queriesData.top && queriesData.top.length > 0) {
+                        html += '<div style="margin-bottom: 8px; font-weight: bold;">🔝 Top Queries:</div>';
+                        queriesData.top.slice(0, 8).forEach(query => {
+                            html += `
+                                <div class="query-item">
+                                    <span class="query-text">${query.query}</span>
+                                    <span class="query-value">${query.value}</span>
+                                </div>
+                            `;
+                        });
+                    }
+                    
+                    // Rising Queries
+                    if (queriesData.rising && queriesData.rising.length > 0) {
+                        html += '<div style="margin: 10px 0 8px 0; font-weight: bold;">📈 Rising Queries:</div>';
+                        queriesData.rising.slice(0, 6).forEach(query => {
+                            html += `
+                                <div class="query-item">
+                                    <span class="query-text">${query.query}</span>
+                                    <span class="query-value">+${query.value}%</span>
+                                </div>
+                            `;
+                        });
+                    }
+                    
+                    html += '</div>'; // Koniec queries-list
+                    
+                } catch (e) {
+                    console.error('Błąd parsowania queries_list:', e);
+                    html += '<div class="related-keywords-no-data">❌ Błąd parsowania queries</div>';
+                }
+            } else {
+                html += '<div class="related-keywords-no-data">🔍 Brak danych queries</div>';
+            }
+            
+            html += '</div>'; // Koniec queries-section
+            html += '</div>'; // Koniec trends-topics-grid
+            html += '</div>'; // Koniec google-trends-topics
+            
+            // SUBSEKCJA B: Complete Related Keywords Table with Hierarchy
+            html += '<h4>🔗 Subsekcja B: Complete Related Keywords Table with Hierarchy</h4>';
+            
+            if (data.related_keywords && data.related_keywords.length > 0) {
+                html += `
+                    <table class="related-keywords-table">
+                        <thead>
+                            <tr>
+                                <th>Related Keyword</th>
+                                <th>Relation Type</th>
+                                <th>Depth</th>
+                                <th>Relevance Score</th>
+                                <th>Search Vol</th>
+                                <th>Difficulty</th>
+                                <th>CPC</th>
+                                <th>Competition</th>
+                                <th>Bid Range</th>
+                                <th>Intent</th>
+                                <th>Trend</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                // Sortuj według depth, potem relevance_score
+                const sortedKeywords = data.related_keywords.sort((a, b) => {
+                    if (a.depth !== b.depth) return a.depth - b.depth;
+                    return (b.relevance_score || 0) - (a.relevance_score || 0);
+                });
+                
+                sortedKeywords.forEach(relation => {
+                    // Pobierz dane z JOIN lub fallback
+                    const keywordData = relation.keywords || {};
+                    const keywordName = keywordData.keyword || 'Unknown';
+                    const isSuggestion = keywordData.is_suggestion || false;
+                    
+                    html += '<tr>';
+                    
+                    // Related Keyword + Badge
+                    html += '<td>';
+                    html += `<span class="keyword-name">${keywordName}</span>`;
+                    if (isSuggestion) {
+                        html += '<span class="suggestion-badge">SUGESTIA</span>';
+                    }
+                    html += '</td>';
+                    
+                    // Relation Type
+                    html += `<td><span class="relation-type ${relation.relationship_type}">${relation.relationship_type}</span></td>`;
+                    
+                    // Depth
+                    html += `<td><span class="depth-indicator depth-${relation.depth}">${relation.depth}</span></td>`;
+                    
+                    // Relevance Score
+                    const relevanceScore = relation.relevance_score || 0;
+                    html += `<td><span class="relevance-score">${relevanceScore.toFixed(2)}</span></td>`;
+                    
+                    // Search Volume (z relation lub JOIN)
+                    const searchVolume = relation.relation_search_volume || keywordData.search_volume || relation.search_volume;
+                    html += `<td><span class="search-volume-cell">${searchVolume ? formatNumber(searchVolume) : '-'}</span></td>`;
+                    
+                    // Difficulty (z relation lub JOIN)
+                    const difficulty = relation.relation_keyword_difficulty || keywordData.keyword_difficulty || relation.keyword_difficulty;
+                    if (difficulty !== null && difficulty !== undefined) {
+                        const diffClass = getDifficultyClass(difficulty);
+                        html += `<td><span class="difficulty-cell ${diffClass}">${difficulty}</span></td>`;
+                    } else {
+                        html += '<td>-</td>';
+                    }
+                    
+                    // CPC (z JOIN)
+                    const cpc = keywordData.cpc;
+                    html += `<td><span class="cpc-cell">${cpc ? '$' + cpc.toFixed(2) : '-'}</span></td>`;
+                    
+                    // Competition (z JOIN)
+                    const competition = keywordData.competition;
+                    if (competition !== null && competition !== undefined) {
+                        const compClass = getCompetitionClass(competition);
+                        const compPct = (competition * 100).toFixed(1);
+                        html += `<td><span class="competition-cell ${compClass}">${compPct}%</span></td>`;
+                    } else {
+                        html += '<td>-</td>';
+                    }
+                    
+                    // Bid Range (z JOIN)
+                    const lowBid = keywordData.low_top_of_page_bid;
+                    const highBid = keywordData.high_top_of_page_bid;
+                    if (lowBid && highBid) {
+                        html += `<td><span class="bid-range">$${lowBid.toFixed(2)} - $${highBid.toFixed(2)}</span></td>`;
+                    } else {
+                        html += '<td>-</td>';
+                    }
+                    
+                    // Intent (z JOIN)
+                    const intent = keywordData.main_intent;
+                    if (intent) {
+                        html += `<td><span class="intent-cell intent-${intent}">${intent}</span></td>`;
+                    } else {
+                        html += '<td>-</td>';
+                    }
+                    
+                    // Trend (z JOIN)
+                    const trend = keywordData.monthly_trend_pct;
+                    if (trend !== null && trend !== undefined) {
+                        const trendClass = getTrendClass(trend);
+                        const trendSymbol = trend > 0 ? '+' : '';
+                        html += `<td><span class="trend-cell ${trendClass}">${trendSymbol}${trend}%</span></td>`;
+                    } else {
+                        html += '<td>-</td>';
+                    }
+                    
+                    html += '</tr>';
+                });
+                
+                html += '</tbody></table>';
+                
+                // Hierarchy Statistics
+                const hierarchyStats = calculateHierarchyStats(data.related_keywords);
+                html += `
+                    <div class="related-keywords-summary">
+                        <h4>🔗 Statystyki hierarchii słów powiązanych</h4>
+                        <p>Analiza ${data.related_keywords.length} słów powiązanych z hierarchią głębokości i typami relacji.</p>
+                        
+                        <div class="hierarchy-stats">
+                            <div class="hierarchy-stat">
+                                <div class="hierarchy-stat-value">${hierarchyStats.suggestions}</div>
+                                <div class="hierarchy-stat-label">Sugestie</div>
+                            </div>
+                            <div class="hierarchy-stat">
+                                <div class="hierarchy-stat-value">${hierarchyStats.related}</div>
+                                <div class="hierarchy-stat-label">Powiązane</div>
+                            </div>
+                            <div class="hierarchy-stat">
+                                <div class="hierarchy-stat-value">${hierarchyStats.depth1}</div>
+                                <div class="hierarchy-stat-label">Głębokość 1</div>
+                            </div>
+                            <div class="hierarchy-stat">
+                                <div class="hierarchy-stat-value">${hierarchyStats.depth2}</div>
+                                <div class="hierarchy-stat-label">Głębokość 2+</div>
+                            </div>
+                            <div class="hierarchy-stat">
+                                <div class="hierarchy-stat-value">${hierarchyStats.avgRelevance}</div>
+                                <div class="hierarchy-stat-label">Śr. Relevance</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+            } else {
+                html += '<div class="related-keywords-no-data">🔗 Brak danych słów powiązanych</div>';
+            }
+            
+            html += '</div>'; // Koniec related-keywords-analysis-content
+            
+            relatedContainer.innerHTML = html;
+        }
+        
+        // Helper functions dla SEKCJI 8
+        function getDifficultyClass(difficulty) {
+            if (difficulty >= 70) return 'difficulty-high';
+            if (difficulty >= 30) return 'difficulty-medium';
+            return 'difficulty-low';
+        }
+        
+        function getCompetitionClass(competition) {
+            if (competition >= 0.7) return 'competition-high';
+            if (competition >= 0.3) return 'competition-medium';
+            return 'competition-low';
+        }
+        
+        function getTrendClass(trend) {
+            if (trend > 0) return 'trend-positive';
+            if (trend < 0) return 'trend-negative';
+            return 'trend-neutral';
+        }
+        
+        function calculateHierarchyStats(relatedKeywords) {
+            const stats = {
+                suggestions: 0,
+                related: 0,
+                depth1: 0,
+                depth2: 0,
+                avgRelevance: 0
+            };
+            
+            if (!relatedKeywords || relatedKeywords.length === 0) {
+                return stats;
+            }
+            
+            let totalRelevance = 0;
+            let relevanceCount = 0;
+            
+            relatedKeywords.forEach(relation => {
+                if (relation.relationship_type === 'suggestion') {
+                    stats.suggestions++;
+                } else {
+                    stats.related++;
+                }
+                
+                if (relation.depth === 1) {
+                    stats.depth1++;
+                } else if (relation.depth >= 2) {
+                    stats.depth2++;
+                }
+                
+                if (relation.relevance_score) {
+                    totalRelevance += relation.relevance_score;
+                    relevanceCount++;
+                }
+            });
+            
+            if (relevanceCount > 0) {
+                stats.avgRelevance = (totalRelevance / relevanceCount).toFixed(2);
+            }
+            
+            return stats;
+        }
+        
+        // SEKCJA 9: ENHANCED SERP ANALYSIS - Funkcje wyświetlania
+        function displaySerpAnalysis(data) {
+            console.log('🔍 SEKCJA 9 DEBUG - serpAnalysis data:', data);
+            
+            const serpContainer = document.getElementById('serpAnalysis');
+            
+            // Sprawdź czy mamy dane SERP
+            if (!data.serp_results) {
+                serpContainer.innerHTML = `
+                    <div class="serp-no-data">
+                        <h3>🔍 Brak danych SERP</h3>
+                        <p>Dane SERP nie są dostępne dla tego słowa kluczowego.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '<div class="serp-analysis-content">';
+            
+            // SUBSEKCJA A: Extended SERP Metadata
+            html += '<div class="serp-subsection">';
+            html += '<h4>📊 Subsekcja A: Extended SERP Metadata</h4>';
+            
+            html += '<div class="serp-metadata-grid">';
+            
+            const serpResults = data.serp_results;
+            
+            // Keyword ID
+            html += `
+                <div class="serp-metadata-item">
+                    <div class="serp-metadata-label">Keyword ID</div>
+                    <div class="serp-metadata-value">${serpResults.keyword_id || 'N/A'}</div>
+                </div>
+            `;
+            
+            // Location & Language
+            html += `
+                <div class="serp-metadata-item">
+                    <div class="serp-metadata-label">Location & Language</div>
+                    <div class="serp-metadata-value">
+                        ${getLocationFlag(serpResults.location_code)} ${serpResults.location_code}<br/>
+                        ${getLanguageFlag(serpResults.language_code)} ${serpResults.language_code.toUpperCase()}
+                    </div>
+                </div>
+            `;
+            
+            // Device & OS
+            const deviceClass = serpResults.device === 'desktop' ? 'desktop' : 'mobile';
+            const osClass = serpResults.os ? serpResults.os.toLowerCase() : 'unknown';
+            html += `
+                <div class="serp-metadata-item">
+                    <div class="serp-metadata-label">Device & OS</div>
+                    <div class="serp-metadata-value">
+                        <span class="device-badge ${deviceClass}">📱 ${serpResults.device || 'unknown'}</span><br/>
+                        <span class="os-badge ${osClass}">💻 ${serpResults.os || 'unknown'}</span>
+                    </div>
+                </div>
+            `;
+            
+            // SE Domain
+            html += `
+                <div class="serp-metadata-item">
+                    <div class="serp-metadata-label">Search Engine Domain</div>
+                    <div class="serp-metadata-value">
+                        <span class="se-domain-badge">${serpResults.se_domain || 'N/A'}</span>
+                    </div>
+                </div>
+            `;
+            
+            // Results Count
+            html += `
+                <div class="serp-metadata-item">
+                    <div class="serp-metadata-label">Results Count</div>
+                    <div class="serp-metadata-value">
+                        <span class="serp-results-count">${formatNumber(serpResults.se_results_count || 0)}</span>
+                    </div>
+                </div>
+            `;
+            
+            // Items Count
+            html += `
+                <div class="serp-metadata-item">
+                    <div class="serp-metadata-label">Items on Page</div>
+                    <div class="serp-metadata-value">${serpResults.items_count || 0}</div>
+                </div>
+            `;
+            
+            // DateTime & Freshness
+            if (serpResults.datetime) {
+                const datetime = new Date(serpResults.datetime).toLocaleString('pl-PL');
+                const freshnessHours = serpResults.data_freshness_hours || 0;
+                html += `
+                    <div class="serp-metadata-item">
+                        <div class="serp-metadata-label">Check Time</div>
+                        <div class="serp-metadata-value">
+                            ${datetime}<br/>
+                            <span class="freshness-time">${freshnessHours}h temu</span>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Execution Time & Cost
+            html += `
+                <div class="serp-metadata-item">
+                    <div class="serp-metadata-label">API Performance</div>
+                    <div class="serp-metadata-value">
+                        ⏱️ ${serpResults.execution_time || 0}s<br/>
+                        💰 $${(serpResults.api_cost || 0).toFixed(4)}
+                    </div>
+                </div>
+            `;
+            
+            html += '</div>'; // Koniec serp-metadata-grid
+            
+            // Check URL
+            if (serpResults.check_url) {
+                html += `
+                    <div style="margin-top: 15px;">
+                        <div class="serp-metadata-label">Check URL</div>
+                        <div class="serp-check-url">${serpResults.check_url}</div>
+                    </div>
+                `;
+            }
+            
+            // Item Types
+            if (serpResults.item_types && serpResults.item_types.length > 0) {
+                html += `
+                    <div style="margin-top: 15px;">
+                        <div class="serp-metadata-label">SERP Item Types</div>
+                        <div class="item-types-container">
+                `;
+                serpResults.item_types.forEach(type => {
+                    const typeClass = getSerpItemTypeClass(type);
+                    html += `<span class="item-type-badge ${typeClass}">${type}</span>`;
+                });
+                html += '</div></div>';
+            }
+            
+            // Spell Correction
+            if (serpResults.spell_correction) {
+                html += `
+                    <div style="margin-top: 15px; padding: 10px; background: #fff3cd; border-radius: 4px; border-left: 4px solid #ffc107;">
+                        <strong>🔤 Spell Correction:</strong> Google poprawił wyszukiwanie na "${serpResults.spell_correction}"
+                    </div>
+                `;
+            }
+            
+            // Refinement Chips
+            if (serpResults.refinement_chips && serpResults.refinement_chips.length > 0) {
+                html += `
+                    <div style="margin-top: 15px;">
+                        <div class="serp-metadata-label">Refinement Chips</div>
+                        <div class="refinement-chips">
+                `;
+                serpResults.refinement_chips.forEach(chip => {
+                    html += `<span class="refinement-chip">${chip}</span>`;
+                });
+                html += '</div></div>';
+            }
+            
+            html += '</div>'; // Koniec subsekcji A
+            
+            // SUBSEKCJA B: Complete SERP Items Table
+            if (data.serp_items && data.serp_items.length > 0) {
+                html += '<div class="serp-subsection">';
+                html += '<h4>🎯 Subsekcja B: Complete SERP Items Table</h4>';
+                
+                html += `
+                    <table class="serp-items-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Type</th>
+                                <th>Position</th>
+                                <th>Domain</th>
+                                <th>Title</th>
+                                <th>Rating</th>
+                                <th>Price</th>
+                                <th>Time</th>
+                                <th>Snippets</th>
+                                <th>Flags</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                data.serp_items.forEach(item => {
+                    html += '<tr>';
+                    
+                    // Rank
+                    html += `<td><span class="rank-badge">${item.rank_absolute || '-'}</span></td>`;
+                    
+                    // Type
+                    const typeClass = getSerpItemTypeClass(item.type);
+                    html += `<td><span class="serp-type-badge ${typeClass}">${item.type || 'unknown'}</span></td>`;
+                    
+                    // Position
+                    const positionClass = item.position ? `position-${item.position}` : '';
+                    html += `<td><span class="position-badge ${positionClass}">${item.position || 'center'}</span></td>`;
+                    
+                    // Domain + Website
+                    html += '<td>';
+                    if (item.domain) {
+                        html += `<div class="domain-cell">${item.domain}</div>`;
+                    }
+                    if (item.website_name) {
+                        html += `<div class="website-name">${item.website_name}</div>`;
+                    }
+                    html += '</td>';
+                    
+                    // Title + Featured
+                    html += '<td>';
+                    if (item.title) {
+                        html += `<div class="serp-title">${item.title}</div>`;
+                    }
+                    if (item.featured_title) {
+                        html += `<div class="featured-title">${item.featured_title}</div>`;
+                    }
+                    html += '</td>';
+                    
+                    // Rating
+                    html += '<td>';
+                    if (item.rating_value) {
+                        html += '<div class="rating-display">';
+                        html += `<span class="rating-stars">⭐</span>`;
+                        html += `<span class="rating-value">${item.rating_value}/${item.rating_max || 5}</span>`;
+                        if (item.rating_votes_count) {
+                            html += `<div class="rating-votes">(${item.rating_votes_count})</div>`;
+                        }
+                        html += '</div>';
+                    } else {
+                        html += '-';
+                    }
+                    html += '</td>';
+                    
+                    // Price
+                    html += '<td>';
+                    if (item.price_current || item.price_regular) {
+                        html += '<div class="price-display">';
+                        if (item.price_current) {
+                            html += `<div class="price-current">${item.price_currency || '$'}${item.price_current}</div>`;
+                        }
+                        if (item.price_regular && item.price_regular !== item.price_current) {
+                            html += `<div class="price-regular">${item.price_currency || '$'}${item.price_regular}</div>`;
+                        }
+                        html += '</div>';
+                    } else {
+                        html += '-';
+                    }
+                    html += '</td>';
+                    
+                    // Timestamp
+                    html += '<td>';
+                    if (item.timestamp) {
+                        const timestamp = new Date(item.timestamp).toLocaleDateString('pl-PL');
+                        html += `<div class="timestamp-display">${timestamp}</div>`;
+                    } else {
+                        html += '-';
+                    }
+                    html += '</td>';
+                    
+                    // Snippets
+                    html += '<td><div class="snippet-container">';
+                    if (item.description) {
+                        html += `<div class="description-text">${item.description.substring(0, 100)}${item.description.length > 100 ? '...' : ''}</div>`;
+                    }
+                    if (item.breadcrumb) {
+                        html += `<div class="breadcrumb-text">${item.breadcrumb}</div>`;
+                    }
+                    html += '</div></td>';
+                    
+                    // Content Flags
+                    html += '<td><div class="content-flags">';
+                    html += `<span class="content-flag ${item.is_image ? 'active' : ''}" title="Image">🖼️</span>`;
+                    html += `<span class="content-flag ${item.is_video ? 'active' : ''}" title="Video">🎥</span>`;
+                    html += `<span class="content-flag ${item.is_malicious ? 'active' : ''}" title="Malicious">⚠️</span>`;
+                    html += `<span class="content-flag ${item.is_web_story ? 'active' : ''}" title="Web Story">📱</span>`;
+                    html += `<span class="content-flag ${item.is_amp ? 'active' : ''}" title="AMP">⚡</span>`;
+                    html += '</div></td>';
+                    
+                    html += '</tr>';
+                });
+                
+                html += '</tbody></table>';
+                html += '</div>'; // Koniec subsekcji B
+            }
+            
+            // SUBSEKCJA C: SERP Items Dekompozycja by Type
+            if (data.serp_items && data.serp_items.length > 0) {
+                html += '<div class="serp-subsection">';
+                html += '<h4>🧩 Subsekcja C: SERP Items Dekompozycja by Type</h4>';
+                
+                html += '<div class="serp-type-sections">';
+                
+                // AI Overview
+                const aiItems = data.serp_items.filter(item => item.type === 'ai_overview');
+                if (aiItems.length > 0) {
+                    html += '<div class="serp-type-section ai-overview-section">';
+                    html += '<div class="serp-type-title">🤖 AI Overview</div>';
+                    
+                    aiItems.forEach(item => {
+                        // AI Text Content
+                        if (item.item_data && item.item_data.text) {
+                            html += `<div class="ai-text-content">${item.item_data.text}</div>`;
+                        }
+                        
+                        // AI References
+                        const aiRefs = data.serp_ai_references ? data.serp_ai_references.filter(ref => ref.serp_item_id === item.id) : [];
+                        if (aiRefs.length > 0) {
+                            html += '<div class="ai-references-grid">';
+                            aiRefs.forEach(ref => {
+                                html += '<div class="ai-reference-item">';
+                                if (ref.title) {
+                                    html += `<div class="ai-reference-title">${ref.title}</div>`;
+                                }
+                                if (ref.url) {
+                                    html += `<div class="ai-reference-url">${ref.url}</div>`;
+                                }
+                                if (ref.source) {
+                                    html += `<div class="ai-reference-source">${ref.source}</div>`;
+                                }
+                                if (ref.text_fragment) {
+                                    html += `<div class="ai-reference-fragment">"${ref.text_fragment}"</div>`;
+                                }
+                                if (ref.badges && ref.badges.length > 0) {
+                                    html += '<div class="ai-reference-badges">';
+                                    ref.badges.forEach(badge => {
+                                        html += `<span class="ai-reference-badge">${badge}</span>`;
+                                    });
+                                    html += '</div>';
+                                }
+                                html += '</div>';
+                            });
+                            html += '</div>';
+                        }
+                    });
+                    
+                    html += '</div>';
+                }
+                
+                // Knowledge Graph
+                const kgItems = data.serp_items.filter(item => item.type === 'knowledge_graph');
+                if (kgItems.length > 0) {
+                    html += '<div class="serp-type-section knowledge-graph-section">';
+                    html += '<div class="serp-type-title">📚 Knowledge Graph</div>';
+                    
+                    kgItems.forEach(item => {
+                        if (item.item_data) {
+                            html += '<div class="knowledge-graph-content">';
+                            
+                            // Image
+                            if (item.item_data.image_url) {
+                                html += `<img src="${item.item_data.image_url}" alt="KG Image" class="kg-image" />`;
+                            }
+                            
+                            // Details
+                            html += '<div class="kg-details">';
+                            if (item.item_data.title) {
+                                html += `<div class="kg-title">${item.item_data.title}</div>`;
+                            }
+                            if (item.item_data.type) {
+                                html += `<div class="kg-type">${item.item_data.type}</div>`;
+                            }
+                            if (item.item_data.description) {
+                                html += `<div class="kg-description">${item.item_data.description}</div>`;
+                            }
+                            
+                            // Attributes
+                            if (item.item_data.attributes && item.item_data.attributes.length > 0) {
+                                html += '<div class="kg-attributes">';
+                                item.item_data.attributes.forEach(attr => {
+                                    html += '<div class="kg-attribute">';
+                                    html += `<div class="kg-attribute-label">${attr.title}:</div>`;
+                                    html += `<div class="kg-attribute-value">${attr.value}</div>`;
+                                    html += '</div>';
+                                });
+                                html += '</div>';
+                            }
+                            
+                            html += '</div>';
+                            html += '</div>';
+                        }
+                    });
+                    
+                    html += '</div>';
+                }
+                
+                // People Also Ask
+                const paaItems = data.serp_items.filter(item => item.type === 'people_also_ask');
+                if (paaItems.length > 0) {
+                    html += '<div class="serp-type-section people-also-ask-section">';
+                    html += '<div class="serp-type-title">❓ People Also Ask</div>';
+                    
+                    paaItems.forEach(item => {
+                        if (item.item_data && item.item_data.faq_items) {
+                            html += '<div class="faq-items-list">';
+                            item.item_data.faq_items.forEach(faq => {
+                                html += '<div class="faq-item">';
+                                if (faq.question) {
+                                    html += `<div class="faq-question">${faq.question}</div>`;
+                                }
+                                if (faq.answer_snippet) {
+                                    html += `<div class="faq-answer">${faq.answer_snippet}</div>`;
+                                }
+                                html += '</div>';
+                            });
+                            html += '</div>';
+                        }
+                    });
+                    
+                    html += '</div>';
+                }
+                
+                html += '</div>'; // Koniec serp-type-sections
+                html += '</div>'; // Koniec subsekcji C
+            }
+            
+            // SUBSEKCJA D: Additional SERP Tables
+            html += '<div class="serp-subsection">';
+            html += '<h4>📋 Subsekcja D: Additional SERP Tables</h4>';
+            
+            html += '<div class="additional-serp-tables">';
+            
+            // People Also Ask Table
+            if (data.serp_people_also_ask && data.serp_people_also_ask.length > 0) {
+                html += '<div class="additional-serp-table">';
+                html += '<h5>❓ People Also Ask Questions</h5>';
+                html += '<table class="simple-serp-table">';
+                html += '<thead><tr><th>Rank</th><th>Question</th><th>Answer</th></tr></thead>';
+                html += '<tbody>';
+                
+                data.serp_people_also_ask.forEach((paa, index) => {
+                    html += '<tr>';
+                    html += `<td>${index + 1}</td>`;
+                    html += `<td>${paa.question}</td>`;
+                    html += `<td>${paa.expanded_description ? paa.expanded_description.substring(0, 200) + '...' : '-'}</td>`;
+                    html += '</tr>';
+                });
+                
+                html += '</tbody></table>';
+                html += '</div>';
+            }
+            
+            // Local Results Table
+            if (data.serp_local_results && data.serp_local_results.length > 0) {
+                html += '<div class="additional-serp-table">';
+                html += '<h5>📍 Local Results</h5>';
+                html += '<table class="simple-serp-table">';
+                html += '<thead><tr><th>Rank</th><th>Title</th><th>Address</th><th>Phone</th><th>Rating</th></tr></thead>';
+                html += '<tbody>';
+                
+                data.serp_local_results.forEach((local, index) => {
+                    html += '<tr>';
+                    html += `<td>${index + 1}</td>`;
+                    html += `<td>${local.title}</td>`;
+                    html += `<td>${local.address || '-'}</td>`;
+                    html += `<td>${local.phone || '-'}</td>`;
+                    html += `<td>${local.rating_value ? local.rating_value + '⭐' : '-'}</td>`;
+                    html += '</tr>';
+                });
+                
+                html += '</tbody></table>';
+                html += '</div>';
+            }
+            
+            // Related Searches Table
+            if (data.serp_related_searches && data.serp_related_searches.length > 0) {
+                html += '<div class="additional-serp-table">';
+                html += '<h5>🔗 Related Searches</h5>';
+                html += '<table class="simple-serp-table">';
+                html += '<thead><tr><th>Position</th><th>Related Keyword</th></tr></thead>';
+                html += '<tbody>';
+                
+                data.serp_related_searches.forEach(related => {
+                    html += '<tr>';
+                    html += `<td>${related.position || '-'}</td>`;
+                    html += `<td>${related.keyword}</td>`;
+                    html += '</tr>';
+                });
+                
+                html += '</tbody></table>';
+                html += '</div>';
+            }
+            
+            html += '</div>'; // Koniec additional-serp-tables
+            html += '</div>'; // Koniec subsekcji D
+            
+            // Explanation
+            html += `
+                <div class="serp-explanation">
+                    <p><strong>Wyjaśnienie SERP Analysis:</strong> Ta sekcja dekompozycji SERP pokazuje kompletny obraz competitive landscape. 
+                    Główna tabela serp_items zawiera wszystkie podstawowe elementy, a dekompozycja item_data pozwala na szczegółową analizę każdego typu elementu SERP. 
+                    Content flags (is_image, is_video, etc.) dają natychmiastowy wgląd w typ contentu. 
+                    Separate tables dla people_also_ask, local_results i related_searches pokazują dodatkowe dane które Google może udostępniać jako osobne sekcje.</p>
+                </div>
+            `;
+            
+            html += '</div>'; // Koniec serp-analysis-content
+            
+            serpContainer.innerHTML = html;
+        }
+        
+        // Helper functions dla SEKCJI 9
+        function getSerpItemTypeClass(type) {
+            const typeLower = (type || '').toLowerCase();
+            if (typeLower.includes('organic')) return 'item-type-organic';
+            if (typeLower.includes('paid') || typeLower.includes('ads')) return 'item-type-paid';
+            if (typeLower.includes('features') || typeLower.includes('snippet') || typeLower.includes('knowledge')) return 'item-type-featured';
+            if (typeLower.includes('ai')) return 'item-type-ai';
+            return 'item-type-default';
+        }
+        
+        // SEKCJA 10: ENHANCED AUTOCOMPLETE ANALYSIS - Funkcje wyświetlania
+        function displayAutocompleteAnalysis(data) {
+            console.log('🔮 SEKCJA 10 DEBUG - autocompleteAnalysis data:', data);
+            
+            const autocompleteContainer = document.getElementById('autocompleteAnalysis');
+            
+            if (!data.autocomplete_results) {
+                autocompleteContainer.innerHTML = `
+                    <div class="autocomplete-no-data">
+                        <p>❌ Brak danych autocomplete dla tego słowa kluczowego.</p>
+                        <p>Dane autocomplete mogą być niedostępne jeśli analiza autocomplete nie została jeszcze uruchomiona lub nie powiodła się.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '<div class="autocomplete-analysis-content">';
+            html += '<h4>🔮 SEKCJA 10: ENHANCED AUTOCOMPLETE ANALYSIS</h4>';
+            html += '<p>Podstawowa implementacja - dane autocomplete dostępne!</p>';
+            
+            const autocompleteResults = data.autocomplete_results;
+            const autocompleteSuggestions = data.autocomplete_suggestions || [];
+            
+            html += `<p><strong>Metadata:</strong> ${autocompleteResults.keyword} (${autocompleteSuggestions.length} sugestii)</p>`;
+            
+            if (autocompleteSuggestions.length > 0) {
+                html += '<table style="width: 100%; border-collapse: collapse; margin-top: 15px;">';
+                html += '<thead><tr style="background: #f8f9fa;"><th style="padding: 8px; border: 1px solid #dee2e6;">Rank</th><th style="padding: 8px; border: 1px solid #dee2e6;">Suggestion</th><th style="padding: 8px; border: 1px solid #dee2e6;">Word Count</th></tr></thead>';
+                html += '<tbody>';
+                
+                autocompleteSuggestions.slice(0, 10).forEach(suggestion => {
+                    html += '<tr>';
+                    html += `<td style="padding: 8px; border: 1px solid #dee2e6;">${suggestion.rank_absolute || '-'}</td>`;
+                    html += `<td style="padding: 8px; border: 1px solid #dee2e6;">${suggestion.suggestion || ''}</td>`;
+                    html += `<td style="padding: 8px; border: 1px solid #dee2e6;">${suggestion.word_count || 0}</td>`;
+                    html += '</tr>';
+                });
+                
+                html += '</tbody></table>';
+            }
+            
+            html += '</div>';
+            autocompleteContainer.innerHTML = html;
+        }
+        
+        function showResults() {
+            document.getElementById('resultsContainer').style.display = 'block';
+        }
+        
+        // ========================================
+        // MODULAR SECTIONS SYSTEM
+        // ========================================
+        
+        // Enhanced loadKeywordData z modularnym systemem
+        async function loadKeywordDataModular(keyword, country) {
+            try {
+                console.log('📊 Ładowanie danych słowa kluczowego (MODULAR):', keyword, country);
+                
+                // Załaduj wszystkie moduły sekcji
+                console.log('🔄 Ładowanie modułów sekcji...');
+                if (window.sectionsLoader) {
+                    await window.sectionsLoader.loadAllSections();
+                }
+                
+                // Parsuj country do location_code i language_code
+                const [location_code, language_code] = country.split('|');
+                
+                const response = await fetch(`/api/v6/keyword-data/${encodeURIComponent(keyword)}?location_code=${location_code}&language_code=${language_code}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const result = await response.json();
+                console.log('📊 Dane słowa kluczowego:', result);
+                
+                if (result.success) {
+                    // Wywołaj wszystkie funkcje wyświetlania
+                    displayKeywordHeader(result.data);
+                    displaySeoMetrics(result.data);
+                    displayIntentAnalysis(result.data);
+                    displayDemographicsAnalysis(result.data);
+                    displayTrendsAnalysis(result.data);
+                    displayGeographicAnalysis(result.data);
+                    displayCompetitionAnalysis(result.data);
+                    displayRelatedKeywordsAnalysis(result.data);
+                    displaySerpAnalysis(result.data);
+                    
+                    // SEKCJA 10: Użyj modularnej funkcji jeśli dostępna, w przeciwnym razie fallback
+                    if (window.sectionsLoader && window.sectionsLoader.isSectionLoaded(10)) {
+                        console.log('✅ Używam modularnej SEKCJI 10');
+                        displayAutocompleteAnalysis(result.data);
+                    } else {
+                        console.log('⚠️ Używam fallback SEKCJI 10');
+                        displayAutocompleteAnalysisFallback(result.data);
+                    }
+                    
+                    showResults();
+                } else {
+                    throw new Error('Brak danych');
+                }
+                
+            } catch (error) {
+                console.error('❌ Błąd ładowania danych:', error);
+                showMessage(`❌ Błąd ładowania danych: ${error.message}`, 'error');
+            }
+        }
+        
+        // Zastąp oryginalną funkcję modularną wersją
+        const originalLoadKeywordData = loadKeywordData;
+        loadKeywordData = loadKeywordDataModular;
+        
+    </script>
+    
+    <!-- Załaduj Sections Loader System -->
+    <script src="/static/sections/sections-loader.js"></script>
+    
+    <!-- Inicjalizuj system modularny -->
+    <script>
+        // Inicjalizacja systemu modularnego po załadowaniu DOM
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('🚀 Inicjalizacja modularnego systemu sekcji...');
+            
+            try {
+                if (window.sectionsLoader) {
+                    // Sprawdź dostępność modułów
+                    const section10Available = await window.sectionsLoader.checkSectionAvailability(10);
+                    console.log('📊 Status sekcji 10:', section10Available);
+                    
+                    // Załaduj sekcję 10 z wyprzedzeniem
+                    if (section10Available.available) {
+                        await window.sectionsLoader.loadSection(10);
+                        console.log('✅ Sekcja 10 załadowana z wyprzedzeniem');
+                    } else {
+                        console.log('⚠️ Sekcja 10 niedostępna - będzie używany fallback');
+                    }
+                    
+                    // Status wszystkich sekcji
+                    const status = window.sectionsLoader.getLoadingStatus();
+                    console.log('📊 Status wszystkich sekcji:', status);
+                } else {
+                    console.warn('⚠️ Sections Loader nie dostępny');
+                }
+            } catch (error) {
+                console.error('❌ Błąd inicjalizacji systemu modularnego:', error);
+            }
+        });
+    </script>
+</body>
+</html>

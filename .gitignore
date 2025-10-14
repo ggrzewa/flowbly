@@ -1,0 +1,68 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+
+# Environment variables
+.env
+.env.local
+*.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+logs/
+*.log.*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Temporary files
+*.tmp
+temp/
+tmp/
+
+# Generated scaffold logs
+scaffold_generation_*.txt
+
+# Word documents (temp)
+~$*.docx
+~$*.doc
+
+# CSV data files
+*.csv
+
+# JSON responses
+response.json
+*.response.json
+
+# Railway
+.railway/
+
+# Backup files
+*_kopia.py
+*.backup
+

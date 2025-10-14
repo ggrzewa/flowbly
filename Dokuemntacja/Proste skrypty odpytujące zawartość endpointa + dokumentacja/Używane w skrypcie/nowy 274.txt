@@ -1,0 +1,1440 @@
+https://docs.dataforseo.com/v3/keywords_data/dataforseo_trends/merged_data/live/?bash
+
+endpoint dla merged DataForSEO Trends API, bez dat i z twardo zakodowanymi parametrami -  0.005000$
+
+
+# DataForSEO Trends Merged Data API - Szybka Dokumentacja
+
+## PODSTAWOWE INFO
+- Method: POST
+- Format: JSON (UTF-8)
+- Limit: 2000 calls/min, max 30 simultaneous
+- Max keywords: 5 per request
+
+---
+
+## POLA ŻĄDANIA (POST REQUEST)
+
+| Pole | Typ | Wymagane | Opis |
+|------|-----|----------|------|
+| keywords | array | TAK | Słowa kluczowe (max 5) |
+| location_name | string | NIE | Pełna nazwa lokalizacji (np. "United Kingdom") |
+| location_code | integer | NIE | Kod lokalizacji (np. 2840) |
+| type | string | NIE | Typ: web/news/ecommerce (default: web) |
+| date_from | string | NIE | Data od (yyyy-mm-dd), min: 2004-01-01 dla web |
+| date_to | string | NIE | Data do (yyyy-mm-dd) |
+| time_range | string | NIE | past_4_hours/past_day/past_7_days/past_30_days/past_90_days/past_12_months/past_5_years |
+| tag | string | NIE | Identyfikator zadania (max 255 znaków) |
+
+---
+
+## GŁÓWNA STRUKTURA ODPOWIEDZI
+
+```
+response
+├── version (string)
+├── status_code (integer)
+├── status_message (string)
+├── time (string)
+├── cost (float)
+├── tasks_count (integer)
+├── tasks_error (integer)
+└── tasks (array)
+    └── [task_object]
+```
+
+---
+
+## OBIEKT ZADANIA (tasks[])
+
+| Pole | Typ | Opis |
+|------|-----|------|
+| id | string | UUID zadania |
+| status_code | integer | Status kod (10000-60000) |
+| status_message | string | Wiadomość statusu |
+| time | string | Czas wykonania |
+| cost | float | Koszt w USD |
+| result_count | integer | Liczba wyników |
+| path | array | Ścieżka URL |
+| data | object | Parametry z POST request |
+| result | array | Tablica wyników |
+
+---
+
+## STRUKTURA WYNIKU (result[])
+
+### PODSTAWOWE POLA WYNIKU
+| Pole | Typ | Opis |
+|------|-----|------|
+| keywords | array | Słowa kluczowe z POST |
+| type | array | Typ wyszukiwarki z POST |
+| location_code | integer | Kod lokalizacji (null jeśli brak) |
+| language_code | string | Kod języka (null jeśli brak) |
+| datetime | string | Data UTC: yyyy-mm-dd hh-mm-ss +00:00 |
+| items_count | integer | Liczba elementów w items |
+| items | array | Główne dane wyników |
+
+---
+
+## ELEMENTY W ITEMS[]
+
+### 1. DATAFORSEO_TRENDS_GRAPH
+```
+dataforseo_trends_graph
+├── position (integer) - pozycja elementu
+├── type (string) - "dataforseo_trends_graph"
+├── keywords (array) - słowa kluczowe
+├── data (array)
+│   ├── date_from (string) - data od
+│   ├── date_to (string) - data do
+│   ├── timestamp (integer) - Unix timestamp
+│   └── values (array) - wartości popularności (0-100)
+└── averages (array) - średnie wartości
+```
+
+### 2. SUBREGION_INTERESTS
+```
+subregion_interests
+├── position (integer)
+├── type (string) - "subregion_interests"
+├── keywords (array)
+├── interests (array)
+│   ├── keyword (string)
+│   └── values (array)
+│       ├── geo_id (string) - ID lokalizacji (np. US-NY)
+│       ├── geo_name (string) - nazwa lokalizacji
+│       └── value (integer) - popularność (0-100)
+└── interests_comparison (object/null)
+    ├── items (array)
+    │   ├── geo_id (string)
+    │   ├── geo_name (string)
+    │   └── values (array) - wartości dla każdego słowa
+    └── absolute_items (array)
+        ├── geo_id (string)
+        ├── geo_name (string)
+        └── values (array) - wartości absolutne
+```
+
+### 3. DEMOGRAPHY
+```
+demography
+├── position (integer)
+├── type (string) - "demography"
+├── keywords (array)
+├── demography (object)
+│   ├── age (array)
+│   │   ├── keyword (string)
+│   │   └── values (array)
+│   │       ├── type (string) - "18-24"/"25-34"/"35-44"/"45-54"/"55-64"
+│   │       └── value (integer) - popularność (0-100)
+│   └── gender (array)
+│       ├── keyword (string)
+│       └── values (array)
+│           ├── type (string) - "female"/"male"
+│           └── value (integer) - popularność (0-100)
+└── demography_comparison (object/null)
+    ├── age (object)
+    │   └── $18-24, $25-34, $35-44, $45-54, $55-64 (array)
+    └── gender (object)
+        ├── female (array)
+        └── male (array)
+```
+
+---
+
+
+## WAŻNE NOTATKI
+
+- Wartości popularności: 100 = szczyt, 50 = połowa, 0 = brak danych
+- interests_comparison i demography_comparison = null przy 1 słowie kluczowym
+- Minimalne daty: web (2004-01-01), inne typy (2008-01-01)
+- Lokalizacje: sprawdź dostępne przez /locations endpoint
+- Koszt naliczany za request, nie za liczbę słów kluczowych
+
+
+
+
+✅ Kod FastAPI: /api/trends/merged
+python
+Kopiuj
+Edytuj
+import os
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
+from dotenv import load_dotenv
+from dataforseo_client import configuration as dfs_config, api_client as dfs_api_provider
+from dataforseo_client.api.keywords_data_api import KeywordsDataApi
+from dataforseo_client.models.keywords_data_dataforseo_trends_merged_data_live_request_info import KeywordsDataDataforseoTrendsMergedDataLiveRequestInfo
+
+load_dotenv()
+
+router = APIRouter()
+
+DFS_LOGIN = os.getenv("DATAFORSEO_LOGIN")
+DFS_PASSWORD = os.getenv("DATAFORSEO_PASSWORD")
+
+# Input model
+class TrendsMergedInput(BaseModel):
+    keywords: list[str]
+
+@router.post("/trends/merged")
+async def get_trends_merged(data: TrendsMergedInput):
+    if not all([DFS_LOGIN, DFS_PASSWORD]):
+        raise HTTPException(status_code=500, detail="Brak danych logowania do API DataForSEO.")
+
+    config = dfs_config.Configuration(username=DFS_LOGIN, password=DFS_PASSWORD)
+
+    request_data = [
+        KeywordsDataDataforseoTrendsMergedDataLiveRequestInfo(
+            keywords=data.keywords,
+            location_code=2616,      # Polska
+            language_code="pl",      # Polski
+            type="web"               # Zakres danych: wyszukiwarka Google
+        )
+    ]
+
+    with dfs_api_provider.ApiClient(config) as client:
+        api_instance = KeywordsDataApi(client)
+
+        try:
+            api_response = api_instance.dataforseo_trends_merged_data_live(request_data)
+            task = api_response.tasks[0]
+            if not task.result:
+                raise HTTPException(status_code=404, detail="Brak wyników dla podanych słów kluczowych.")
+            return task.result[0].to_dict()
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+			
+			
+			
+*******
+*******
+
+{
+  "keywords": [
+    "soczewki"
+  ],
+  "type": "trends",
+  "location_code": 2616,
+  "datetime": "2025-05-21 20:27:24 +00:00",
+  "items_count": 3,
+  "items": [
+    {
+      "type": "dataforseo_trends_graph",
+      "position": 1,
+      "keywords": [
+        "soczewki"
+      ],
+      "data": [
+        {
+          "date_from": "2024-05-26",
+          "date_to": "2024-06-01",
+          "timestamp": 1716681600,
+          "values": [
+            56
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-06-02",
+          "date_to": "2024-06-08",
+          "timestamp": 1717286400,
+          "values": [
+            78
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-06-09",
+          "date_to": "2024-06-15",
+          "timestamp": 1717891200,
+          "values": [
+            62
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-06-16",
+          "date_to": "2024-06-22",
+          "timestamp": 1718496000,
+          "values": [
+            66
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-06-23",
+          "date_to": "2024-06-29",
+          "timestamp": 1719100800,
+          "values": [
+            67
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-06-30",
+          "date_to": "2024-07-06",
+          "timestamp": 1719705600,
+          "values": [
+            85
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-07-07",
+          "date_to": "2024-07-13",
+          "timestamp": 1720310400,
+          "values": [
+            60
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-07-14",
+          "date_to": "2024-07-20",
+          "timestamp": 1720915200,
+          "values": [
+            65
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-07-21",
+          "date_to": "2024-07-27",
+          "timestamp": 1721520000,
+          "values": [
+            63
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-07-28",
+          "date_to": "2024-08-03",
+          "timestamp": 1722124800,
+          "values": [
+            67
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-08-04",
+          "date_to": "2024-08-10",
+          "timestamp": 1722729600,
+          "values": [
+            58
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-08-11",
+          "date_to": "2024-08-17",
+          "timestamp": 1723334400,
+          "values": [
+            54
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-08-18",
+          "date_to": "2024-08-24",
+          "timestamp": 1723939200,
+          "values": [
+            69
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-08-25",
+          "date_to": "2024-08-31",
+          "timestamp": 1724544000,
+          "values": [
+            76
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-09-01",
+          "date_to": "2024-09-07",
+          "timestamp": 1725148800,
+          "values": [
+            60
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-09-08",
+          "date_to": "2024-09-14",
+          "timestamp": 1725753600,
+          "values": [
+            55
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-09-15",
+          "date_to": "2024-09-21",
+          "timestamp": 1726358400,
+          "values": [
+            55
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-09-22",
+          "date_to": "2024-09-28",
+          "timestamp": 1726963200,
+          "values": [
+            82
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-09-29",
+          "date_to": "2024-10-05",
+          "timestamp": 1727568000,
+          "values": [
+            57
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-10-06",
+          "date_to": "2024-10-12",
+          "timestamp": 1728172800,
+          "values": [
+            63
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-10-13",
+          "date_to": "2024-10-19",
+          "timestamp": 1728777600,
+          "values": [
+            79
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-10-20",
+          "date_to": "2024-10-26",
+          "timestamp": 1729382400,
+          "values": [
+            90
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-10-27",
+          "date_to": "2024-11-02",
+          "timestamp": 1729987200,
+          "values": [
+            82
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-11-03",
+          "date_to": "2024-11-09",
+          "timestamp": 1730592000,
+          "values": [
+            54
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-11-10",
+          "date_to": "2024-11-16",
+          "timestamp": 1731196800,
+          "values": [
+            79
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-11-17",
+          "date_to": "2024-11-23",
+          "timestamp": 1731801600,
+          "values": [
+            73
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-11-24",
+          "date_to": "2024-11-30",
+          "timestamp": 1732406400,
+          "values": [
+            59
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-12-01",
+          "date_to": "2024-12-07",
+          "timestamp": 1733011200,
+          "values": [
+            64
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-12-08",
+          "date_to": "2024-12-14",
+          "timestamp": 1733616000,
+          "values": [
+            54
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-12-15",
+          "date_to": "2024-12-21",
+          "timestamp": 1734220800,
+          "values": [
+            54
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-12-22",
+          "date_to": "2024-12-28",
+          "timestamp": 1734825600,
+          "values": [
+            45
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-12-29",
+          "date_to": "2025-01-04",
+          "timestamp": 1735430400,
+          "values": [
+            51
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2025-01-05",
+          "date_to": "2025-01-11",
+          "timestamp": 1736035200,
+          "values": [
+            52
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2025-01-12",
+          "date_to": "2025-01-18",
+          "timestamp": 1736640000,
+          "values": [
+            56
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2025-01-19",
+          "date_to": "2025-01-25",
+          "timestamp": 1737244800,
+          "values": [
+            64
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2025-01-26",
+          "date_to": "2025-02-01",
+          "timestamp": 1737849600,
+          "values": [
+            68
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2025-02-02",
+          "date_to": "2025-02-08",
+          "timestamp": 1738454400,
+          "values": [
+            76
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2025-02-09",
+          "date_to": "2025-02-15",
+          "timestamp": 1739059200,
+          "values": [
+            55
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2025-02-16",
+          "date_to": "2025-02-22",
+          "timestamp": 1739664000,
+          "values": [
+            53
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2025-02-23",
+          "date_to": "2025-03-01",
+          "timestamp": 1740268800,
+          "values": [
+            75
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2025-03-02",
+          "date_to": "2025-03-08",
+          "timestamp": 1740873600,
+          "values": [
+            60
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2025-03-09",
+          "date_to": "2025-03-15",
+          "timestamp": 1741478400,
+          "values": [
+            51
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2025-03-16",
+          "date_to": "2025-03-22",
+          "timestamp": 1742083200,
+          "values": [
+            61
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2025-03-23",
+          "date_to": "2025-03-29",
+          "timestamp": 1742688000,
+          "values": [
+            59
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2025-03-30",
+          "date_to": "2025-04-05",
+          "timestamp": 1743292800,
+          "values": [
+            58
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2025-04-06",
+          "date_to": "2025-04-12",
+          "timestamp": 1743897600,
+          "values": [
+            76
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2025-04-13",
+          "date_to": "2025-04-19",
+          "timestamp": 1744502400,
+          "values": [
+            57
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2025-04-20",
+          "date_to": "2025-04-26",
+          "timestamp": 1745107200,
+          "values": [
+            59
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2025-04-27",
+          "date_to": "2025-05-03",
+          "timestamp": 1745712000,
+          "values": [
+            50
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2025-05-04",
+          "date_to": "2025-05-10",
+          "timestamp": 1746316800,
+          "values": [
+            64
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2025-05-11",
+          "date_to": "2025-05-17",
+          "timestamp": 1746921600,
+          "values": [
+            69
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2025-05-18",
+          "date_to": "2025-05-21",
+          "timestamp": 1747526400,
+          "values": [
+            83
+          ],
+          "missing_data": null
+        }
+      ],
+      "averages": [
+        64
+      ]
+    },
+    {
+      "type": "subregion_interests",
+      "position": 2,
+      "keywords": [
+        "soczewki"
+      ],
+      "interests": [
+        {
+          "keyword": "soczewki",
+          "values": [
+            {
+              "geo_name": "Greater Poland Voivodeship",
+              "value": 91,
+              "geo_id": null
+            },
+            {
+              "geo_name": "Kuyavian-Pomeranian Voivodeship",
+              "value": 48,
+              "geo_id": null
+            },
+            {
+              "geo_name": "Lesser Poland Voivodeship",
+              "value": 66,
+              "geo_id": null
+            },
+            {
+              "geo_name": "Lodz Voivodeship",
+              "value": 54,
+              "geo_id": null
+            },
+            {
+              "geo_name": "Lower Silesian Voivodeship",
+              "value": 68,
+              "geo_id": null
+            },
+            {
+              "geo_name": "Lublin Voivodeship",
+              "value": 100,
+              "geo_id": null
+            },
+            {
+              "geo_name": "Lubusz Voivodeship",
+              "value": 22,
+              "geo_id": null
+            },
+            {
+              "geo_name": "Masovian Voivodeship",
+              "value": 68,
+              "geo_id": null
+            },
+            {
+              "geo_name": "Opole Voivodeship",
+              "value": 29,
+              "geo_id": null
+            },
+            {
+              "geo_name": "Podkarpackie Voivodeship",
+              "value": 62,
+              "geo_id": null
+            },
+            {
+              "geo_name": "Podlaskie Voivodeship",
+              "value": 79,
+              "geo_id": null
+            },
+            {
+              "geo_name": "Pomeranian Voivodeship",
+              "value": 50,
+              "geo_id": null
+            },
+            {
+              "geo_name": "Silesian Voivodeship",
+              "value": 64,
+              "geo_id": null
+            },
+            {
+              "geo_name": "Swietokrzyskie Voivodeship",
+              "value": 35,
+              "geo_id": null
+            },
+            {
+              "geo_name": "Warmian-Masurian Voivodeship",
+              "value": 67,
+              "geo_id": null
+            },
+            {
+              "geo_name": "West Pomeranian Voivodeship",
+              "value": 68,
+              "geo_id": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "demography",
+      "position": 3,
+      "keywords": [
+        "soczewki"
+      ],
+      "demography": {
+        "age": [
+          {
+            "keyword": "soczewki",
+            "values": [
+              {
+                "type": "18-24",
+                "value": 59
+              },
+              {
+                "type": "25-34",
+                "value": 84
+              },
+              {
+                "type": "35-44",
+                "value": 100
+              },
+              {
+                "type": "45-54",
+                "value": 60
+              }
+            ]
+          }
+        ],
+        "gender": [
+          {
+            "keyword": "soczewki",
+            "values": [
+              {
+                "type": "female",
+                "value": 100
+              },
+              {
+                "type": "male",
+                "value": 85
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "language_code": null
+}
+
+****
+****
+
+
+{
+  "keywords": [
+    "grzegrzółka"
+  ],
+  "type": "trends",
+  "location_code": 2616,
+  "datetime": "2025-05-22 18:40:57 +00:00",
+  "items_count": 3,
+  "items": [
+    {
+      "type": "dataforseo_trends_graph",
+      "position": 1,
+      "keywords": [
+        "grzegrzółka"
+      ],
+      "data": [
+        {
+          "date_from": "2024-05-26",
+          "date_to": "2024-06-01",
+          "timestamp": 1716681600,
+          "values": [
+            3
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-06-02",
+          "date_to": "2024-06-08",
+          "timestamp": 1717286400,
+          "values": [
+            28
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-06-09",
+          "date_to": "2024-06-15",
+          "timestamp": 1717891200,
+          "values": [
+            19
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-06-16",
+          "date_to": "2024-06-22",
+          "timestamp": 1718496000,
+          "values": [
+            20
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-06-23",
+          "date_to": "2024-06-29",
+          "timestamp": 1719100800,
+          "values": [
+            9
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-06-30",
+          "date_to": "2024-07-06",
+          "timestamp": 1719705600,
+          "values": [
+            5
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-07-07",
+          "date_to": "2024-07-13",
+          "timestamp": 1720310400,
+          "values": [
+            3
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-07-14",
+          "date_to": "2024-07-20",
+          "timestamp": 1720915200,
+          "values": [
+            0
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-07-21",
+          "date_to": "2024-07-27",
+          "timestamp": 1721520000,
+          "values": [
+            5
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-07-28",
+          "date_to": "2024-08-03",
+          "timestamp": 1722124800,
+          "values": [
+            0
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-08-04",
+          "date_to": "2024-08-10",
+          "timestamp": 1722729600,
+          "values": [
+            4
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-08-11",
+          "date_to": "2024-08-17",
+          "timestamp": 1723334400,
+          "values": [
+            3
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-08-18",
+          "date_to": "2024-08-24",
+          "timestamp": 1723939200,
+          "values": [
+            3
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-08-25",
+          "date_to": "2024-08-31",
+          "timestamp": 1724544000,
+          "values": [
+            5
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-09-01",
+          "date_to": "2024-09-07",
+          "timestamp": 1725148800,
+          "values": [
+            3
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-09-08",
+          "date_to": "2024-09-14",
+          "timestamp": 1725753600,
+          "values": [
+            12
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-09-15",
+          "date_to": "2024-09-21",
+          "timestamp": 1726358400,
+          "values": [
+            4
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-09-22",
+          "date_to": "2024-09-28",
+          "timestamp": 1726963200,
+          "values": [
+            3
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-09-29",
+          "date_to": "2024-10-05",
+          "timestamp": 1727568000,
+          "values": [
+            100
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-10-06",
+          "date_to": "2024-10-12",
+          "timestamp": 1728172800,
+          "values": [
+            20
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-10-13",
+          "date_to": "2024-10-19",
+          "timestamp": 1728777600,
+          "values": [
+            8
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-10-20",
+          "date_to": "2024-10-26",
+          "timestamp": 1729382400,
+          "values": [
+            9
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-10-27",
+          "date_to": "2024-11-02",
+          "timestamp": 1729987200,
+          "values": [
+            10
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-11-03",
+          "date_to": "2024-11-09",
+          "timestamp": 1730592000,
+          "values": [
+            10
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-11-10",
+          "date_to": "2024-11-16",
+          "timestamp": 1731196800,
+          "values": [
+            5
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-11-17",
+          "date_to": "2024-11-23",
+          "timestamp": 1731801600,
+          "values": [
+            3
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-11-24",
+          "date_to": "2024-11-30",
+          "timestamp": 1732406400,
+          "values": [
+            4
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-12-01",
+          "date_to": "2024-12-07",
+          "timestamp": 1733011200,
+          "values": [
+            6
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-12-08",
+          "date_to": "2024-12-14",
+          "timestamp": 1733616000,
+          "values": [
+            3
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-12-15",
+          "date_to": "2024-12-21",
+          "timestamp": 1734220800,
+          "values": [
+            6
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-12-22",
+          "date_to": "2024-12-28",
+          "timestamp": 1734825600,
+          "values": [
+            6
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2024-12-29",
+          "date_to": "2025-01-04",
+          "timestamp": 1735430400,
+          "values": [
+            6
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2025-01-05",
+          "date_to": "2025-01-11",
+          "timestamp": 1736035200,
+          "values": [
+            4
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2025-01-12",
+          "date_to": "2025-01-18",
+          "timestamp": 1736640000,
+          "values": [
+            7
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2025-01-19",
+          "date_to": "2025-01-25",
+          "timestamp": 1737244800,
+          "values": [
+            6
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2025-01-26",
+          "date_to": "2025-02-01",
+          "timestamp": 1737849600,
+          "values": [
+            6
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2025-02-02",
+          "date_to": "2025-02-08",
+          "timestamp": 1738454400,
+          "values": [
+            13
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2025-02-09",
+          "date_to": "2025-02-15",
+          "timestamp": 1739059200,
+          "values": [
+            4
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2025-02-16",
+          "date_to": "2025-02-22",
+          "timestamp": 1739664000,
+          "values": [
+            3
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2025-02-23",
+          "date_to": "2025-03-01",
+          "timestamp": 1740268800,
+          "values": [
+            9
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2025-03-02",
+          "date_to": "2025-03-08",
+          "timestamp": 1740873600,
+          "values": [
+            14
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2025-03-09",
+          "date_to": "2025-03-15",
+          "timestamp": 1741478400,
+          "values": [
+            7
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2025-03-16",
+          "date_to": "2025-03-22",
+          "timestamp": 1742083200,
+          "values": [
+            6
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2025-03-23",
+          "date_to": "2025-03-29",
+          "timestamp": 1742688000,
+          "values": [
+            15
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2025-03-30",
+          "date_to": "2025-04-05",
+          "timestamp": 1743292800,
+          "values": [
+            9
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2025-04-06",
+          "date_to": "2025-04-12",
+          "timestamp": 1743897600,
+          "values": [
+            9
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2025-04-13",
+          "date_to": "2025-04-19",
+          "timestamp": 1744502400,
+          "values": [
+            8
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2025-04-20",
+          "date_to": "2025-04-26",
+          "timestamp": 1745107200,
+          "values": [
+            5
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2025-04-27",
+          "date_to": "2025-05-03",
+          "timestamp": 1745712000,
+          "values": [
+            6
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2025-05-04",
+          "date_to": "2025-05-10",
+          "timestamp": 1746316800,
+          "values": [
+            7
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2025-05-11",
+          "date_to": "2025-05-17",
+          "timestamp": 1746921600,
+          "values": [
+            6
+          ],
+          "missing_data": null
+        },
+        {
+          "date_from": "2025-05-18",
+          "date_to": "2025-05-22",
+          "timestamp": 1747526400,
+          "values": [
+            1
+          ],
+          "missing_data": null
+        }
+      ],
+      "averages": [
+        9
+      ]
+    },
+    {
+      "type": "subregion_interests",
+      "position": 2,
+      "keywords": [
+        "grzegrzółka"
+      ],
+      "interests": [
+        {
+          "keyword": "grzegrzółka",
+          "values": [
+            {
+              "geo_name": "Greater Poland Voivodeship",
+              "value": 14,
+              "geo_id": null
+            },
+            {
+              "geo_name": "Kuyavian-Pomeranian Voivodeship",
+              "value": 30,
+              "geo_id": null
+            },
+            {
+              "geo_name": "Lesser Poland Voivodeship",
+              "value": 25,
+              "geo_id": null
+            },
+            {
+              "geo_name": "Lodz Voivodeship",
+              "value": 55,
+              "geo_id": null
+            },
+            {
+              "geo_name": "Lower Silesian Voivodeship",
+              "value": 25,
+              "geo_id": null
+            },
+            {
+              "geo_name": "Masovian Voivodeship",
+              "value": 37,
+              "geo_id": null
+            },
+            {
+              "geo_name": "Podlaskie Voivodeship",
+              "value": 100,
+              "geo_id": null
+            },
+            {
+              "geo_name": "Silesian Voivodeship",
+              "value": 50,
+              "geo_id": null
+            },
+            {
+              "geo_name": "West Pomeranian Voivodeship",
+              "value": 52,
+              "geo_id": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "demography",
+      "position": 3,
+      "keywords": [
+        "grzegrzółka"
+      ],
+      "demography": {
+        "age": [
+          {
+            "keyword": "grzegrzółka",
+            "values": [
+              {
+                "type": "25-34",
+                "value": 79
+              },
+              {
+                "type": "35-44",
+                "value": 100
+              }
+            ]
+          }
+        ],
+        "gender": [
+          {
+            "keyword": "grzegrzółka",
+            "values": [
+              {
+                "type": "female",
+                "value": 100
+              },
+              {
+                "type": "male",
+                "value": 99
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "language_code": null
+}

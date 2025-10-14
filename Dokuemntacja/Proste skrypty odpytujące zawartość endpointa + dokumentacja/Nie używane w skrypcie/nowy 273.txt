@@ -1,0 +1,311 @@
+https://docs.dataforseo.com/v3/keywords_data/clickstream_data/bulk_search_volume/live/?bash
+
+📦 Endpoint: /v3/keywords_data/clickstream_data/bulk_search_volume/live
+🎯 Cel: Pobranie danych search volume opartych na clickstream (do 1000 fraz na raz)
+
+─────────────────────────────────────────────────────────────
+📥 DANE WEJŚCIOWE (POST)
+─────────────────────────────────────────────────────────────
+Field                  | Typ       | Opis
+──────────────────────|-----------|--------------------------------------------------
+keywords[]            | array     | ✅ Lista fraz (wymagane, max: 1000, min. 3 znaki)
+location_code         | integer   | ✅ Kod lokalizacji (np. 2840 = UK)
+location_name         | string    | alternatywa dla location_code (jeden z dwóch wymagany)
+tag                   | string    | opcjonalnie: etykieta użytkownika (max 255 znaków)
+
+─────────────────────────────────────────────────────────────
+📤 DANE ZWRACANE (RESPONSE)
+─────────────────────────────────────────────────────────────
+Pole JSON             | Typ       | Opis
+──────────────────────|-----------|--------------------------------------------------
+version               | string    | Wersja API
+status_code           | integer   | Status ogólny zapytania (np. 20000 = OK)
+status_message        | string    | Komunikat statusu (np. "OK")
+time                  | string    | Czas wykonania zadania (np. "0.38 sec")
+cost                  | float     | Koszt zapytania w USD
+tasks_count           | integer   | Liczba zadań (1)
+tasks_error           | integer   | Liczba błędnych zadań (0 jeśli ok)
+─────────────────────────────────────────────────────────────
+tasks[].result[].items[] → zawiera dane dla każdej frazy
+─────────────────────────────────────────────────────────────
+keyword               | string    | Fraża kluczowa (zdekodowana)
+search_volume         | integer   | Średni miesięczny wolumen wyszukiwań (clickstream)
+monthly_searches[]    | array     | Dane z ostatnich 12 miesięcy (maksimum)
+ └─ year              | integer   | Rok (np. 2024)
+ └─ month             | integer   | Miesiąc (1–12)
+ └─ search_volume     | integer   | Wolumen dla danego miesiąca
+
+─────────────────────────────────────────────────────────────
+📌 UWAGI I OGRANICZENIA
+─────────────────────────────────────────────────────────────
+• Max: 1000 fraz w jednym zapytaniu
+• Brak CPC, konkurencji, SERP – tylko wolumen (clickstream)
+• Wolumen oparty na zachowaniach użytkowników, NIE Google Ads
+• clickstream_volume != search_volume z Google Ads → mogą się znacznie różnić
+• Niektóre znaki zabronione w frazach (np. emoji)
+• Możliwe null lub brak danych dla bardzo niszowych fraz
+
+─────────────────────────────────────────────────────────────
+💡 PRZYDATNE DLA UI / ANALITYKI
+─────────────────────────────────────────────────────────────
+• Dobry do alternatywnych danych wolumenowych (niezależnych od Google Ads)
+• Możliwość porównania z danymi Ads (jeśli pobierasz oba)
+• Użyj `tag`, by śledzić kto/co wysłało zapytanie (jeśli API masz w aplikacji)
+• Warto cache’ować — clickstream nie zmienia się często
+
+─────────────────────────────────────────────────────────────
+
+
+=========================================
+📘 Informacje dodatkowe – Endpoint:
+clickstream_data/bulk_search_volume/live
+=========================================
+
+Max fraz: 
+    Można przesłać do 1000 słów kluczowych w jednej paczce.
+    Opłata liczona za całe zapytanie, niezależnie od liczby fraz.
+
+Wymagane pole:
+    location_code LUB location_name – jedno z nich musi być podane.
+
+Brak pola language_code:
+    Język nie jest brany pod uwagę – tylko lokalizacja wpływa na dane.
+
+Minimalna długość słowa:
+    Każde słowo musi mieć min. 3 znaki – krótsze frazy zostaną pominięte.
+
+Niedozwolone znaki:
+    Nie można używać znaków specjalnych (emoji, symbole Unicode, matematyczne itd.)
+
+Źródło danych:
+    Dane pochodzą z clickstreamu, a nie z Google Ads – to dane szacowane na podstawie rzeczywistych zachowań użytkowników.
+
+Zawartość odpowiedzi:
+    Tylko: search_volume (średnia) i monthly_searches (historia 12 mies.)
+
+Brak dodatkowych metryk:
+    Endpoint nie zawiera danych CPC, konkurencji, SERP ani backlinków.
+
+Zakres czasowy:
+    Zwracana historia obejmuje ostatnie 12 miesięcy – brak obsługi `date_from` i `date_to`.
+
+Różnice względem danych Google Ads:
+    Clickstream search_volume może znacząco różnić się od danych z Google Ads API (czasem niższe, czasem wyższe).
+
+Zastosowanie:
+    Dobry do badania popularności realnej (behawioralnej) na bazie ruchu użytkowników, nie tylko planowania kampanii płatnych.
+
+---------
+
+
+
+Bulk Clickstream Search Volume API - 0.010100$
+
+Poniżej masz pełny gotowy kod analyze_keywords.py, który:
+
+używa endpointu:
+/v3/keywords_data/clickstream_data/bulk_search_volume/live
+
+zwraca wszystkie dane .to_dict()
+
+działa z Twoim obecnym FastAPI bez zmian w reszcie projektu
+
+✅ SKOPIUJ I WSTAW DO app/api/analyze_keywords.py:
+python
+Kopiuj
+Edytuj
+import os
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
+from dotenv import load_dotenv
+from dataforseo_client import configuration as dfs_config, api_client as dfs_api_provider
+from dataforseo_client.api.keywords_data_api import KeywordsDataApi
+from dataforseo_client.models.keywords_data_clickstream_data_bulk_search_volume_live_request_info import KeywordsDataClickstreamDataBulkSearchVolumeLiveRequestInfo
+
+load_dotenv()
+
+router = APIRouter()
+
+# Wczytanie danych z .env
+DFS_LOGIN = os.getenv("DATAFORSEO_LOGIN")
+DFS_PASSWORD = os.getenv("DATAFORSEO_PASSWORD")
+
+# Model danych wejściowych
+class KeywordInput(BaseModel):
+    keyword: str
+    language: str
+    country: str
+
+@router.post("/analyze")
+async def analyze_keyword(data: KeywordInput):
+    if not all([DFS_LOGIN, DFS_PASSWORD]):
+        raise HTTPException(status_code=500, detail="Brak danych logowania do API DataForSEO.")
+
+    config = dfs_config.Configuration(username=DFS_LOGIN, password=DFS_PASSWORD)
+
+    # Przygotowanie danych – na razie na sztywno PL / Polska
+    request_data = [
+        KeywordsDataClickstreamDataBulkSearchVolumeLiveRequestInfo(
+            keywords=[data.keyword],
+            language_code="pl",
+            location_code=2616  # Polska
+        )
+    ]
+
+    with dfs_api_provider.ApiClient(config) as client:
+        api_instance = KeywordsDataApi(client)
+
+        try:
+            api_response = api_instance.clickstream_data_bulk_search_volume_live(request_data)
+            result = api_response.tasks[0].result[0]
+            return result.to_dict()
+
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+			
+			
+			
+********
+********
+
+Bulk Clickstream Search Volume API.
+
+Poniżej masz pełny gotowy kod analyze_keywords.py, który:
+
+używa endpointu:
+/v3/keywords_data/clickstream_data/bulk_search_volume/live
+
+zwraca wszystkie dane .to_dict()
+
+działa z Twoim obecnym FastAPI bez zmian w reszcie projektu
+
+✅ SKOPIUJ I WSTAW DO app/api/analyze_keywords.py:
+python
+Kopiuj
+Edytuj
+import os
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
+from dotenv import load_dotenv
+from dataforseo_client import configuration as dfs_config, api_client as dfs_api_provider
+from dataforseo_client.api.keywords_data_api import KeywordsDataApi
+from dataforseo_client.models.keywords_data_clickstream_data_bulk_search_volume_live_request_info import KeywordsDataClickstreamDataBulkSearchVolumeLiveRequestInfo
+
+load_dotenv()
+
+router = APIRouter()
+
+# Wczytanie danych z .env
+DFS_LOGIN = os.getenv("DATAFORSEO_LOGIN")
+DFS_PASSWORD = os.getenv("DATAFORSEO_PASSWORD")
+
+# Model danych wejściowych
+class KeywordInput(BaseModel):
+    keyword: str
+    language: str
+    country: str
+
+@router.post("/analyze")
+async def analyze_keyword(data: KeywordInput):
+    if not all([DFS_LOGIN, DFS_PASSWORD]):
+        raise HTTPException(status_code=500, detail="Brak danych logowania do API DataForSEO.")
+
+    config = dfs_config.Configuration(username=DFS_LOGIN, password=DFS_PASSWORD)
+
+    # Przygotowanie danych – na razie na sztywno PL / Polska
+    request_data = [
+        KeywordsDataClickstreamDataBulkSearchVolumeLiveRequestInfo(
+            keywords=[data.keyword],
+            language_code="pl",
+            location_code=2616  # Polska
+        )
+    ]
+
+    with dfs_api_provider.ApiClient(config) as client:
+        api_instance = KeywordsDataApi(client)
+
+        try:
+            api_response = api_instance.clickstream_data_bulk_search_volume_live(request_data)
+            result = api_response.tasks[0].result[0]
+            return result.to_dict()
+
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+			
+			
+			
+*****
+*****
+
+{
+  "location_code": 2616,
+  "items_count": 1,
+  "items": [
+    {
+      "keyword": "grzegrzółka",
+      "search_volume": 2368,
+      "monthly_searches": [
+        {
+          "year": 2025,
+          "month": 4,
+          "search_volume": 2368
+        },
+        {
+          "year": 2025,
+          "month": 3,
+          "search_volume": 2862
+        },
+        {
+          "year": 2025,
+          "month": 2,
+          "search_volume": 3454
+        },
+        {
+          "year": 2025,
+          "month": 1,
+          "search_volume": 3454
+        },
+        {
+          "year": 2024,
+          "month": 12,
+          "search_volume": 3947
+        },
+        {
+          "year": 2024,
+          "month": 11,
+          "search_volume": 4046
+        },
+        {
+          "year": 2024,
+          "month": 10,
+          "search_volume": 4638
+        },
+        {
+          "year": 2024,
+          "month": 9,
+          "search_volume": 4441
+        },
+        {
+          "year": 2024,
+          "month": 8,
+          "search_volume": 4540
+        },
+        {
+          "year": 2024,
+          "month": 7,
+          "search_volume": 4638
+        },
+        {
+          "year": 2024,
+          "month": 6,
+          "search_volume": 4638
+        },
+        {
+          "year": 2024,
+          "month": 5,
+          "search_volume": 4441
+        }
+      ]
+    }
+  ]
+}

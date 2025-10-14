@@ -1,0 +1,533 @@
+/* ========================================
+   SEKCJA 5: EXTENDED TRENDS & SEASONALITY - NASA MISSION CONTROL STYLE
+   ======================================== */
+
+/* NASA Mission Control Variables - Scoped to Section 5 */
+.section-5-nasa {
+  --bg:#f7f8fa; --panel:#fff; --panel-2:#f0f2f5; --text:#222; --muted:#6c757d;
+  --blue:#0b3d91; --blue-2:#1560bd; --green:#198754; --red:#dc3545; --orange:#fd7e14; --purple:#6f42c1; --cyan:#17a2b8;
+  --pink:#e91e63; --teal:#20c997; --indigo:#6610f2; --yellow:#ffc107; --lime:#32cd32;
+  --border:#e5e7eb; --shadow:0 2px 8px rgba(0,0,0,.06); --glow:0 0 0 3px rgba(21,96,189,.18);
+  --gap:10px; --pad:12px; --radius:8px; --fs-10:10.5px; --fs-11:11.5px; --fs-12:12px; --fs-18:18px; --fs-24:24px; --fs-32:32px;
+}
+
+/* Mission Control Layout */
+.section-5-nasa .nasa-mission-control {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  margin-top: 20px;
+}
+
+.section-5-nasa .control-room {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.section-5-nasa .card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+    overflow: hidden;
+}
+
+/* Section Headers */
+/* display-header removed per simplification */
+
+.section-5-nasa .display-title {
+  font-weight: 800;
+  letter-spacing: .4px;
+  color: var(--blue);
+  text-transform: uppercase;
+  font-size: 12px;
+}
+
+/* mission-state removed */
+
+/* state-dot removed */
+
+/* Grid Layouts */
+.section-5-nasa .trends-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 2fr 1fr;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 1000px) {
+  .section-5-nasa .trends-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.section-5-nasa .volume-grid {
+    display: grid;
+  gap: 1px;
+  background: var(--border);
+  grid-template-columns: repeat(3, 1fr);
+}
+
+@media (max-width: 900px) {
+  .section-5-nasa .volume-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* historical-grid removed */
+
+/* Panel Base */
+.section-5-nasa .panel {
+  background: var(--panel);
+  padding: var(--pad);
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  transition: transform .14s ease, box-shadow .14s ease, background .14s ease;
+  position: relative;
+}
+
+.section-5-nasa .panel:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(0,0,0,.1);
+}
+
+.section-5-nasa .panel:focus-within {
+  outline: var(--glow);
+}
+
+.section-5-nasa .panel-large {
+  min-height: 300px;
+  padding: 16px;
+}
+
+.section-5-nasa .panel-chart {
+  min-height: 200px;
+  padding: 12px;
+}
+
+.section-5-nasa .panel-compact {
+  min-height: 100px;
+    padding: 10px;
+  width: 180px;
+  flex-shrink: 0;
+}
+
+/* Panel Headers */
+.section-5-nasa .p-head {
+    display: flex;
+  align-items: center;
+    justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.section-5-nasa .code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--blue);
+  background: #e7f3ff;
+  padding: 2px 6px;
+  border-radius: 3px;
+  letter-spacing: .4px;
+}
+
+.section-5-nasa .p-status {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  box-shadow: 0 0 6px currentColor;
+  position: relative;
+}
+
+.section-5-nasa .p-status::after {
+  content: '';
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  background: currentColor;
+  border-radius: 50%;
+  top: 2px;
+  left: 2px;
+  opacity: .8;
+}
+
+/* Status Colors */
+.section-5-nasa .nominal { background: var(--green); color: var(--green); }
+.section-5-nasa .tracking { background: var(--cyan); color: var(--cyan); }
+.section-5-nasa .monitoring { background: var(--blue); color: var(--blue); }
+.section-5-nasa .analyzing { background: var(--purple); color: var(--purple); }
+.section-5-nasa .archived { background: var(--indigo); color: var(--indigo); }
+
+/* Typography */
+.section-5-nasa .label {
+  font-size: 10px;
+  color: var(--muted);
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: .3px;
+  margin-bottom: 6px;
+}
+
+.section-5-nasa .value {
+  font-size: var(--fs-32);
+  font-weight: 900;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
+  line-height: 1.1;
+}
+
+.section-5-nasa .value-medium {
+  font-size: var(--fs-24);
+}
+
+.section-5-nasa .value-small {
+  font-size: var(--fs-18);
+  font-weight: 900;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
+  line-height: 1.1;
+}
+
+/* Trend colors */
+.section-5-nasa .trend-negative { color: var(--red); }
+.section-5-nasa .trend-neutral { color: var(--orange); }
+.section-5-nasa .trend-positive { color: var(--green); }
+
+/* Volume fills */
+.section-5-nasa .fill-negative { background: linear-gradient(90deg, var(--red), #dc3545); }
+.section-5-nasa .fill-neutral { background: linear-gradient(90deg, var(--orange), #fd7e14); }
+.section-5-nasa .fill-positive { background: linear-gradient(90deg, var(--green), #28a745); }
+
+/* Google Trends Chart */
+.section-5-nasa .trends-chart {
+  position: relative;
+  height: 180px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  margin: 12px 0;
+  overflow: hidden;
+}
+
+.section-5-nasa .chart-grid {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(90deg, rgba(139,149,161,.1) 1px, transparent 1px),
+    linear-gradient(rgba(139,149,161,.1) 1px, transparent 1px);
+  background-size: 30px 30px;
+}
+
+.section-5-nasa .chart-line {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  right: 20px;
+  height: 140px;
+}
+
+.section-5-nasa .trend-path {
+  stroke: var(--blue);
+  stroke-width: 2;
+  fill: none;
+  filter: drop-shadow(0 2px 4px rgba(11,61,145,.3));
+}
+
+.section-5-nasa .trend-area {
+  fill: url(#trendGradient);
+  opacity: .3;
+}
+
+.section-5-nasa .trend-point {
+  fill: var(--blue);
+  r: 3;
+  opacity: 0;
+  animation: pointAppear 0.5s ease forwards;
+}
+
+@keyframes pointAppear {
+  to { opacity: 1; }
+}
+
+/* Monthly Bars */
+.section-5-nasa .monthly-container {
+  margin-top: 12px;
+}
+
+.section-5-nasa .month-item {
+    display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  padding: 4px 0;
+}
+
+.section-5-nasa .month-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--muted);
+  min-width: 70px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
+}
+
+.section-5-nasa .month-bar {
+  flex: 1;
+  height: 20px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  margin: 0 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+.section-5-nasa .month-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--lime), var(--green));
+  transition: width .8s ease;
+  position: relative;
+}
+
+.section-5-nasa .month-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,.3) 50%, transparent 100%);
+  animation: scan 2.5s infinite;
+}
+
+@keyframes scan {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.section-5-nasa .month-value {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--text);
+  min-width: 40px;
+  text-align: right;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
+}
+
+/* Volume Trends */
+.section-5-nasa .volume-telemetry {
+  height: 4px;
+  background: #eef1f4;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 6px;
+}
+
+.section-5-nasa .volume-fill {
+  height: 100%;
+  transition: width .8s ease;
+}
+
+.section-5-nasa .volume-percentage {
+  font-size: 9px;
+  color: var(--muted);
+  margin-top: 3px;
+  text-align: center;
+  font-weight: 600;
+}
+
+/* Historical Data Table */
+.section-5-nasa .historical-summary {
+  background: linear-gradient(135deg, #e7f3ff 0%, #cce7ff 100%);
+  border: 1px solid var(--blue);
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 16px;
+}
+
+.section-5-nasa .summary-grid {
+    display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  text-align: center;
+}
+
+.section-5-nasa .summary-item {
+  padding: 8px;
+}
+
+.section-5-nasa .summary-label {
+  font-size: 9px;
+  color: var(--blue);
+  font-weight: 700;
+  text-transform: uppercase;
+    margin-bottom: 4px;
+}
+
+.section-5-nasa .summary-value {
+  font-size: var(--fs-18);
+  font-weight: 800;
+  color: var(--text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
+}
+
+.section-5-nasa .data-table {
+    width: 100%;
+    border-collapse: collapse;
+  font-size: 10px;
+  margin-top: 12px;
+}
+
+.section-5-nasa .data-table th {
+  background: var(--panel-2);
+  padding: 8px 6px;
+    text-align: left;
+  font-weight: 700;
+  border-bottom: 2px solid var(--border);
+  color: var(--blue);
+  text-transform: uppercase;
+  letter-spacing: .2px;
+}
+
+.section-5-nasa .data-table td {
+  padding: 6px;
+  border-bottom: 1px solid var(--border);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
+  font-size: 9px;
+}
+
+.section-5-nasa .data-table tr:hover {
+  background: var(--panel-2);
+}
+
+.section-5-nasa .table-container {
+    max-height: 300px;
+    overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+/* Competition level styling */
+.section-5-nasa .comp-high { color: var(--red); font-weight: 700; }
+.section-5-nasa .comp-medium { color: var(--orange); font-weight: 700; }
+.section-5-nasa .comp-low { color: var(--green); font-weight: 700; }
+
+/* Enhanced Animations */
+.section-5-nasa .panel:hover .code {
+  background: #ffe0b2;
+  transform: scale(1.05);
+}
+
+.section-5-nasa .panel:hover .p-status {
+  transform: scale(1.1);
+  box-shadow: 0 0 10px currentColor;
+}
+
+/* Timeline */
+.section-5-nasa .timeline {
+  display: flex;
+  align-items: center;
+  margin: 12px 0;
+  padding: 8px;
+  background: var(--panel-2);
+  border-radius: 4px;
+}
+
+.section-5-nasa .timeline-start,
+.section-5-nasa .timeline-end {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
+  font-weight: 700;
+  font-size: 11px;
+  color: var(--orange);
+}
+
+.section-5-nasa .timeline-bar {
+  flex: 1;
+  height: 4px;
+  background: linear-gradient(90deg, var(--orange), var(--red));
+  border-radius: 2px;
+  margin: 0 12px;
+}
+
+.section-5-nasa .timeline-duration {
+  text-align: center;
+  margin-top: 4px;
+    font-size: 10px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+/* Tooltips */
+.section-5-nasa .tooltip {
+  position: absolute;
+  background: var(--text);
+  color: #fff;
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .2s ease;
+  z-index: 1000;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
+}
+
+.section-5-nasa .tooltip.show {
+  opacity: 1;
+}
+
+.section-5-nasa .tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -4px;
+  border: 4px solid transparent;
+  border-top-color: var(--text);
+}
+
+/* Expandable Sections */
+.section-5-nasa .expandable {
+  cursor: pointer;
+  user-select: none;
+  transition: background .2s ease;
+}
+
+.section-5-nasa .expandable:hover {
+  background: var(--panel-2);
+}
+
+.section-5-nasa .expand-toggle {
+  font-size: 12px;
+  color: var(--blue);
+  margin-left: 8px;
+  transition: transform .2s ease;
+  font-weight: 700;
+}
+
+.section-5-nasa .expand-toggle.open {
+  transform: rotate(90deg);
+}
+
+.section-5-nasa .expandable-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height .4s ease;
+}
+
+.section-5-nasa .expandable-content.open {
+  max-height: 800px;
+}
+
+/* Trends table specific */
+.section-5-nasa .expandable-content .data-table {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.section-5-nasa .expandable-content .table-container {
+  max-height: 400px;
+  border: none;
+} 

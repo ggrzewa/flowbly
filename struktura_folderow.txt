@@ -1,0 +1,75 @@
+Struktura folderów (aktualny projekt)
+
+.
+├─ app/
+│  ├─ __init__.py
+│  ├─ main.py
+│  ├─ api/
+│  │  ├─ analyze_keywords.py
+│  │  ├─ autocomplete_google_live_advanced.py
+│  │  ├─ full_analysis.py
+│  │  ├─ parsing_keyword.py
+│  │  ├─ parsing_keyword_v2.py
+│  │  ├─ parsing_keyword_v3.py
+│  │  └─ serp_google_live_advanced.py
+│  └─ services/
+│     ├─ architecture_generator.py
+│     ├─ content_brief_generator.py
+│     ├─ content_scaffold_generator.py
+│     ├─ semantic_clustering.py
+│     └─ semantic_clustering_kopia.py
+├─ static/
+│  ├─ components/
+│  │  ├─ ArchitectureDisplay.css
+│  │  └─ ArchitectureDisplay.tsx
+│  └─ sections/
+│     ├─ section1/ (css, js)
+│     ├─ section2/ (css, js)
+│     ├─ section3/ (css, js)
+│     ├─ section4/ (css, js)
+│     ├─ section5/ (css, js)
+│     ├─ section6/ (css, js)
+│     ├─ section7/ (css, js)
+│     ├─ section8/ (css, js)
+│     ├─ section9/ (css, js)
+│     ├─ section10/ (css, js)
+│     └─ sections-loader.js
+├─ templates/
+│  ├─ seo_analysis.html
+│  └─ seo_analysis_modular.html
+├─ tests/
+│  ├─ test_business_clustering.py
+│  ├─ test_new_pipeline.py
+│  └─ test_prelabel_off.py
+├─ requirements.txt
+├─ .gitignore (ignorowane pliki w git)
+├─ railway.json (konfiguracja Railway)
+├─ Procfile (alternatywny start command)
+├─ START.txt (⭐ ZACZYNAJ TUTAJ - quick overview)
+├─ README_RAILWAY.md (🚀 Quick Start dla Railway)
+├─ RAILWAY_DEPLOYMENT_GUIDE.md (📖 Pełna dokumentacja)
+├─ DEPLOYMENT_CHECKLIST.md (✅ Checklist deployment)
+├─ CHANGES.md (📝 Lista wszystkich zmian)
+├─ ENV_TEMPLATE.txt (szablon zmiennych środowiskowych)
+├─ README_dev.md (dodatkowa dokumentacja dev)
+├─ env_config_instructions.txt
+├─ create_semantic_tables.sql (DDL Supabase)
+├─ create_architecture_tables.sql (DDL Supabase)
+├─ fix_semantic_group_members.sql (naprawy DB)
+└─ struktura_folderow.txt
+
+Uwagi pod Railway deployment:
+- ✅ Port dynamiczny: używa $PORT z Railway
+- ✅ Ścieżki logów: /tmp na Railway, . lokalnie
+- ✅ .gitignore: zabezpiecza przed wysłaniem .env
+- ✅ railway.json + Procfile: automatyczny start
+- ⚠️  Ustaw zmienne środowiskowe w Railway dashboard:
+  - SUPABASE_URL
+  - SUPABASE_KEY
+  - OPENAI_API_KEY
+  - ANTHROPIC_API_KEY
+  - AI_PROVIDER
+  - AI_MODEL_OPENAI
+  - AI_MODEL_CLAUDE
+  - AI_MODEL_GPT5
+  - RAILWAY_ENVIRONMENT=production

@@ -1,0 +1,348 @@
+https://docs.dataforseo.com/v3/dataforseo_labs/google/search_intent/live/?bash
+
+🔹 Search Intent - 0.001100
+📄 dataforseo_labs_google_search_intent_live_request_info.py
+
+📄 ..._response_info.py, ..._result_info.py
+
+➡️ Do określenia intencji użytkownika (informacyjna, nawigacyjna, transakcyjna, komercyjna)
+
+
+# DataForSEO Search Intent API - Szybka Dokumentacja
+
+## PODSTAWOWE INFO
+- Endpoint: /v3/dataforseo_labs/google/search_intent/live
+- Method: POST (Live - instant results)
+- Format: JSON (UTF-8)
+- Limit: 2000 calls/min, max 30 simultaneous
+- Max keywords: 1000 per request
+
+---
+
+## POLA ŻĄDANIA (POST REQUEST)
+
+| Pole | Typ | Wymagane | Opis |
+|------|-----|----------|------|
+| keywords | array | TAK | Słowa kluczowe (max 1000, UTF-8, lowercase) |
+| language_name | string | TAK* | Pełna nazwa języka (np. "English") |
+| language_code | string | TAK* | Kod języka (np. "en") |
+| tag | string | NIE | Identyfikator zadania (max 255 znaków) |
+
+*wymagane jedno z: language_name lub language_code
+
+---
+
+## WSPIERANE JĘZYKI
+
+| Język | Kod | Język | Kod |
+|-------|-----|-------|-----|
+| Arabic | ar | English | en |
+| Chinese(Traditional) | zh-TW | Finnish | fi |  
+| Czech | cs | French | fr |
+| Danish | da | German | de |
+| Dutch | nl | Hebrew | he |
+| Hindi | hi | Italian | it |
+| Japanese | ja | Korean | ko |
+| Malay | ms | Norwegian(Bokmål) | nb |
+| Polish | pl | Portuguese | pt |
+| Romanian | ro | Russian | ru |
+| Spanish | es | Swedish | sv |
+| Thai | th | Ukrainian | uk |
+| Vietnamese | vi | Bulgarian | bg |
+| Croatian | hr | Serbian | sr |
+| Slovenian | sl | Bosnian | bs |
+
+---
+
+## GŁÓWNA STRUKTURA ODPOWIEDZI
+
+```
+response
+├── version (string)
+├── status_code (integer)
+├── status_message (string)
+├── time (string)
+├── cost (float)
+├── tasks_count (integer)
+├── tasks_error (integer)
+└── tasks (array)
+    └── [task_object]
+```
+
+---
+
+## OBIEKT ZADANIA (tasks[])
+
+| Pole | Typ | Opis |
+|------|-----|------|
+| id | string | UUID zadania |
+| status_code | integer | Status kod |
+| status_message | string | Wiadomość statusu |
+| time | string | Czas wykonania |
+| cost | float | Koszt w USD |
+| result_count | integer | Liczba wyników |
+| path | array | Ścieżka URL |
+| data | object | Parametry z POST request |
+| result | array | Tablica wyników |
+
+---
+
+## STRUKTURA WYNIKU (result[])
+
+### PODSTAWOWE POLA WYNIKU
+| Pole | Typ | Opis |
+|------|-----|------|
+| language_code | string | Kod języka (lub null) |
+| items_count | integer | Liczba elementów |
+| items | array | Główne dane wyników |
+
+---
+
+## ELEMENTY W ITEMS[]
+
+### STRUKTURA ITEM
+```
+item
+├── keyword (string) - analizowane słowo kluczowe
+├── keyword_intent (object) - główna intencja
+�?  ├── label (string) - typ intencji
+�?  └── probability (float) - prawdopodobieństwo (0-1)
+└── secondary_keyword_intents (array/null) - dodatkowe intencje
+    ├── label (string) - typ intencji
+    └── probability (float) - prawdopodobieństwo (0-1)
+```
+
+---
+
+## TYPY INTENCJI WYSZUKIWANIA
+
+### 1. INFORMATIONAL (Informacyjna)
+- **Cel**: Szukanie informacji, odpowiedzi na pytania
+- **Przykłady**: "jak działa", "co to jest", "definicja"
+- **Charakterystyka**: Użytkownicy chcą się uczyć, znaleźć odpowiedzi
+
+### 2. NAVIGATIONAL (Nawigacyjna)  
+- **Cel**: Znalezienie konkretnej strony/marki
+- **Przykłady**: "facebook login", "amazon", "gmail"
+- **Charakterystyka**: Użytkownicy znają cel, szukają bezpośredniego dostępu
+
+### 3. COMMERCIAL (Komercyjna)
+- **Cel**: Badanie opcji przed zakupem
+- **Przykłady**: "najlepszy laptop", "porównanie", "recenzje"
+- **Charakterystyka**: Użytkownicy rozważają zakup, porównują opcje
+
+### 4. TRANSACTIONAL (Transakcyjna)
+- **Cel**: Wykonanie akcji, zakup
+- **Przykłady**: "kup", "zamów", "pobierz", "sklep"
+- **Charakterystyka**: Użytkownicy gotowi do działania/zakupu
+
+---
+
+
+## INTERPRETACJA WYNIKÓW
+
+### Prawdopodobieństwo:
+- **1.0 (100%)**: Jednoznaczna intencja
+- **0.9+ (90%+)**: Bardzo wysoka pewność
+- **0.7-0.9 (70-90%)**: Wysoka pewność
+- **0.5-0.7 (50-70%)**: Umiarkowana pewność
+- **<0.5 (<50%)**: Niska pewność, sprawdź secondary intents
+
+### Secondary Intents:
+- **null**: Jednoznaczna główna intencja
+- **array**: Mieszane intencje, keyword może mieć różne znaczenia
+- **Suma prawdopodobieństw**: Nie zawsze = 1.0
+
+---
+
+## ZASTOSOWANIA BIZNESOWE
+
+### Content Strategy:
+- **Informational**: Blog posty, tutoriale, FAQ
+- **Navigational**: Landing pages, brand pages
+- **Commercial**: Porównania, recenzje, case studies  
+- **Transactional**: Product pages, formularze, CTA
+
+### SEO Strategy:
+- **Informational**: Focus na content marketing
+- **Navigational**: Brand authority, direct traffic
+- **Commercial**: Comparison content, trust signals
+- **Transactional**: E-commerce optimization, conversions
+
+### PPC Strategy:
+- **Informational**: Top-funnel ads, awareness
+- **Navigational**: Brand protection, competitor blocking
+- **Commercial**: Competitive ads, comparison ads
+- **Transactional**: Direct response, shopping ads
+
+---
+
+## WAŻNE NOTATKI
+
+**LIMITY:**
+- Max 1000 keywords per request
+- Tylko wspierane języki (28 języków)
+- Keywords automatycznie lowercase
+
+**DOKŁADNOŚĆ:**
+- System ML trenowany na keyword + SERP data
+- Wysokie prawdopodobieństwo = wysoka pewność
+- Secondary intents pokazują alternatywne interpretacje
+
+**KOSZTY:**
+- Opłata za request, nie za liczbę keywords
+- Live method = instant results
+
+**OPTYMALIZACJA:**
+- Grupuj keywords po 1000 dla efektywności
+- Używaj do segmentacji keyword lists
+- Kombinuj z innymi metrics (volume, difficulty)
+
+**PRZYPADKI UŻYCIA:**
+- Keyword research i clustering
+- Content planning i strategia
+- PPC campaign structure
+- Landing page optimization
+- User journey mapping
+
+
+
+import os
+import logging
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
+from dotenv import load_dotenv
+from dataforseo_client import configuration as dfs_config, api_client as dfs_api_provider
+from dataforseo_client.api.dataforseo_labs_api import DataforseoLabsApi
+from dataforseo_client.models.dataforseo_labs_google_search_intent_live_request_info import (
+    DataforseoLabsGoogleSearchIntentLiveRequestInfo,
+)
+
+load_dotenv()
+
+router = APIRouter()
+
+# Konfiguracja logowania
+logger = logging.getLogger("dfs_labs_search_intent")
+logger.setLevel(logging.DEBUG)
+handler = logging.StreamHandler()
+formatter = logging.Formatter("%(asctime)s | %(levelname)s | %(message)s")
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+
+# Dane logowania
+DFS_LOGIN = os.getenv("DATAFORSEO_LOGIN")
+DFS_PASSWORD = os.getenv("DATAFORSEO_PASSWORD")
+
+# Model danych wejściowych
+class SearchIntentInput(BaseModel):
+    keywords: list[str]
+    location_code: int = 2616  # Domyślnie Polska
+    language_code: str = "pl"  # Domyślnie polski
+
+@router.post("/labs/search-intent")
+async def get_search_intent(data: SearchIntentInput):
+    if not DFS_LOGIN or not DFS_PASSWORD:
+        logger.error("�?Brak danych logowania do API")
+        raise HTTPException(status_code=500, detail="Brak danych logowania do API DataForSEO.")
+
+    logger.info(f"➡️ Otrzymano zapytanie dla słów kluczowych: {data.keywords}")
+
+    config = dfs_config.Configuration(username=DFS_LOGIN, password=DFS_PASSWORD)
+
+    request_data = [
+        DataforseoLabsGoogleSearchIntentLiveRequestInfo(
+            keywords=data.keywords,
+            location_code=data.location_code,
+            language_code=data.language_code
+        )
+    ]
+
+    try:
+        with dfs_api_provider.ApiClient(config) as api_client:
+            api_instance = DataforseoLabsApi(api_client)
+
+            logger.debug("➡️ Wysyłanie żądania do DataForSEO Labs API (Search Intent)...")
+            api_response = api_instance.google_search_intent_live(request_data)
+
+            task = api_response.tasks[0]
+            if not task.result:
+                logger.warning("⚠️ Brak wyników dla tych słów kluczowych.")
+                raise HTTPException(status_code=404, detail="Brak danych dla podanych słów kluczowych.")
+
+            logger.info("�?Pobrano dane z DFS Labs API (Search Intent).")
+            return task.result[0].to_dict()
+
+    except Exception as e:
+        logger.exception("�?Błąd podczas pobierania danych z DataForSEO Labs API (Search Intent)")
+        raise HTTPException(status_code=500, detail=f"Błąd serwera:\n{str(e)}")
+
+
+
+
+
+****
+****
+Responses
+Curl
+
+curl -X 'POST' \
+  'http://127.0.0.1:8000/labs/search-intent' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "keywords": [
+    "soczewki"
+  ],
+  "location_code": 2616,
+  "language_code": "pl"
+}'
+
+Request URL
+
+http://127.0.0.1:8000/labs/search-intent
+
+Server response
+Code	Details
+200	
+Response body
+
+{
+  "language_code": "pl",
+  "items_count": 1,
+  "items": [
+    {
+      "keyword": "soczewki",
+      "keyword_intent": {
+        "label": "transactional",
+        "probability": 0.78233576
+      },
+      "secondary_keyword_intents": null
+    }
+  ]
+}
+
+Response headers
+
+
+****
+****
+{
+  "language_code": "pl",
+  "items_count": 1,
+  "items": [
+    {
+      "keyword": "grzegrzółka",
+      "keyword_intent": {
+        "label": "commercial",
+        "probability": 0.68584305
+      },
+      "secondary_keyword_intents": [
+        {
+          "label": "informational",
+          "probability": 0.37910968
+        }
+      ]
+    }
+  ]
+}

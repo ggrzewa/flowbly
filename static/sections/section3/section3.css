@@ -1,0 +1,248 @@
+/* ========================================
+   SEKCJA 3: COMPLETE INTENT ANALYSIS - NASA MISSION CONTROL STYLE
+   ======================================== */
+
+/* NASA Mission Control Variables - Scoped to Section 3 */
+.section-3-nasa {
+  --bg:#f7f8fa; --panel:#fff; --panel-2:#f0f2f5; --text:#222; --muted:#6c757d;
+  --blue:#0b3d91; --blue-2:#1560bd; --green:#198754; --red:#dc3545; --orange:#fd7e14; --purple:#6f42c1; --cyan:#17a2b8;
+  --border:#e5e7eb; --shadow:0 2px 8px rgba(0,0,0,.06); --glow:0 0 0 3px rgba(21,96,189,.18);
+  --gap:10px; --pad:12px; --radius:8px; --fs-10:10.5px; --fs-11:11.5px; --fs-12:12px; --fs-18:18px; --fs-24:24px; --fs-32:32px;
+}
+
+/* Mission Control Layout */
+.section-3-nasa .nasa-mission-control {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  margin-top: 20px;
+}
+
+.section-3-nasa .control-room {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.section-3-nasa .card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+/* Section Headers */
+/* display-header removed per simplification */
+
+/* display-title removed */
+
+/* mission-state removed */
+
+/* state-dot removed */
+
+/* Grid Layouts */
+/* grid removed - single centered card */
+
+@media (max-width: 900px) {
+  .section-3-nasa .analysis-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Panel Base */
+.section-3-nasa .panel {
+  background: var(--panel);
+  padding: var(--pad);
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  transition: transform .14s ease, box-shadow .14s ease, background .14s ease;
+  position: relative;
+}
+
+.section-3-nasa .panel:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(0,0,0,.1);
+}
+
+.section-3-nasa .panel:focus-within {
+  outline: var(--glow);
+}
+
+.section-3-nasa .panel-large {
+  min-height: 200px;
+  padding: 16px;
+}
+
+.section-3-nasa .panel-compact {
+  min-height: 80px;
+  padding: 10px;
+}
+
+/* Panel Headers */
+/* p-head removed */
+
+/* code badge removed */
+
+/* p-status removed */
+
+/* p-status after removed */
+
+/* Status Colors */
+/* status colors removed */
+
+/* Typography */
+.section-3-nasa .label {
+  font-size: 10px;
+  color: var(--muted);
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: .3px;
+  margin-bottom: 6px;
+}
+
+.section-3-nasa .value {
+  font-size: var(--fs-32);
+  font-weight: 900;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
+  line-height: 1.1;
+}
+
+.section-3-nasa .value-medium {
+  font-size: var(--fs-24);
+}
+
+.section-3-nasa .value-small {
+  font-size: var(--fs-18);
+}
+
+.section-3-nasa .value-secondary {
+  font-size: 14px;
+  color: var(--muted);
+  margin-left: 4px;
+}
+
+.section-3-nasa .intent-type {
+  font-size: var(--fs-24);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .4px;
+}
+
+.section-3-nasa .intent-primary {
+  color: var(--blue);
+  font-weight: 900;
+  font-size: var(--fs-32);
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  margin: 8px 0;
+}
+
+.section-3-nasa .confidence {
+  color: var(--purple);
+  font-size: var(--fs-24);
+  font-weight: 800;
+}
+
+/* Progress & Telemetry */
+.section-3-nasa .signal-strength {
+  height: 8px;
+  background: #eef1f4;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 8px 0;
+  position: relative;
+}
+
+.section-3-nasa .signal-strength::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,.4) 50%, transparent 100%);
+  animation: scan 2s infinite;
+}
+
+@keyframes scan {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.section-3-nasa .signal-fill {
+  height: 100%;
+  transition: width .8s ease;
+  position: relative;
+}
+
+.section-3-nasa .fill-navigational {
+  background: linear-gradient(90deg, var(--blue), var(--blue-2));
+}
+
+.section-3-nasa .fill-informational {
+  background: linear-gradient(90deg, var(--purple), #8a63d2);
+}
+
+.section-3-nasa .fill-strong {
+  background: linear-gradient(90deg, var(--cyan), #20c9db);
+}
+
+.section-3-nasa .probability {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 4px;
+  font-weight: 600;
+}
+
+/* Autocomplete Source */
+/* autocomplete block removed */
+
+.section-3-nasa .source-label {
+  font-size: 9px;
+  color: var(--purple);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .3px;
+}
+
+.section-3-nasa .source-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--purple);
+  margin-top: 2px;
+}
+
+/* Suggestions Display */
+/* suggestions blocks removed */
+
+/* Status Badges */
+/* status badges removed */
+.section-3-nasa .single-intent {
+  display: flex;
+  justify-content: center;
+  padding: 16px;
+}
+
+.section-3-nasa .single-intent .panel {
+  max-width: 640px;
+  width: 100%;
+}
+
+/* Enhanced Animations */
+.section-3-nasa .panel:hover .code {
+  background: #e0e7ff;
+  transform: scale(1.05);
+}
+
+.section-3-nasa .panel:hover .p-status {
+  transform: scale(1.1);
+  box-shadow: 0 0 10px currentColor;
+} 

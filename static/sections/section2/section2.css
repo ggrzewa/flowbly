@@ -1,0 +1,237 @@
+/* ========================================
+   SEKCJA 2: EXTENDED CORE SEO METRICS - NASA MISSION CONTROL STYLE
+   ======================================== */
+
+/* NASA Mission Control Variables - Scoped to Section 2 */
+.section-2-nasa {
+  --bg:#f7f8fa; --panel:#fff; --panel-2:#f0f2f5; --text:#222; --muted:#6c757d;
+  --blue:#0b3d91; --blue-2:#1560bd; --green:#198754; --red:#dc3545; --orange:#fd7e14; --purple:#6f42c1;
+  --border:#e5e7eb; --shadow:0 2px 8px rgba(0,0,0,.06); --glow:0 0 0 3px rgba(21,96,189,.18);
+  --gap:10px; --pad:12px; --radius:8px; --fs-10:10.5px; --fs-11:11.5px; --fs-12:12px; --fs-18:18px; --fs-24:24px;
+}
+
+/* Mission Control Header */
+/* mission-display-header removed per UI refactor */
+
+/* display-title removed */
+
+/* mission-state removed */
+
+/* state-dot removed */
+
+/* Systems Grid */
+.section-2-nasa .systems-grid {
+  display: grid;
+  gap: 1px;
+  background: var(--border);
+  grid-template-columns: repeat(3, 1fr);
+  border-radius: 0 0 var(--radius) var(--radius);
+  overflow: hidden;
+}
+
+@media (max-width: 900px) {
+  .section-2-nasa .systems-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 560px) {
+  .section-2-nasa .systems-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Panel Styling */
+.section-2-nasa .panel {
+  background: var(--panel);
+  padding: var(--pad);
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  transition: transform .14s ease, box-shadow .14s ease, background .14s ease;
+  position: relative;
+}
+
+.section-2-nasa .panel:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(0,0,0,.1);
+}
+
+.section-2-nasa .panel:focus-within {
+  outline: var(--glow);
+}
+
+/* Panel Header */
+/* p-head removed (IDs and status dots hidden in UI) */
+
+/* code badge removed */
+
+/* p-status removed */
+
+/* p-status after removed */
+
+/* status color dots removed */
+
+/* Panel Content */
+.section-2-nasa .label {
+  font-size: 10px;
+  color: var(--muted);
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: .3px;
+  margin-bottom: 6px;
+}
+
+.section-2-nasa .value {
+  font-size: var(--fs-24);
+  font-weight: 900;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
+  line-height: 1.1;
+}
+
+.section-2-nasa .value-large {
+  font-size: 28px;
+}
+
+.section-2-nasa .value-secondary {
+  font-size: 14px;
+  color: var(--muted);
+  margin-left: 4px;
+}
+
+.section-2-nasa .units {
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 3px;
+  font-weight: 600;
+}
+
+.section-2-nasa .vizline {
+  font-size: 11px;
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #333;
+  font-weight: 500;
+}
+
+/* Telemetry Bars */
+.section-2-nasa .telemetry {
+  height: 6px;
+  background: #eef1f4;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 8px;
+  position: relative;
+}
+
+.section-2-nasa .telemetry::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,.3) 50%, transparent 100%);
+  animation: scan 3s infinite;
+}
+
+@keyframes scan {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.section-2-nasa .fill {
+  height: 100%;
+  width: var(--val, 50%);
+  transition: width .8s ease;
+}
+
+.section-2-nasa .fill-green { background: linear-gradient(90deg, var(--green), #28a745); }
+.section-2-nasa .fill-blue { background: linear-gradient(90deg, var(--blue), var(--blue-2)); }
+.section-2-nasa .fill-orange { background: linear-gradient(90deg, var(--orange), #ff8c00); }
+.section-2-nasa .fill-purple { background: linear-gradient(90deg, var(--purple), #8a63d2); }
+.section-2-nasa .fill-red { background: linear-gradient(90deg, var(--red), #c82333); }
+
+/* Progress Labels */
+.section-2-nasa .progress-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 9px;
+  color: var(--muted);
+  margin-top: 4px;
+  font-weight: 600;
+}
+
+/* Value Range Styling */
+.section-2-nasa .value-range {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.section-2-nasa .range-sep {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 18px;
+}
+
+/* Status Badges */
+.section-2-nasa .status-badge {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .2px;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+.section-2-nasa .badge-green {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.section-2-nasa .badge-blue {
+  background: #cce7ff;
+  color: #004085;
+  border: 1px solid #99d3ff;
+}
+
+.section-2-nasa .badge-orange {
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
+}
+
+.section-2-nasa .badge-red {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+/* Enhanced Hover Effects */
+.section-2-nasa .panel:hover .code {
+  background: #cce7ff;
+  transform: scale(1.05);
+}
+
+.section-2-nasa .panel:hover .p-status {
+  transform: scale(1.1);
+  box-shadow: 0 0 10px currentColor;
+}
+
+/* Main Container */
+.section-2-nasa .nasa-mission-control {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  margin-top: 20px;
+} 

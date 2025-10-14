@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEO Analysis Tool - Professional Design</title>
+    <style>
+        /* Professional modern styles */
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 20px;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: rgba(255,255,255,0.9);
+            margin-bottom: 40px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Main Form */
+        .analysis-form {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            margin-bottom: 40px;
+        }
+
+        .form-group {
+            margin-bottom: 30px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 16px 20px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #f9fafb;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 18px 40px;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.4);
+        }
+
+        .submit-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Progress Section */
+        .progress-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            margin-bottom: 40px;
+            display: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 12px;
+            background: #e5e7eb;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #059669);
+            width: 0%;
+            transition: width 0.8s ease;
+            border-radius: 6px;
+        }
+
+        .progress-text {
+            text-align: center;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 20px;
+        }
+
+        .steps-list {
+            background: #f3f4f6;
+            border-radius: 12px;
+            padding: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .step-item {
+            padding: 10px 15px;
+            margin: 5px 0;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .step-item.success {
+            background: #dcfce7;
+            color: #166534;
+            border-left: 4px solid #16a34a;
+        }
+
+        .step-item.error {
+            background: #fef2f2;
+            color: #991b1b;
+            border-left: 4px solid #dc2626;
+        }
+
+        .step-item.timeout {
+            background: #fffbeb;
+            color: #92400e;
+            border-left: 4px solid #d97706;
+        }
+
+        /* Results Dashboard */
+        .results-container {
+            display: none;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .dashboard-card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            border: 1px solid #f1f5f9;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 16px;
+            font-size: 1.5rem;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin: 0;
+        }
+
+        .card-content {
+            color: #6b7280;
+            line-height: 1.6;
+        }
+
+        /* Module Cards */
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-top: 40px;
+        }
+
+        .module-card {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .module-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.12);
+            border-color: #3b82f6;
+        }
+
+        .module-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+            font-size: 1.75rem;
+        }
+
+        .module-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+
+        .module-description {
+            color: #6b7280;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        /* Colors for different modules */
+        .module-1 { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+        .module-3 { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .module-4 { background: linear-gradient(135deg, #10b981, #059669); }
+        .module-5 { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+
+        .card-1 { border-left: 4px solid #8b5cf6; }
+        .card-2 { border-left: 4px solid #ef4444; }
+        .card-3 { border-left: 4px solid #f59e0b; }
+        .card-4 { border-left: 4px solid #10b981; }
+        .card-5 { border-left: 4px solid #06b6d4; }
+
+        /* Loading states */
+        .loading-section {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6b7280;
+        }
+
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid #e5e7eb;
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Status indicators */
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-inactive {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px 15px;
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero p {
+                font-size: 1.1rem;
+            }
+
+            .analysis-form {
+                padding: 25px 20px;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .modules-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Hero Section -->
+        <div class="hero">
+            <h1>🔍 SEO Analysis Tool</h1>
+            <p>Zaawansowana platforma do analizy SEO z 5 modułami biznesowymi i 10 sekcjami danych</p>
+        </div>
+
+        <!-- Main Analysis Form -->
+        <div class="analysis-form">
+            <div class="form-group">
+                <label for="keyword">Słowo kluczowe do analizy</label>
+                <input type="text" id="keyword" placeholder="np. 'okna pcv warszawa'" required>
+            </div>
+
+            <div class="form-group">
+                <label for="country">Kraj i język</label>
+                <select id="country" required>
+                    <option value="">Wybierz kraj...</option>
+                    <option value="2616|pl">🇵🇱 Polska (Polski)</option>
+                    <option value="2840|en">🇺🇸 USA (English)</option>
+                    <option value="2826|de">🇩🇪 Germany (Deutsch)</option>
+                    <option value="2828|fr">🇫🇷 France (Français)</option>
+                    <option value="2829|es">🇪🇸 Spain (Español)</option>
+                </select>
+            </div>
+
+            <button type="submit" class="submit-btn" id="submitBtn">
+                🚀 Rozpocznij analizę SEO
+            </button>
+        </div>
+
+        <!-- Progress Section -->
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-text" id="progressText">Przygotowywanie analizy...</div>
+            <div class="steps-list" id="stepsList"></div>
+        </div>
+
+        <!-- Results Dashboard -->
+        <div class="results-container" id="resultsContainer">
+            <h2 style="color: white; text-align: center; margin-bottom: 40px; font-size: 2.5rem;">
+                📊 Wyniki analizy SEO
+            </h2>
+
+            <!-- Analysis Sections Grid -->
+            <div class="dashboard-grid">
+                <div class="dashboard-card card-1">
+                    <div class="card-header">
+                        <div class="card-icon">🎯</div>
+                        <h3 class="card-title">SEKCJA 1: EXTENDED HEADER</h3>
+                    </div>
+                    <div class="card-content">
+                        Kompletne informacje o słowie kluczowym, wolumen wyszukiwania, CPC i konkurencja.
+                    </div>
+                    <div id="keywordHeader" class="loading-section">
+                        <div class="spinner"></div>
+                        <p>Ładowanie danych...</p>
+                    </div>
+                </div>
+
+                <div class="dashboard-card card-2">
+                    <div class="card-header">
+                        <div class="card-icon">📊</div>
+                        <h3 class="card-title">SEKCJA 2: CORE SEO METRICS</h3>
+                    </div>
+                    <div class="card-content">
+                        Szczegółowe metryki SEO, trudność słowa kluczowego i potencjał rankingowy.
+                    </div>
+                    <div id="seoMetrics" class="loading-section">
+                        <div class="spinner"></div>
+                        <p>Ładowanie danych...</p>
+                    </div>
+                </div>
+
+                <div class="dashboard-card card-3">
+                    <div class="card-header">
+                        <div class="card-icon">🧠</div>
+                        <h3 class="card-title">SEKCJA 3: INTENT ANALYSIS</h3>
+                    </div>
+                    <div class="card-content">
+                        Analiza intencji użytkownika i kontekstu wyszukiwania.
+                    </div>
+                    <div id="intentAnalysis" class="loading-section">
+                        <div class="spinner"></div>
+                        <p>Ładowanie danych...</p>
+                    </div>
+                </div>
+
+                <div class="dashboard-card card-4">
+                    <div class="card-header">
+                        <div class="card-icon">👥</div>
+                        <h3 class="card-title">SEKCJA 4: DEMOGRAPHICS</h3>
+                    </div>
+                    <div class="card-content">
+                        Dane demograficzne użytkowników i profil grupy docelowej.
+                    </div>
+                    <div id="demographicsAnalysis" class="loading-section">
+                        <div class="spinner"></div>
+                        <p>Ładowanie danych...</p>
+                    </div>
+                </div>
+
+                <div class="dashboard-card card-5">
+                    <div class="card-header">
+                        <div class="card-icon">📈</div>
+                        <h3 class="card-title">SEKCJA 5: TRENDS</h3>
+                    </div>
+                    <div class="card-content">
+                        Trendy wyszukiwania i sezonowość dla słowa kluczowego.
+                    </div>
+                    <div id="trendsAnalysis" class="loading-section">
+                        <div class="spinner"></div>
+                        <p>Ładowanie danych...</p>
+                    </div>
+                </div>
+
+                <div class="dashboard-card" style="border-left: 4px solid #8b5cf6;">
+                    <div class="card-header">
+                        <div class="card-icon">🌍</div>
+                        <h3 class="card-title">SEKCJA 6: GEOGRAPHIC DATA</h3>
+                    </div>
+                    <div class="card-content">
+                        Dane geograficzne i rozkład wyszukiwania po regionach.
+                    </div>
+                    <div id="geographicAnalysis" class="loading-section">
+                        <div class="spinner"></div>
+                        <p>Ładowanie danych...</p>
+                    </div>
+                </div>
+
+                <div class="dashboard-card" style="border-left: 4px solid #ef4444;">
+                    <div class="card-header">
+                        <div class="card-icon">⚔️</div>
+                        <h3 class="card-title">SEKCJA 7: COMPETITION</h3>
+                    </div>
+                    <div class="card-content">
+                        Analiza konkurencji i porównanie z top 10 wynikami.
+                    </div>
+                    <div id="competitionAnalysis" class="loading-section">
+                        <div class="spinner"></div>
+                        <p>Ładowanie danych...</p>
+                    </div>
+                </div>
+
+                <div class="dashboard-card" style="border-left: 4px solid #f59e0b;">
+                    <div class="card-header">
+                        <div class="card-icon">🔗</div>
+                        <h3 class="card-title">SEKCJA 8: RELATED KEYWORDS</h3>
+                    </div>
+                    <div class="card-content">
+                        Powiązane słowa kluczowe i frazy semantyczne.
+                    </div>
+                    <div id="relatedKeywordsAnalysis" class="loading-section">
+                        <div class="spinner"></div>
+                        <p>Ładowanie danych...</p>
+                    </div>
+                </div>
+
+                <div class="dashboard-card" style="border-left: 4px solid #10b981;">
+                    <div class="card-header">
+                        <div class="card-icon">🔍</div>
+                        <h3 class="card-title">SEKCJA 9: SERP ANALYSIS</h3>
+                    </div>
+                    <div class="card-content">
+                        Analiza wyników wyszukiwania i pozycji konkurencji.
+                    </div>
+                    <div id="serpAnalysis" class="loading-section">
+                        <div class="spinner"></div>
+                        <p>Ładowanie danych...</p>
+                    </div>
+                </div>
+
+                <div class="dashboard-card" style="border-left: 4px solid #06b6d4;">
+                    <div class="card-header">
+                        <div class="card-icon">🔮</div>
+                        <h3 class="card-title">SEKCJA 10: AUTOCOMPLETE</h3>
+                    </div>
+                    <div class="card-content">
+                        Sugestie autocomplete i popularne zapytania.
+                    </div>
+                    <div id="autocompleteAnalysis" class="loading-section">
+                        <div class="spinner"></div>
+                        <p>Ładowanie danych...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Business Modules -->
+            <h2 style="color: white; text-align: center; margin: 60px 0 40px; font-size: 2.5rem;">
+                🏗️ Moduły biznesowe
+            </h2>
+
+            <div class="modules-grid">
+                <div class="module-card module-1" onclick="showModule('clustering')">
+                    <div class="module-icon">🧠</div>
+                    <div class="module-title">MODUŁ 1: KLASTROWANIE SEMANTYCZNE</div>
+                    <div class="module-description">
+                        Zaawansowana analiza semantyczna wszystkich fraz kluczowych z wykorzystaniem embeddingów OpenAI.
+                    </div>
+                </div>
+
+                <div class="module-card module-3" onclick="showModule('architecture')">
+                    <div class="module-icon">🏗️</div>
+                    <div class="module-title">MODUŁ 3: GENERATOR ARCHITEKTURY</div>
+                    <div class="module-description">
+                        Przekształć klastry semantyczne w konkretną architekturę strony z strategicznym linkowaniem.
+                    </div>
+                </div>
+
+                <div class="module-card module-4" onclick="showModule('briefs')">
+                    <div class="module-icon">📝</div>
+                    <div class="module-title">MODUŁ 4: CONTENT BRIEF GENERATOR</div>
+                    <div class="module-description">
+                        Generuj szczegółowe plany treści dla każdej strony w architekturze z optymalizacją SEO.
+                    </div>
+                </div>
+
+                <div class="module-card module-5" onclick="showModule('scaffold')">
+                    <div class="module-icon">🧩</div>
+                    <div class="module-title">MODUŁ 5: CONTENT SCAFFOLD DESIGNER</div>
+                    <div class="module-description">
+                        Ultra-szczegółowe scaffoldy treści z analizą psychologiczną i strategicznym linkowaniem.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Module Details (Hidden by default) -->
+            <div id="clusteringModule" style="display: none; margin-top: 40px;">
+                <div class="analysis-form">
+                    <h3>🧠 Klastrowanie semantyczne</h3>
+                    <p>Przeprowadź zaawansowaną analizę semantyczną wszystkich zebranych fraz kluczowych.</p>
+                    <button class="submit-btn">🚀 Uruchom klastrowanie</button>
+                </div>
+            </div>
+
+            <div id="architectureModule" style="display: none; margin-top: 40px;">
+                <div class="analysis-form">
+                    <h3>🏗️ Generator architektury</h3>
+                    <p>Przekształć klastry semantyczne w konkretną architekturę strony.</p>
+                    <button class="submit-btn">🏗️ Generuj architekturę</button>
+                </div>
+            </div>
+
+            <div id="briefsModule" style="display: none; margin-top: 40px;">
+                <div class="analysis-form">
+                    <h3>📝 Content Brief Generator</h3>
+                    <p>Generuj szczegółowe plany treści dla każdej strony w architekturze.</p>
+                    <button class="submit-btn">📝 Generuj briefy</button>
+                </div>
+            </div>
+
+            <div id="scaffoldModule" style="display: none; margin-top: 40px;">
+                <div class="analysis-form">
+                    <h3>🧩 Content Scaffold Designer</h3>
+                    <p>Generuj ultra-szczegółowe scaffoldy treści z analizą psychologiczną.</p>
+                    <button class="submit-btn">🧠 Generuj scaffold</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Basic JavaScript functionality
+        function showModule(moduleType) {
+            // Hide all modules
+            document.querySelectorAll('[id$="Module"]').forEach(el => el.style.display = 'none');
+
+            // Show selected module
+            document.getElementById(moduleType + 'Module').style.display = 'block';
+
+            // Scroll to module
+            document.getElementById(moduleType + 'Module').scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+
+        // Form submission
+        document.getElementById('keywordForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const keyword = document.getElementById('keyword').value;
+            const country = document.getElementById('country').value;
+
+            if (!keyword || !country) {
+                alert('Wypełnij wszystkie pola');
+                return;
+            }
+
+            // Show progress
+            document.getElementById('progressContainer').style.display = 'block';
+            document.getElementById('progressText').textContent = 'Rozpoczynam analizę...';
+            document.getElementById('progressFill').style.width = '0%';
+
+            // Simulate analysis progress
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += Math.random() * 20;
+                if (progress > 100) progress = 100;
+
+                document.getElementById('progressFill').style.width = progress + '%';
+                document.getElementById('progressText').textContent = `Analiza w toku... ${Math.round(progress)}%`;
+
+                if (progress >= 100) {
+                    clearInterval(progressInterval);
+                    document.getElementById('progressText').textContent = 'Analiza zakończona!';
+                    document.getElementById('resultsContainer').style.display = 'block';
+
+                    // Scroll to results
+                    setTimeout(() => {
+                        document.getElementById('resultsContainer').scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }, 1000);
+                }
+            }, 500);
+
+            // Hide form during analysis
+            document.querySelector('.analysis-form').style.opacity = '0.5';
+            document.getElementById('submitBtn').disabled = true;
+        });
+
+        // Module interactions
+        document.querySelectorAll('.module-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const moduleType = card.onclick.toString().match(/'(\w+)'/)[1];
+                showModule(moduleType);
+            });
+        });
+
+        // Initialize
+        console.log('🚀 SEO Analysis Tool Professional Design Loaded');
+    </script>
+</body>
+</html>

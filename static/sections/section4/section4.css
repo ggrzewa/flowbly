@@ -1,0 +1,341 @@
+/* ========================================
+   SEKCJA 4: COMPLETE DEMOGRAPHICS - NASA MISSION CONTROL STYLE
+   ======================================== */
+
+/* NASA Mission Control Variables - Scoped to Section 4 */
+.section-4-nasa {
+  --bg:#f7f8fa; --panel:#fff; --panel-2:#f0f2f5; --text:#222; --muted:#6c757d;
+  --blue:#0b3d91; --blue-2:#1560bd; --green:#198754; --red:#dc3545; --orange:#fd7e14; --purple:#6f42c1; --cyan:#17a2b8;
+  --pink:#e91e63; --teal:#20c997; --indigo:#6610f2;
+  --border:#e5e7eb; --shadow:0 2px 8px rgba(0,0,0,.06); --glow:0 0 0 3px rgba(21,96,189,.18);
+  --gap:10px; --pad:12px; --radius:8px; --fs-10:10.5px; --fs-11:11.5px; --fs-12:12px; --fs-18:18px; --fs-24:24px; --fs-32:32px;
+}
+
+/* Mission Control Layout */
+.section-4-nasa .nasa-mission-control {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  margin-top: 20px;
+}
+
+.section-4-nasa .control-room {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.section-4-nasa .card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+/* Section Headers */
+/* display-header removed per simplification */
+
+/* display-title removed */
+
+/* mission-state removed */
+
+/* state-dot removed */
+
+/* Grid Layouts */
+.section-4-nasa .demographics-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr 1fr;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 900px) {
+  .section-4-nasa .demographics-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.section-4-nasa .age-grid {
+  display: grid;
+  gap: 1px;
+  background: var(--border);
+  grid-template-columns: 1fr;
+}
+
+/* Panel Base */
+.section-4-nasa .panel {
+  background: var(--panel);
+  padding: var(--pad);
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  transition: transform .14s ease, box-shadow .14s ease, background .14s ease;
+  position: relative;
+}
+
+.section-4-nasa .panel:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(0,0,0,.1);
+}
+
+.section-4-nasa .panel:focus-within {
+  outline: var(--glow);
+}
+
+.section-4-nasa .panel-large {
+  min-height: 280px;
+  padding: 16px;
+}
+
+/* Panel Headers */
+/* p-head removed */
+
+/* code badge removed */
+
+/* p-status removed */
+
+/* p-status after removed */
+
+/* Status Colors */
+/* status dots removed */
+
+/* Typography */
+.section-4-nasa .label {
+  font-size: 10px;
+  color: var(--muted);
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: .3px;
+  margin-bottom: 6px;
+}
+
+.section-4-nasa .value {
+  font-size: var(--fs-32);
+  font-weight: 900;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
+  line-height: 1.1;
+}
+
+.section-4-nasa .value-medium {
+  font-size: var(--fs-24);
+}
+
+.section-4-nasa .value-small {
+  font-size: var(--fs-18);
+}
+
+/* Gender Pie Chart */
+.section-4-nasa .gender-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.section-4-nasa .pie-chart {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: conic-gradient(var(--pink) 0deg 201.24deg, var(--blue) 201.24deg 360deg);
+  position: relative;
+  border: 3px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.section-4-nasa .pie-chart::before {
+  content: '';
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  background: var(--panel);
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border: 2px solid var(--border);
+}
+
+.section-4-nasa .gender-legend {
+  display: flex;
+  gap: 16px;
+  margin-top: 16px;
+  font-size: 11px;
+}
+
+.section-4-nasa .legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  background: var(--panel-2);
+  border-radius: 4px;
+}
+
+.section-4-nasa .legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+.section-4-nasa .female-color {
+  background: var(--pink);
+}
+
+.section-4-nasa .male-color {
+  background: var(--blue);
+}
+
+.section-4-nasa .gender-icon {
+  font-size: 16px;
+}
+
+/* Age Distribution Bars */
+.section-4-nasa .age-item {
+  background: var(--panel);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  transition: background .2s ease;
+}
+
+.section-4-nasa .age-item:hover {
+  background: var(--panel-2);
+}
+
+.section-4-nasa .age-item:last-child {
+  border-bottom: none;
+}
+
+.section-4-nasa .age-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text);
+  min-width: 80px;
+}
+
+.section-4-nasa .age-bar-container {
+  flex: 1;
+  margin: 0 12px;
+  position: relative;
+}
+
+.section-4-nasa .age-bar {
+  height: 24px;
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+}
+
+.section-4-nasa .age-fill {
+  height: 100%;
+  transition: width .8s ease;
+  position: relative;
+  border-radius: 3px;
+}
+
+.section-4-nasa .age-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,.2) 50%, transparent 100%);
+  animation: scan 3s infinite;
+}
+
+@keyframes scan {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Age intensity colors */
+.section-4-nasa .age-67 { background: linear-gradient(90deg, #b3e5fc, #81d4fa); } /* 67% intensity */
+.section-4-nasa .age-79 { background: linear-gradient(90deg, #4fc3f7, #29b6f6); } /* 79% intensity */
+.section-4-nasa .age-100 { background: linear-gradient(90deg, var(--cyan), var(--blue)); } /* 100% intensity - strongest */
+.section-4-nasa .age-85 { background: linear-gradient(90deg, #26c6da, #00bcd4); } /* 85% intensity */
+.section-4-nasa .age-0 { background: linear-gradient(90deg, #f5f5f5, #e0e0e0); } /* 0% intensity */
+
+.section-4-nasa .age-value {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
+  font-weight: 800;
+  font-size: 14px;
+  color: var(--text);
+  min-width: 40px;
+  text-align: right;
+}
+
+/* Info Panel */
+.section-4-nasa .info-panel {
+  background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%);
+  border: 1px solid #4dd0e1;
+  border-radius: 6px;
+  padding: 12px;
+  margin-top: 16px;
+}
+
+.section-4-nasa .info-title {
+  font-size: 10px;
+  color: var(--teal);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .3px;
+  margin-bottom: 4px;
+}
+
+.section-4-nasa .info-text {
+  font-size: 11px;
+  color: #006064;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+/* Enhanced Animations */
+.section-4-nasa .panel:hover .code {
+  background: #b2ebf2;
+  transform: scale(1.05);
+}
+
+.section-4-nasa .panel:hover .p-status {
+  transform: scale(1.1);
+  box-shadow: 0 0 10px currentColor;
+}
+
+/* Gender Icons */
+.section-4-nasa .gender-stats {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 12px;
+  padding: 0 20px;
+}
+
+.section-4-nasa .gender-stat {
+  text-align: center;
+  padding: 8px;
+}
+
+.section-4-nasa .stat-icon {
+  font-size: 28px;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.section-4-nasa .stat-value {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
+  font-weight: 800;
+  font-size: 16px;
+}
+
+.section-4-nasa .stat-percentage {
+  font-size: 10px;
+  color: var(--muted);
+  font-weight: 600;
+} 

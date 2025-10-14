@@ -1,0 +1,1043 @@
+https://docs.dataforseo.com/v3/serp/google/autocomplete/live/advanced/?bash
+
+
+import os
+import logging
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
+from typing import Optional, List, Dict, Any
+from dotenv import load_dotenv
+from dataforseo_client import configuration as dfs_config, api_client as dfs_api_provider
+from dataforseo_client.api.serp_api import SerpApi
+from dataforseo_client.models.serp_google_autocomplete_live_advanced_request_info import (
+    SerpGoogleAutocompleteLiveAdvancedRequestInfo,
+)
+from datetime import datetime
+from collections import Counter
+import re
+
+load_dotenv()
+router = APIRouter()
+
+# Logger
+logger = logging.getLogger("dfs_autocomplete_testing")
+logger.setLevel(logging.DEBUG)
+handler = logging.StreamHandler()
+formatter = logging.Formatter('%(asctime)s | %(levelname)s | %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+
+DFS_LOGIN = os.getenv("DATAFORSEO_LOGIN")
+DFS_PASSWORD = os.getenv("DATAFORSEO_PASSWORD")
+
+# Modele danych wejściowych
+class AutocompleteInput(BaseModel):
+    keyword: str
+    location_code: Optional[int] = 2616  # Polska (Warszawa)
+    language_code: Optional[str] = "pl"
+    cursor_pointer: Optional[int] = None  # Pozycja kursora w keyword
+    client: Optional[str] = "gws-wiz-serp"  # Typ klienta autocomplete
+    include_analysis: Optional[bool] = True  # Czy dołączyć analizę BI
+
+class AutocompleteMultiInput(BaseModel):
+    keywords: List[str]
+    location_code: Optional[int] = 2616
+    language_code: Optional[str] = "pl"
+    client: Optional[str] = "gws-wiz-serp"
+    include_analysis: Optional[bool] = True
+
+# Klasa do analizy business intelligence
+class AutocompleteAnalyzer:
+    
+    @staticmethod
+    def analyze_keyword_intent(suggestions: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """
+        Analizuje intencję wyszukiwania na podstawie sugestii autocomplete
+        """
+        # Wzorce intencji dla języka polskiego
+        INTENT_PATTERNS = {
+            "informational": [
+                r"\b(jak|co|dlaczego|kiedy|gdzie|czy|jakie|jakich|czym|kim)\b",
+                r"\b(znaczenie|definicja|wyjaśnienie|opis|instrukcja)\b",
+                r"\b(zasady|reguły|poradnik|tutorial|nauka)\b",
+                r"\b(historia|pochodzenie|przyczyny)\b"
+            ],
+            "transactional": [
+                r"\b(kup|kupić|sklep|cena|koszt|tanio|promocja|rabat)\b",
+                r"\b(książka|podręcznik|zestaw|materiały|produkt)\b",
+                r"\b(zamów|zamówienie|dostawa|sprzedaż|online)\b",
+                r"\b(allegro|empik|ceneo|sklep)\b"
+            ],
+            "navigational": [
+                r"\b(strona|portal|serwis|oficjalna|www)\b",
+                r"\.(pl|com|org|net|edu)\b",
+                r"\b(logowanie|login|konto|rejestracja)\b",
+                r"\b(facebook|youtube|instagram|twitter)\b"
+            ],
+            "local": [
+                r"\b(w|warszawa|kraków|gdańsk|poznań|wrocław|łódź)\b",
+                r"\b(blisko|obok|okolica|region|miasto)\b",
+                r"\b(adres|telefon|godziny|otwarcie)\b"
+            ],
+            "educational": [
+                r"\b(klasa|szkoła|uczniów|nauczyciel|edukacja)\b",
+                r"\b(ćwiczenia|zadania|test|sprawdzian|egzamin)\b",
+                r"\b(nauka|learning|kurs|lekcja)\b"
+            ]
+        }
+        
+        intent_counts = {intent: 0 for intent in INTENT_PATTERNS.keys()}
+        categorized_suggestions = {intent: [] for intent in INTENT_PATTERNS.keys()}
+        
+        for suggestion in suggestions:
+            text = suggestion.get("suggestion", "").lower()
+            
+            for intent, patterns in INTENT_PATTERNS.items():
+                for pattern in patterns:
+                    if re.search(pattern, text, re.IGNORECASE):
+                        intent_counts[intent] += 1
+                        categorized_suggestions[intent].append(suggestion.get("suggestion"))
+                        break
+        
+        total = sum(intent_counts.values())
+        intent_distribution = {}
+        
+        if total > 0:
+            intent_distribution = {
+                intent: round((count / total) * 100, 1) 
+                for intent, count in intent_counts.items()
+                if count > 0
+            }
+        
+        return {
+            "intent_distribution": intent_distribution,
+            "categorized_suggestions": categorized_suggestions,
+            "total_analyzed": len(suggestions),
+            "primary_intent": max(intent_distribution.items(), key=lambda x: x[1])[0] if intent_distribution else "unknown"
+        }
+
+    @staticmethod
+    def extract_trending_modifiers(suggestions: List[Dict[str, Any]], base_keyword: str) -> Dict[str, Any]:
+        """
+        Wyciąga trending modyfikatory i wzorce z sugestii
+        """
+        all_suggestions = [s.get("suggestion", "") for s in suggestions]
+        all_text = " ".join(all_suggestions).lower()
+        
+        # Wyodrębnij słowa, usuń base keyword
+        words = re.findall(r'\b\w+\b', all_text)
+        base_words = set(base_keyword.lower().split())
+        filtered_words = [w for w in words if w not in base_words and len(w) > 2]
+        
+        # Policz częstotliwość
+        word_freq = Counter(filtered_words)
+        
+        # Kategorie modyfikatorów
+        MODIFIER_CATEGORIES = {
+            "format": ["online", "pdf", "interaktywne", "audio", "wideo", "app", "aplikacja"],
+            "target": ["dzieci", "dorosłych", "klasa", "szkoła", "uczniów", "nauczyciel"],
+            "difficulty": ["łatwe", "trudne", "krótkie", "długie", "podstawowe", "zaawansowane"],
+            "topic": ["ortografia", "gramatyka", "interpunkcja", "pisownia", "język"],
+            "commercial": ["cena", "sklep", "książka", "materiały", "zestaw", "tanio"],
+            "time": ["nowe", "2024", "2025", "aktualne", "najnowsze"]
+        }
+        
+        detected_modifiers = {}
+        for category, keywords in MODIFIER_CATEGORIES.items():
+            detected = [(word, word_freq[word]) for word in word_freq.keys() if word in keywords]
+            if detected:
+                detected_modifiers[category] = sorted(detected, key=lambda x: x[1], reverse=True)
+        
+        # Znajdź highlighted terms (jeśli dostępne)
+        highlighted_terms = []
+        for suggestion in suggestions:
+            if suggestion.get("highlighted"):
+                highlighted_terms.extend(suggestion["highlighted"])
+        
+        return {
+            "top_modifiers": dict(word_freq.most_common(15)),
+            "categorized_modifiers": detected_modifiers,
+            "highlighted_terms": list(set(highlighted_terms)),
+            "long_tail_opportunities": [s for s in all_suggestions if len(s.split()) >= 4],
+            "question_patterns": [s for s in all_suggestions if any(q in s.lower() for q in ["jak", "co", "dlaczego", "kiedy", "gdzie", "czy"])]
+        }
+
+    @staticmethod
+    def identify_content_opportunities(suggestions: List[Dict[str, Any]], base_keyword: str) -> List[Dict[str, Any]]:
+        """
+        Identyfikuje okazje content marketingowe na podstawie sugestii
+        """
+        opportunities = []
+        
+        # Analiza długich fraz (long-tail keywords)
+        for suggestion in suggestions:
+            text = suggestion.get("suggestion", "")
+            rank = suggestion.get("rank_absolute", 999)
+            
+            if len(text.split()) >= 3:
+                difficulty = "Easy" if rank > 7 else "Medium" if rank > 4 else "Hard"
+                
+                opportunity = {
+                    "keyword": text,
+                    "rank": rank,
+                    "opportunity_type": "long_tail",
+                    "difficulty": difficulty,
+                    "reason": f"Długa fraza ({len(text.split())} słów) - potencjalnie mniejsza konkurencja",
+                    "word_count": len(text.split())
+                }
+                opportunities.append(opportunity)
+        
+        # Szukaj unique angles/modifiers
+        all_suggestions = [s.get("suggestion", "") for s in suggestions]
+        for suggestion_data in suggestions:
+            text = suggestion_data.get("suggestion", "")
+            words = text.lower().split()
+            
+            # Znajdź unikalne modyfikatory
+            unique_words = []
+            for word in words:
+                if len(word) > 3 and sum(1 for s in all_suggestions if word in s.lower()) == 1:
+                    unique_words.append(word)
+            
+            if unique_words:
+                opportunity = {
+                    "keyword": text,
+                    "rank": suggestion_data.get("rank_absolute", 999),
+                    "opportunity_type": "unique_angle", 
+                    "unique_modifiers": unique_words,
+                    "reason": f"Zawiera unikalne modyfikatory: {', '.join(unique_words)}"
+                }
+                opportunities.append(opportunity)
+        
+        # Analiza intent gaps
+        educational_terms = ["nauka", "jak", "tutorial", "poradnik", "instrukcja"]
+        commercial_terms = ["cena", "kup", "sklep", "tanio", "promocja"]
+        
+        has_educational = any(any(term in s.get("suggestion", "").lower() for term in educational_terms) for s in suggestions)
+        has_commercial = any(any(term in s.get("suggestion", "").lower() for term in commercial_terms) for s in suggestions)
+        
+        if not has_educational:
+            opportunities.append({
+                "keyword": f"{base_keyword} nauka",
+                "opportunity_type": "intent_gap",
+                "reason": "Brak sugestii edukacyjnych - możliwość stworzenia content'u 'how-to'",
+                "suggested_content": ["Tutorial", "Poradnik krok po kroku", "Nauka dla początkujących"]
+            })
+        
+        if not has_commercial:
+            opportunities.append({
+                "keyword": f"{base_keyword} cena",
+                "opportunity_type": "intent_gap", 
+                "reason": "Brak sugestii komercyjnych - możliwość monetyzacji",
+                "suggested_content": ["Porównanie cen", "Gdzie kupić najtaniej", "Recenzje produktów"]
+            })
+        
+        return sorted(opportunities, key=lambda x: x.get("rank", 999))[:10]  # Top 10
+
+    @staticmethod
+    def generate_comprehensive_analysis(suggestions: List[Dict[str, Any]], base_keyword: str) -> Dict[str, Any]:
+        """
+        Generuje kompletną analizę business intelligence
+        """
+        intent_analysis = AutocompleteAnalyzer.analyze_keyword_intent(suggestions)
+        trending_analysis = AutocompleteAnalyzer.extract_trending_modifiers(suggestions, base_keyword)
+        opportunities = AutocompleteAnalyzer.identify_content_opportunities(suggestions, base_keyword)
+        
+        # Dodatkowe metryki
+        avg_length = sum(len(s.get("suggestion", "").split()) for s in suggestions) / len(suggestions) if suggestions else 0
+        
+        with_thumbnails = sum(1 for s in suggestions if s.get("thumbnail_url"))
+        thumbnail_percentage = (with_thumbnails / len(suggestions) * 100) if suggestions else 0
+        
+        return {
+            "intent_analysis": intent_analysis,
+            "trending_modifiers": trending_analysis,
+            "content_opportunities": opportunities,
+            "metrics": {
+                "total_suggestions": len(suggestions),
+                "average_suggestion_length": round(avg_length, 1),
+                "suggestions_with_thumbnails": with_thumbnails,
+                "thumbnail_percentage": round(thumbnail_percentage, 1),
+                "primary_intent": intent_analysis.get("primary_intent", "unknown"),
+                "top_modifier": list(trending_analysis["top_modifiers"].keys())[0] if trending_analysis["top_modifiers"] else None,
+                "opportunity_count": len(opportunities)
+            },
+            "summary": {
+                "recommendation": AutocompleteAnalyzer._generate_recommendation(intent_analysis, trending_analysis, opportunities),
+                "key_insights": AutocompleteAnalyzer._generate_key_insights(intent_analysis, trending_analysis, opportunities)
+            }
+        }
+    
+    @staticmethod
+    def _generate_recommendation(intent_analysis: Dict, trending_analysis: Dict, opportunities: List) -> str:
+        """
+        Generuje rekomendację biznesową na podstawie analizy
+        """
+        primary_intent = intent_analysis.get("primary_intent", "unknown")
+        top_modifiers = list(trending_analysis["top_modifiers"].keys())[:3]
+        
+        if primary_intent == "educational":
+            return f"Fokus na content edukacyjny. Kluczowe modyfikatory: {', '.join(top_modifiers)}. Rozważ stworzenie tutoriali i poradników."
+        elif primary_intent == "transactional":
+            return f"Silny intent komercyjny. Priorytet: landing pages produktowe i porównania cen. Modyfikatory: {', '.join(top_modifiers)}."
+        elif primary_intent == "informational":
+            return f"Zapotrzebowanie na treści informacyjne. Stwórz FAQ, definicje i wyjaśnienia. Focus: {', '.join(top_modifiers)}."
+        else:
+            return f"Mieszane intencje. Strategia: diversyfikacja content'u. Główne kierunki: {', '.join(top_modifiers)}."
+    
+    @staticmethod 
+    def _generate_key_insights(intent_analysis: Dict, trending_analysis: Dict, opportunities: List) -> List[str]:
+        """
+        Generuje kluczowe insights
+        """
+        insights = []
+        
+        # Intent insights
+        primary_intent = intent_analysis.get("primary_intent")
+        if primary_intent:
+            percentage = intent_analysis["intent_distribution"].get(primary_intent, 0)
+            insights.append(f"Dominuje intent {primary_intent} ({percentage}% sugestii)")
+        
+        # Modifier insights  
+        top_modifiers = list(trending_analysis["top_modifiers"].items())[:2]
+        if top_modifiers:
+            insights.append(f"Najczęstsze modyfikatory: {', '.join([f'{mod} ({count}x)' for mod, count in top_modifiers])}")
+        
+        # Opportunity insights
+        easy_opportunities = [opp for opp in opportunities if opp.get("difficulty") == "Easy"]
+        if easy_opportunities:
+            insights.append(f"Znaleziono {len(easy_opportunities)} łatwych okazji long-tail")
+        
+        # Format insights
+        format_mods = trending_analysis["categorized_modifiers"].get("format", [])
+        if format_mods:
+            insights.append(f"Preferowane formaty: {', '.join([mod[0] for mod in format_mods[:2]])}")
+        
+        return insights
+
+# Główne endpointy
+@router.post("/autocomplete/google/live/advanced")
+async def get_google_autocomplete_live_advanced(data: AutocompleteInput):
+    """
+    Pobiera dane z Live Google Autocomplete Advanced endpoint.
+    Zwraca sugestie autocomplete z opcjonalną analizą business intelligence.
+    """
+    if not DFS_LOGIN or not DFS_PASSWORD:
+        logger.error("❌ Brak danych logowania do API")
+        raise HTTPException(status_code=500, detail="Brak danych logowania do API DataForSEO.")
+    
+    logger.info(f"🔍 Pobieranie autocomplete dla: '{data.keyword}'")
+    logger.info(f"📍 Lokalizacja: {data.location_code}, Język: {data.language_code}")
+    logger.info(f"🖥️ Klient: {data.client}")
+    if data.cursor_pointer is not None:
+        logger.info(f"👆 Pozycja kursora: {data.cursor_pointer}")
+    
+    config = dfs_config.Configuration(username=DFS_LOGIN, password=DFS_PASSWORD)
+    
+    # Przygotowanie requestu
+    request_params = {
+        "keyword": data.keyword,
+        "location_code": data.location_code,
+        "language_code": data.language_code,
+        "client": data.client
+    }
+    
+    if data.cursor_pointer is not None:
+        request_params["cursor_pointer"] = data.cursor_pointer
+    
+    request_data = [SerpGoogleAutocompleteLiveAdvancedRequestInfo(**request_params)]
+    
+    try:
+        with dfs_api_provider.ApiClient(config) as api_client:
+            api_instance = SerpApi(api_client)
+            logger.debug("➡️ Wysyłanie żądania do DataForSEO Autocomplete API...")
+            
+            # Wywołanie endpointu
+            api_response = api_instance.google_autocomplete_live_advanced(request_data)
+            
+            if not api_response.tasks:
+                logger.warning("⚠️ Brak zadań w odpowiedzi API.")
+                raise HTTPException(status_code=404, detail="Brak danych w odpowiedzi API.")
+            
+            task = api_response.tasks[0]
+            
+            if task.status_code != 20000:
+                logger.error(f"❌ Błąd zadania: {task.status_code} - {task.status_message}")
+                raise HTTPException(
+                    status_code=400, 
+                    detail=f"Błąd zadania DataForSEO: {task.status_message}"
+                )
+            
+            if not task.result:
+                logger.warning("⚠️ Brak wyników autocomplete dla podanego słowa kluczowego.")
+                raise HTTPException(
+                    status_code=404, 
+                    detail="Brak sugestii autocomplete dla podanego słowa kluczowego."
+                )
+            
+            result = task.result[0]
+            
+            # Logowanie podstawowych informacji
+            logger.info(f"✅ Pobrano dane autocomplete dla '{result.keyword}'")
+            logger.info(f"📊 Liczba sugestii: {result.items_count}")
+            logger.info(f"🔗 URL sprawdzający: {result.check_url}")
+            
+            # Konwersja wyników do dict
+            result_dict = result.to_dict()
+            
+            # Przygotowanie odpowiedzi
+            response_data = {
+                "task_info": {
+                    "id": task.id,
+                    "status_code": task.status_code,
+                    "status_message": task.status_message,
+                    "cost": task.cost,
+                    "execution_time": task.time
+                },
+                "autocomplete_data": result_dict
+            }
+            
+            # Dodaj analizę BI jeśli requested
+            if data.include_analysis and result.items:
+                logger.info("🧠 Generowanie analizy business intelligence...")
+                
+                # Konwertuj items do listy dict dla analizy
+                suggestions = []
+                for item in result.items:
+                    suggestions.append(item.to_dict())
+                
+                analysis = AutocompleteAnalyzer.generate_comprehensive_analysis(suggestions, data.keyword)
+                response_data["business_intelligence"] = analysis
+                
+                logger.info(f"📈 Analiza zakończona - {analysis['metrics']['total_suggestions']} sugestii przeanalizowanych")
+            
+            # Dodaj metadata
+            response_data["metadata"] = {
+                "timestamp": datetime.now().isoformat(),
+                "analysis_included": data.include_analysis,
+                "total_cost": task.cost
+            }
+            
+            return response_data
+    
+    except Exception as e:
+        logger.exception("❌ Błąd podczas pobierania danych z DataForSEO Autocomplete API")
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Błąd serwera podczas pobierania danych autocomplete:\n{str(e)}"
+        )
+
+@router.post("/autocomplete/google/multi")
+async def get_multiple_autocomplete(data: AutocompleteMultiInput):
+    """
+    Pobiera dane autocomplete dla wielu keywords jednocześnie.
+    Przydatne do bulk keyword research.
+    """
+    if len(data.keywords) > 10:
+        raise HTTPException(status_code=400, detail="Maksymalnie 10 keywords na raz.")
+    
+    logger.info(f"🔍 Pobieranie autocomplete dla {len(data.keywords)} keywords")
+    
+    results = []
+    total_cost = 0.0
+    
+    for keyword in data.keywords:
+        try:
+            # Wywołaj główny endpoint dla każdego keyword
+            single_request = AutocompleteInput(
+                keyword=keyword,
+                location_code=data.location_code,
+                language_code=data.language_code,
+                client=data.client,
+                include_analysis=data.include_analysis
+            )
+            
+            result = await get_google_autocomplete_live_advanced(single_request)
+            results.append({
+                "keyword": keyword,
+                "success": True,
+                "data": result
+            })
+            
+            total_cost += result["task_info"]["cost"]
+            
+        except Exception as e:
+            logger.error(f"❌ Błąd dla keyword '{keyword}': {str(e)}")
+            results.append({
+                "keyword": keyword,
+                "success": False,
+                "error": str(e)
+            })
+    
+    successful_results = [r for r in results if r["success"]]
+    
+    return {
+        "summary": {
+            "total_keywords": len(data.keywords),
+            "successful": len(successful_results),
+            "failed": len(data.keywords) - len(successful_results),
+            "total_cost": total_cost
+        },
+        "results": results,
+        "metadata": {
+            "timestamp": datetime.now().isoformat(),
+            "analysis_included": data.include_analysis
+        }
+    }
+
+@router.post("/autocomplete/google/filtered")
+async def get_filtered_autocomplete(data: AutocompleteInput, min_rank: Optional[int] = None, max_rank: Optional[int] = None, contains: Optional[str] = None):
+    """
+    Pobiera dane autocomplete z filtrowaniem wyników.
+    
+    Parametry filtrowania:
+    - min_rank: Minimalna pozycja w rankingu (np. 1)
+    - max_rank: Maksymalna pozycja w rankingu (np. 5) 
+    - contains: Tekst który musi zawierać sugestia
+    """
+    # Pobierz pełne dane
+    full_response = await get_google_autocomplete_live_advanced(data)
+    
+    # Zastosuj filtry
+    if "autocomplete_data" in full_response and "items" in full_response["autocomplete_data"]:
+        items = full_response["autocomplete_data"]["items"]
+        filtered_items = []
+        
+        for item in items:
+            # Filtr po rank
+            rank = item.get("rank_absolute", 0)
+            if min_rank and rank < min_rank:
+                continue
+            if max_rank and rank > max_rank:
+                continue
+                
+            # Filtr po zawartości
+            if contains and contains.lower() not in item.get("suggestion", "").lower():
+                continue
+                
+            filtered_items.append(item)
+        
+        # Aktualizuj dane
+        full_response["autocomplete_data"]["items"] = filtered_items
+        full_response["autocomplete_data"]["items_count"] = len(filtered_items)
+        
+        # Aktualizuj analizę jeśli była included
+        if data.include_analysis and "business_intelligence" in full_response:
+            analysis = AutocompleteAnalyzer.generate_comprehensive_analysis(filtered_items, data.keyword)
+            full_response["business_intelligence"] = analysis
+        
+        logger.info(f"🔍 Przefiltrowano do {len(filtered_items)} sugestii")
+        
+        # Dodaj info o filtrach
+        full_response["filter_info"] = {
+            "applied_filters": {
+                "min_rank": min_rank,
+                "max_rank": max_rank, 
+                "contains": contains
+            },
+            "original_count": len(items),
+            "filtered_count": len(filtered_items)
+        }
+    
+    return full_response
+
+@router.get("/autocomplete/google/quick/{keyword}")
+async def get_quick_autocomplete(
+    keyword: str,
+    location_code: int = 2616,
+    language_code: str = "pl",
+    limit: int = 5
+):
+    """
+    Szybkie pobranie top autocomplete suggestions bez pełnej analizy.
+    Przydatne do szybkich lookup'ów.
+    """
+    try:
+        request = AutocompleteInput(
+            keyword=keyword,
+            location_code=location_code,
+            language_code=language_code,
+            include_analysis=False
+        )
+        
+        result = await get_google_autocomplete_live_advanced(request)
+        
+        # Wyciągnij tylko sugestie
+        suggestions = []
+        if "autocomplete_data" in result and "items" in result["autocomplete_data"]:
+            items = result["autocomplete_data"]["items"][:limit]
+            suggestions = [item.get("suggestion", "") for item in items]
+        
+        return {
+            "keyword": keyword,
+            "suggestions": suggestions,
+            "count": len(suggestions),
+            "cost": result["task_info"]["cost"]
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Błąd: {str(e)}")
+
+# Endpoint informacyjny
+@router.get("/info/autocomplete-clients")
+async def get_autocomplete_clients():
+    """
+    Zwraca listę dostępnych klientów autocomplete i ich zastosowania.
+    """
+    clients_info = {
+        "chrome": {
+            "description": "Google Search w przeglądarce Chrome",
+            "use_case": "Standardowe wyszukiwanie desktop"
+        },
+        "chrome-omni": {
+            "description": "Pasek adresu w Chrome", 
+            "use_case": "Wyszukiwanie z paska adresu",
+            "features": ["relevance_score", "suggestion_type"]
+        },
+        "gws-wiz": {
+            "description": "Strona główna Google Search",
+            "use_case": "Homepage search experience",
+            "features": ["thumbnail_images"]
+        },
+        "gws-wiz-serp": {
+            "description": "Strona wyników Google Search (SERP)",
+            "use_case": "Search refinement na SERP",
+            "features": ["thumbnail_images", "highlighted_terms"]
+        },
+        "safari": {
+            "description": "Google Search w przeglądarce Safari",
+            "use_case": "Safari browser experience"
+        },
+        "firefox": {
+            "description": "Google Search w przeglądarce Firefox", 
+            "use_case": "Firefox browser experience"
+        },
+        "gws-wiz-local": {
+            "description": "Google Local Search",
+            "use_case": "Local/geo-targeted searches"
+        },
+        "img": {
+            "description": "Google Images search",
+            "use_case": "Image search autocomplete"
+        },
+        "products-cc": {
+            "description": "Google Shopping search",
+            "use_case": "E-commerce/product searches"
+        }
+    }
+    
+    return {
+        "available_clients": clients_info,
+        "recommended": {
+            "general_research": "gws-wiz-serp",
+            "local_seo": "gws-wiz-local", 
+            "ecommerce": "products-cc",
+            "image_search": "img"
+        }
+    }
+
+# Endpoint sprawdzający dostępne lokalizacje (z oryginalnego kodu)
+@router.get("/info/available-locations")
+async def get_available_locations():
+    """
+    Zwraca listę dostępnych lokalizacji dla Google Autocomplete.
+    """
+    if not DFS_LOGIN or not DFS_PASSWORD:
+        raise HTTPException(status_code=500, detail="Brak danych logowania do API DataForSEO.")
+    
+    config = dfs_config.Configuration(username=DFS_LOGIN, password=DFS_PASSWORD)
+    
+    try:
+        with dfs_api_provider.ApiClient(config) as api_client:
+            api_instance = SerpApi(api_client)
+            api_response = api_instance.google_autocomplete_locations()
+            
+            return {
+                "locations_count": len(api_response.tasks[0].result),
+                "locations": api_response.tasks[0].result
+            }
+    except Exception as e:
+        logger.exception("❌ Błąd podczas pobierania listy lokalizacji")
+        raise HTTPException(status_code=500, detail=f"Błąd serwera:\n{str(e)}")
+
+@router.get("/info/available-languages") 
+async def get_available_languages():
+    """
+    Zwraca listę dostępnych języków dla Google Autocomplete.
+    """
+    if not DFS_LOGIN or not DFS_PASSWORD:
+        raise HTTPException(status_code=500, detail="Brak danych logowania do API DataForSEO.")
+    
+    config = dfs_config.Configuration(username=DFS_LOGIN, password=DFS_PASSWORD)
+    
+    try:
+        with dfs_api_provider.ApiClient(config) as api_client:
+            api_instance = SerpApi(api_client)
+            api_response = api_instance.google_languages()
+            
+            return {
+                "languages_count": len(api_response.tasks[0].result),
+                "languages": api_response.tasks[0].result
+            }
+    except Exception as e:
+        logger.exception("❌ Błąd podczas pobierania listy języków")
+        raise HTTPException(status_code=500, detail=f"Błąd serwera:\n{str(e)}")
+		
+		
+		
+		
+		
+
+
+
+{
+  "task_info": {
+    "id": "06022226-1002-0139-0000-8946700a456c",
+    "status_code": 20000,
+    "status_message": "Ok.",
+    "cost": 0.002,
+    "execution_time": "1.2249 sec."
+  },
+  "autocomplete_data": {
+    "keyword": "dyktanda",
+    "type": "autocomplete",
+    "se_domain": "google.pl",
+    "location_code": 2616,
+    "language_code": "pl",
+    "check_url": "https://google.pl/search?q=dyktanda&hl=pl&gl=PL&uule=w+CAIQIFISCbsLZKRkmQBHEepVzEnKc3UJ",
+    "datetime": "2025-06-02 19:26:57 +00:00",
+    "item_types": [
+      "autocomplete"
+    ],
+    "se_results_count": 0,
+    "items_count": 10,
+    "items": [
+      {
+        "type": "autocomplete",
+        "rank_group": 1,
+        "rank_absolute": 1,
+        "suggestion": "tekst do dyktanda klasa 3",
+        "search_query_url": "https://www.google.pl/search?q=tekst+do+dyktanda+klasa+3",
+        "highlighted": [
+          "tekst do",
+          "klasa 3"
+        ],
+        "relevance": null,
+        "suggestion_type": null,
+        "thumbnail_url": null
+      },
+      {
+        "type": "autocomplete",
+        "rank_group": 2,
+        "rank_absolute": 2,
+        "suggestion": "dyktanda online",
+        "search_query_url": "https://www.google.pl/search?q=dyktanda+online",
+        "highlighted": [
+          "online"
+        ],
+        "relevance": null,
+        "suggestion_type": null,
+        "thumbnail_url": null
+      },
+      {
+        "type": "autocomplete",
+        "rank_group": 3,
+        "rank_absolute": 3,
+        "suggestion": "krótkie dyktanda klasa 2",
+        "search_query_url": "https://www.google.pl/search?q=kr%C3%B3tkie+dyktanda+klasa+2",
+        "highlighted": [
+          "krótkie",
+          "klasa 2"
+        ],
+        "relevance": null,
+        "suggestion_type": null,
+        "thumbnail_url": null
+      },
+      {
+        "type": "autocomplete",
+        "rank_group": 4,
+        "rank_absolute": 4,
+        "suggestion": "tekst do dyktanda klasa 4",
+        "search_query_url": "https://www.google.pl/search?q=tekst+do+dyktanda+klasa+4",
+        "highlighted": [
+          "tekst do",
+          "klasa 4"
+        ],
+        "relevance": null,
+        "suggestion_type": null,
+        "thumbnail_url": null
+      },
+      {
+        "type": "autocomplete",
+        "rank_group": 5,
+        "rank_absolute": 5,
+        "suggestion": "krótkie dyktanda klasa 1",
+        "search_query_url": "https://www.google.pl/search?q=kr%C3%B3tkie+dyktanda+klasa+1",
+        "highlighted": [
+          "krótkie",
+          "klasa 1"
+        ],
+        "relevance": null,
+        "suggestion_type": null,
+        "thumbnail_url": null
+      },
+      {
+        "type": "autocomplete",
+        "rank_group": 6,
+        "rank_absolute": 6,
+        "suggestion": "krótkie dyktanda klasa 3",
+        "search_query_url": "https://www.google.pl/search?q=kr%C3%B3tkie+dyktanda+klasa+3",
+        "highlighted": [
+          "krótkie",
+          "klasa 3"
+        ],
+        "relevance": null,
+        "suggestion_type": null,
+        "thumbnail_url": null
+      },
+      {
+        "type": "autocomplete",
+        "rank_group": 7,
+        "rank_absolute": 7,
+        "suggestion": "darmowe dyktanda do druku",
+        "search_query_url": "https://www.google.pl/search?q=darmowe+dyktanda+do+druku",
+        "highlighted": [
+          "darmowe",
+          "do druku"
+        ],
+        "relevance": null,
+        "suggestion_type": null,
+        "thumbnail_url": null
+      },
+      {
+        "type": "autocomplete",
+        "rank_group": 8,
+        "rank_absolute": 8,
+        "suggestion": "dyktanda online klasa 3",
+        "search_query_url": "https://www.google.pl/search?q=dyktanda+online+klasa+3",
+        "highlighted": [
+          "online klasa 3"
+        ],
+        "relevance": null,
+        "suggestion_type": null,
+        "thumbnail_url": null
+      },
+      {
+        "type": "autocomplete",
+        "rank_group": 9,
+        "rank_absolute": 9,
+        "suggestion": "dyktanda online klasa 2",
+        "search_query_url": "https://www.google.pl/search?q=dyktanda+online+klasa+2",
+        "highlighted": [
+          "online klasa 2"
+        ],
+        "relevance": null,
+        "suggestion_type": null,
+        "thumbnail_url": null
+      },
+      {
+        "type": "autocomplete",
+        "rank_group": 10,
+        "rank_absolute": 10,
+        "suggestion": "dyktanda",
+        "search_query_url": "https://www.google.pl/search?q=dyktanda",
+        "relevance": null,
+        "suggestion_type": null,
+        "thumbnail_url": null,
+        "highlighted": null
+      }
+    ]
+  },
+  "business_intelligence": {
+    "intent_analysis": {
+      "intent_distribution": {
+        "transactional": 30,
+        "educational": 70
+      },
+      "categorized_suggestions": {
+        "informational": [],
+        "transactional": [
+          "dyktanda online",
+          "dyktanda online klasa 3",
+          "dyktanda online klasa 2"
+        ],
+        "navigational": [],
+        "local": [],
+        "educational": [
+          "tekst do dyktanda klasa 3",
+          "krótkie dyktanda klasa 2",
+          "tekst do dyktanda klasa 4",
+          "krótkie dyktanda klasa 1",
+          "krótkie dyktanda klasa 3",
+          "dyktanda online klasa 3",
+          "dyktanda online klasa 2"
+        ]
+      },
+      "total_analyzed": 10,
+      "primary_intent": "educational"
+    },
+    "trending_modifiers": {
+      "top_modifiers": {
+        "klasa": 7,
+        "online": 3,
+        "krótkie": 3,
+        "tekst": 2,
+        "darmowe": 1,
+        "druku": 1
+      },
+      "categorized_modifiers": {
+        "format": [
+          [
+            "online",
+            3
+          ]
+        ],
+        "target": [
+          [
+            "klasa",
+            7
+          ]
+        ],
+        "difficulty": [
+          [
+            "krótkie",
+            3
+          ]
+        ]
+      },
+      "highlighted_terms": [
+        "krótkie",
+        "online",
+        "klasa 2",
+        "online klasa 3",
+        "klasa 3",
+        "tekst do",
+        "do druku",
+        "darmowe",
+        "klasa 1",
+        "online klasa 2",
+        "klasa 4"
+      ],
+      "long_tail_opportunities": [
+        "tekst do dyktanda klasa 3",
+        "krótkie dyktanda klasa 2",
+        "tekst do dyktanda klasa 4",
+        "krótkie dyktanda klasa 1",
+        "krótkie dyktanda klasa 3",
+        "darmowe dyktanda do druku",
+        "dyktanda online klasa 3",
+        "dyktanda online klasa 2"
+      ],
+      "question_patterns": []
+    },
+    "content_opportunities": [
+      {
+        "keyword": "tekst do dyktanda klasa 3",
+        "rank": 1,
+        "opportunity_type": "long_tail",
+        "difficulty": "Hard",
+        "reason": "Długa fraza (5 słów) - potencjalnie mniejsza konkurencja",
+        "word_count": 5
+      },
+      {
+        "keyword": "krótkie dyktanda klasa 2",
+        "rank": 3,
+        "opportunity_type": "long_tail",
+        "difficulty": "Hard",
+        "reason": "Długa fraza (4 słów) - potencjalnie mniejsza konkurencja",
+        "word_count": 4
+      },
+      {
+        "keyword": "tekst do dyktanda klasa 4",
+        "rank": 4,
+        "opportunity_type": "long_tail",
+        "difficulty": "Hard",
+        "reason": "Długa fraza (5 słów) - potencjalnie mniejsza konkurencja",
+        "word_count": 5
+      },
+      {
+        "keyword": "krótkie dyktanda klasa 1",
+        "rank": 5,
+        "opportunity_type": "long_tail",
+        "difficulty": "Medium",
+        "reason": "Długa fraza (4 słów) - potencjalnie mniejsza konkurencja",
+        "word_count": 4
+      },
+      {
+        "keyword": "krótkie dyktanda klasa 3",
+        "rank": 6,
+        "opportunity_type": "long_tail",
+        "difficulty": "Medium",
+        "reason": "Długa fraza (4 słów) - potencjalnie mniejsza konkurencja",
+        "word_count": 4
+      },
+      {
+        "keyword": "darmowe dyktanda do druku",
+        "rank": 7,
+        "opportunity_type": "long_tail",
+        "difficulty": "Medium",
+        "reason": "Długa fraza (4 słów) - potencjalnie mniejsza konkurencja",
+        "word_count": 4
+      },
+      {
+        "keyword": "darmowe dyktanda do druku",
+        "rank": 7,
+        "opportunity_type": "unique_angle",
+        "unique_modifiers": [
+          "darmowe",
+          "druku"
+        ],
+        "reason": "Zawiera unikalne modyfikatory: darmowe, druku"
+      },
+      {
+        "keyword": "dyktanda online klasa 3",
+        "rank": 8,
+        "opportunity_type": "long_tail",
+        "difficulty": "Easy",
+        "reason": "Długa fraza (4 słów) - potencjalnie mniejsza konkurencja",
+        "word_count": 4
+      },
+      {
+        "keyword": "dyktanda online klasa 2",
+        "rank": 9,
+        "opportunity_type": "long_tail",
+        "difficulty": "Easy",
+        "reason": "Długa fraza (4 słów) - potencjalnie mniejsza konkurencja",
+        "word_count": 4
+      },
+      {
+        "keyword": "dyktanda nauka",
+        "opportunity_type": "intent_gap",
+        "reason": "Brak sugestii edukacyjnych - możliwość stworzenia content'u 'how-to'",
+        "suggested_content": [
+          "Tutorial",
+          "Poradnik krok po kroku",
+          "Nauka dla początkujących"
+        ]
+      }
+    ],
+    "metrics": {
+      "total_suggestions": 10,
+      "average_suggestion_length": 3.7,
+      "suggestions_with_thumbnails": 0,
+      "thumbnail_percentage": 0,
+      "primary_intent": "educational",
+      "top_modifier": "klasa",
+      "opportunity_count": 10
+    },
+    "summary": {
+      "recommendation": "Fokus na content edukacyjny. Kluczowe modyfikatory: klasa, online, krótkie. Rozważ stworzenie tutoriali i poradników.",
+      "key_insights": [
+        "Dominuje intent educational (70.0% sugestii)",
+        "Najczęstsze modyfikatory: klasa (7x), online (3x)",
+        "Znaleziono 2 łatwych okazji long-tail",
+        "Preferowane formaty: online"
+      ]
+    }
+  },
+  "metadata": {
+    "timestamp": "2025-06-02T21:26:57.204906",
+    "analysis_included": true,
+    "total_cost": 0.002
+  }
+}

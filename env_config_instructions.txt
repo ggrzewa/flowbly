@@ -1,0 +1,87 @@
+# ========================================
+# KONFIGURACJA AI PROVIDERS - INSTRUKCJE
+# ========================================
+
+Dodaj te zmienne do pliku .env:
+
+# ========================================
+# AI PROVIDERS CONFIGURATION
+# ========================================
+
+# Wybierz AI Provider: "openai" lub "claude"
+AI_PROVIDER=openai
+
+# Modele AI
+AI_MODEL_OPENAI=gpt-4o
+AI_MODEL_CLAUDE=claude-3-5-sonnet-20241022
+
+# ========================================
+# API KEYS
+# ========================================
+
+# OpenAI API Key (wymagany zawsze dla embeddingów)
+OPENAI_API_KEY=your_openai_api_key_here
+
+# Claude API Key (wymagany gdy AI_PROVIDER=claude)
+ANTHROPIC_API_KEY=your_anthropic_api_key_here
+
+# ========================================
+# OPCJE KONFIGURACJI
+# ========================================
+
+OPCJA 1: Użycie tylko OpenAI (domyślnie)
+AI_PROVIDER=openai
+OPENAI_API_KEY=sk-...
+ANTHROPIC_API_KEY może pozostać pusty
+
+OPCJA 2: Użycie Claude do klastrowania
+AI_PROVIDER=claude  
+OPENAI_API_KEY=sk-... (nadal potrzebny do embeddingów)
+ANTHROPIC_API_KEY=sk-ant-...
+
+# ========================================
+# DOSTĘPNE MODELE
+# ========================================
+
+OpenAI: 
+- gpt-4o (najlepszy)
+- gpt-4o-mini (tańszy)
+- gpt-4-turbo
+
+Claude: 
+- claude-3-5-sonnet-20241022 (najlepszy)
+- claude-3-5-haiku-20241022 (tańszy)
+- claude-3-opus-20240229
+
+# ========================================
+# PRZYKŁADY USTAWIEŃ
+# ========================================
+
+Dla najlepszej jakości (OpenAI GPT-4o):
+AI_PROVIDER=openai
+AI_MODEL_OPENAI=gpt-4o
+
+Dla testowania Claude Sonnet 4:
+AI_PROVIDER=claude
+AI_MODEL_CLAUDE=claude-3-5-sonnet-20241022
+
+Dla najtańszej opcji:
+AI_PROVIDER=claude
+AI_MODEL_CLAUDE=claude-3-5-haiku-20241022
+
+# ========================================
+# TESTOWANIE
+# ========================================
+
+Po skonfigurowaniu sprawdź połączenia:
+GET /api/v6/clustering/test-ai - testuje aktywny provider
+GET /api/v6/clustering/test-openai - testuje tylko OpenAI
+
+# ========================================
+# UWAGI
+# ========================================
+
+1. OpenAI API jest zawsze wymagany dla embeddingów
+2. Claude może być używany tylko do klastrowania (nie embeddingów)
+3. System automatycznie wybiera provider na podstawie AI_PROVIDER
+4. W przypadku błędu można przełączyć provider bez restartowania 

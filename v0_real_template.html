@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEO Analysis Tool - Professional Design</title>
+    <style>
+        /* Oryginalne style z naszego templates */
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+            line-height: 1.6;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background: #45a049;
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .progress-container {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #f0f0f0;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #45a049);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            text-align: center;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .steps-list {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 4px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .step-item {
+            padding: 8px;
+            margin: 3px 0;
+            border-radius: 3px;
+            font-size: 14px;
+        }
+
+        .step-item.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .step-item.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .step-item.timeout {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .message {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .loading {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+        }
+
+        /* Results Container */
+        .results-container {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .section-container {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .section-header {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .section-header h2 {
+            margin: 0;
+            font-size: 20px;
+        }
+
+        .loading-section {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .loading-section .spinner {
+            font-size: 48px;
+            animation: spin 2s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .module-status {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 12px;
+        }
+
+        .module-status.loaded {
+            background: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+
+        .module-status.error {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+
+        /* Clustering specific styles */
+        .clustering-header {
+            background: linear-gradient(135deg, #8e44ad, #9b59b6);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .clustering-button {
+            background: linear-gradient(135deg, #8e44ad, #9b59b6);
+            border: none;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px 0;
+        }
+
+        .clustering-button:hover {
+            background: linear-gradient(135deg, #7d3c98, #8e44ad);
+            transform: translateY(-2px);
+        }
+
+        .clustering-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .clustering-progress {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            display: none;
+        }
+
+        .clustering-progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .clustering-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #8e44ad, #9b59b6);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .clustering-results {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            display: none;
+        }
+
+        .cluster-group {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            margin: 10px 0;
+            padding: 15px;
+        }
+
+        .cluster-group h4 {
+            margin: 0 0 10px 0;
+            color: #8e44ad;
+        }
+
+        .cluster-phrase {
+            display: inline-block;
+            background: #e8f5e8;
+            color: #155724;
+            padding: 4px 8px;
+            margin: 2px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .cluster-phrase.representative {
+            background: #8e44ad;
+            color: white;
+            font-weight: bold;
+        }
+
+        /* Architecture styles */
+        .architecture-section {
+            background: linear-gradient(135deg, #e67e22, #d35400);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .architecture-button {
+            background: linear-gradient(135deg, #e67e22, #d35400);
+            border: none;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+
+        .architecture-button:hover {
+            background: linear-gradient(135deg, #d35400, #e67e22);
+            transform: translateY(-2px);
+        }
+
+        /* Content Brief styles */
+        .module-section {
+            background: white;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .module-header {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .module-header h2 {
+            margin: 0;
+            font-size: 22px;
+        }
+
+        .module-header p {
+            margin: 5px 0 0 0;
+            opacity: 0.9;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            border: none;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            transform: translateY(-2px);
+        }
+
+        /* Scaffold styles */
+        .scaffold-section {
+            background: white;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .scaffold-header {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .scaffold-button {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        .scaffold-button:hover {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            transform: translateY(-1px);
+        }
+
+        /* Export section */
+        .export-section {
+            background: #e8f5e8;
+            border: 1px solid #c3e6cb;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .export-button {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+
+        .export-button:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 SEO Analysis Tool - Modular Version</h1>
+
+        <form id="keywordForm">
+            <div class="form-group">
+                <label for="keyword">Słowo kluczowe:</label>
+                <input type="text" id="keyword" name="keyword" placeholder="Wpisz słowo kluczowe..." required>
+            </div>
+
+            <div class="form-group">
+                <label for="country">Kraj i język:</label>
+                <select id="country" name="country" required>
+                    <option value="">Wybierz kraj...</option>
+                    <option value="2616|pl">🇵🇱 Polska (Polski)</option>
+                    <option value="2840|en">🇺🇸 USA (English)</option>
+                    <option value="2826|de">🇩🇪 Germany (Deutsch)</option>
+                </select>
+            </div>
+
+            <button type="submit" id="submitBtn">🚀 Uruchom analizę</button>
+        </form>
+
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-text" id="progressText">Rozpoczynanie analizy...</div>
+            <div class="steps-list" id="stepsList"></div>
+        </div>
+
+        <div class="message" id="messageContainer"></div>
+
+        <!-- Export Section -->
+        <div id="exportSection" class="export-section" style="display: none;">
+            <h3 style="margin-top: 0; color: #155724;">📦 Eksport danych analizy</h3>
+            <p style="margin-bottom: 15px; color: #155724;">
+                Zapisz kompletne dane ze wszystkich 10 sekcji analizy w wybranym formacie:
+            </p>
+            <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                <button type="button" id="exportJsonBtn" class="export-button">
+                    📄 Eksportuj do JSON
+                </button>
+                <button type="button" id="exportHtmlBtn" class="export-button" style="background: #17a2b8;">
+                    📋 Eksportuj do HTML
+                </button>
+            </div>
+            <div style="margin-top: 10px; font-size: 12px; color: #6c757d;">
+                <strong>Eksportowane dane obejmują:</strong>
+                Wszystkie sekcje (1-10), powiązane słowa kluczowe, wyniki SERP,
+                sugestie autocomplete, dane historyczne, demografię i więcej.
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Container -->
+    <div class="results-container" id="resultsContainer">
+        <!-- SEKCJA 1: EXTENDED HEADER -->
+        <div class="section-container">
+            <div class="section-header">
+                <h2>🎯 SEKCJA 1: EXTENDED HEADER</h2>
+            </div>
+            <div id="keywordHeader" class="loading-section">
+                <div class="spinner">🔄</div>
+                <p>Ładowanie danych słowa kluczowego...</p>
+                <div style="margin-top: 20px; color: #666; font-size: 14px;">
+                    Oczekiwane dane: wolumen wyszukiwania, CPC, konkurencja, intencja wyszukiwania
+                </div>
+            </div>
+        </div>
+
+        <!-- SEKCJA 2: EXTENDED CORE SEO METRICS -->
+        <div class="section-container">
+            <div class="section-header">
+                <h2>📊 SEKCJA 2: EXTENDED CORE SEO METRICS</h2>
+            </div>
+            <div id="seoMetrics" class="loading-section">
+                <div class="spinner">🔄</div>
+                <p>Ładowanie metryk SEO...</p>
+                <div style="margin-top: 20px; color: #666; font-size: 14px;">
+                    Oczekiwane dane: trudność słowa, potencjał rankingowy, konkurencja w top 10
+                </div>
+            </div>
+        </div>
+
+        <!-- SEKCJA 3: COMPLETE INTENT ANALYSIS -->
+        <div class="section-container">
+            <div class="section-header">
+                <h2>🧠 SEKCJA 3: COMPLETE INTENT ANALYSIS</h2>
+            </div>
+            <div id="intentAnalysis" class="loading-section">
+                <div class="spinner">🔄</div>
+                <p>Ładowanie analizy intencji...</p>
+                <div style="margin-top: 20px; color: #666; font-size: 14px;">
+                    Oczekiwane dane: klasyfikacja intencji, kontekst wyszukiwania, user journey
+                </div>
+            </div>
+        </div>
+
+        <!-- SEKCJA 4: COMPLETE DEMOGRAPHICS -->
+        <div class="section-container">
+            <div class="section-header">
+                <h2>👥 SEKCJA 4: COMPLETE DEMOGRAPHICS</h2>
+            </div>
+            <div id="demographicsAnalysis" class="loading-section">
+                <div class="spinner">🔄</div>
+                <p>Ładowanie danych demograficznych...</p>
+                <div style="margin-top: 20px; color: #666; font-size: 14px;">
+                    Oczekiwane dane: wiek, płeć, regiony, zachowania użytkowników
+                </div>
+            </div>
+        </div>
+
+        <!-- SEKCJA 5: EXTENDED TRENDS & SEASONALITY -->
+        <div class="section-container">
+            <div class="section-header">
+                <h2>📈 SEKCJA 5: EXTENDED TRENDS & SEASONALITY</h2>
+            </div>
+            <div id="trendsAnalysis" class="loading-section">
+                <div class="spinner">🔄</div>
+                <p>Ładowanie trendów wyszukiwania...</p>
+                <div style="margin-top: 20px; color: #666; font-size: 14px;">
+                    Oczekiwane dane: trendy miesięczne, sezonowość, prognozy
+                </div>
+            </div>
+        </div>
+
+        <!-- SEKCJA 6: COMPLETE GEOGRAPHIC DATA -->
+        <div class="section-container">
+            <div class="section-header">
+                <h2>🌍 SEKCJA 6: COMPLETE GEOGRAPHIC DATA</h2>
+            </div>
+            <div id="geographicAnalysis" class="loading-section">
+                <div class="spinner">🔄</div>
+                <p>Ładowanie danych geograficznych...</p>
+                <div style="margin-top: 20px; color: #666; font-size: 14px;">
+                    Oczekiwane dane: rozkład po regionach, miasta, województwa
+                </div>
+            </div>
+        </div>
+
+        <!-- SEKCJA 7: ENHANCED COMPETITION ANALYSIS -->
+        <div class="section-container">
+            <div class="section-header">
+                <h2>⚔️ SEKCJA 7: ENHANCED COMPETITION ANALYSIS</h2>
+            </div>
+            <div id="competitionAnalysis" class="loading-section">
+                <div class="spinner">🔄</div>
+                <p>Ładowanie analizy konkurencji...</p>
+                <div style="margin-top: 20px; color: #666; font-size: 14px;">
+                    Oczekiwane dane: top 10 konkurentów, ich strategie, luki
+                </div>
+            </div>
+        </div>
+
+        <!-- SEKCJA 8: ENHANCED RELATED KEYWORDS -->
+        <div class="section-container">
+            <div class="section-header">
+                <h2>🔗 SEKCJA 8: ENHANCED RELATED KEYWORDS</h2>
+            </div>
+            <div id="relatedKeywordsAnalysis" class="loading-section">
+                <div class="spinner">🔄</div>
+                <p>Ładowanie powiązanych słów kluczowych...</p>
+                <div style="margin-top: 20px; color: #666; font-size: 14px;">
+                    Oczekiwane dane: frazy semantyczne, pytania, long-tail keywords
+                </div>
+            </div>
+        </div>
+
+        <!-- SEKCJA 9: ENHANCED SERP ANALYSIS -->
+        <div class="section-container">
+            <div class="section-header">
+                <h2>🔍 SEKCJA 9: ENHANCED SERP ANALYSIS</h2>
+            </div>
+            <div id="serpAnalysis" class="loading-section">
+                <div class="spinner">🔄</div>
+                <p>Ładowanie analizy SERP...</p>
+                <div style="margin-top: 20px; color: #666; font-size: 14px;">
+                    Oczekiwane dane: wyniki wyszukiwania, featured snippets, PAA
+                </div>
+            </div>
+        </div>
+
+        <!-- SEKCJA 10: ENHANCED AUTOCOMPLETE ANALYSIS -->
+        <div class="section-container">
+            <div class="section-header">
+                <h2>🔮 SEKCJA 10: ENHANCED AUTOCOMPLETE ANALYSIS</h2>
+            </div>
+            <div id="autocompleteAnalysis" class="loading-section">
+                <div class="spinner">🔄</div>
+                <p>Ładowanie sugestii autocomplete...</p>
+                <div style="margin-top: 20px; color: #666; font-size: 14px;">
+                    Oczekiwane dane: popularne zapytania, pytania użytkowników
+                </div>
+            </div>
+        </div>
+
+        <!-- MODUŁ 1: SEMANTIC CLUSTERING -->
+        <div class="section-container" id="clusteringSection" style="display: none;">
+            <div class="clustering-header">
+                <h2>🧠 MODUŁ 1: KLASTROWANIE SEMANTYCZNE</h2>
+            </div>
+            <div id="semanticClustering">
+                <div style="text-align: center; padding: 20px;">
+                    <p style="margin-bottom: 20px; font-size: 16px; color: #666;">
+                        Przeprowadź zaawansowaną analizę semantyczną wszystkich zebranych fraz kluczowych.
+                        System wykorzystuje embeddingi OpenAI i algorytm HDBSCAN do grupowania semantycznego.
+                    </p>
+
+                    <div style="margin-bottom: 15px;">
+                        <button type="button" id="testOpenAIBtn" class="clustering-button" style="background-color: #17a2b8; margin-right: 10px;">
+                            🧪 Testuj połączenie OpenAI
+                        </button>
+                        <button type="button" id="clusteringBtn" class="clustering-button">
+                            🚀 Uruchom klastrowanie semantyczne
+                        </button>
+                    </div>
+
+                    <div id="clusteringProgress" class="clustering-progress">
+                        <div class="clustering-progress-bar">
+                            <div id="clusteringProgressFill" class="clustering-progress-fill"></div>
+                        </div>
+                        <div id="clusteringProgressText" style="text-align: center; font-weight: bold; color: #666;">
+                            Przygotowywanie klastrowania...
+                        </div>
+                        <div id="clusteringSteps" style="margin-top: 15px; font-size: 14px; color: #666;"></div>
+                    </div>
+
+                    <div id="clusteringResults" class="clustering-results">
+                        <!-- Wyniki klastrowania będą tutaj -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODUŁ 3: ARCHITECTURE GENERATOR -->
+        <div class="section-container" id="architectureSection" style="display: none;">
+            <div class="architecture-section">
+                <h2>🏗️ MODUŁ 3: GENERATOR ARCHITEKTURY STRONY</h2>
+            </div>
+            <div id="architectureGenerator">
+                <div style="text-align: center; padding: 20px;">
+                    <p style="margin-bottom: 20px; font-size: 16px; color: #666;">
+                        Przekształć klastry semantyczne w konkretną architekturę strony.
+                        System automatycznie generuje strukturę URL, nawigację i strategic cross-linking
+                        na podstawie embeddingów z Modułu 1.
+                    </p>
+
+                    <!-- Architecture Type Selection -->
+                    <div style="margin-bottom: 20px; text-align: left; max-width: 600px; margin-left: auto; margin-right: auto;">
+                        <label style="font-weight: bold; margin-bottom: 10px; display: block; color: #333;">
+                            🎯 Typ architektury:
+                        </label>
+                        <div style="display: flex; gap: 20px; margin-bottom: 15px;">
+                            <label style="display: flex; align-items: center; font-weight: normal;">
+                                <input type="radio" name="architectureType" value="silo" checked style="margin-right: 8px;">
+                                <span style="font-weight: bold; color: #e67e22;">SILO</span> - Rygorystyczna hierarchia bez cross-linking
+                            </label>
+                            <label style="display: flex; align-items: center; font-weight: normal;">
+                                <input type="radio" name="architectureType" value="clusters" style="margin-right: 8px;">
+                                <span style="font-weight: bold; color: #e67e22;">CLUSTERS</span> - Elastyczna z strategic bridges
+                            </label>
+                        </div>
+
+                        <label style="font-weight: bold; margin-bottom: 5px; display: block; color: #333;">
+                            🌐 Domena docelowa:
+                        </label>
+                        <input type="text" id="architectureDomain" value="example.com"
+                               style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 4px; font-size: 14px;">
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div style="margin-bottom: 15px;">
+                        <button type="button" id="testArchitectureBtn" class="architecture-button" style="background: #3498db; margin-right: 10px;">
+                            🧪 Test połączenia modułu
+                        </button>
+                        <button type="button" id="generateArchitectureBtn" class="architecture-button">
+                            🏗️ Generuj architekturę strony
+                        </button>
+                    </div>
+
+                    <!-- Progress Section -->
+                    <div id="architectureProgress" style="background: #f8f9fa; border-radius: 8px; padding: 20px; margin: 15px 0; display: none;">
+                        <div style="width: 100%; height: 20px; background: #e9ecef; border-radius: 10px; overflow: hidden; margin-bottom: 10px;">
+                            <div id="architectureProgressFill" style="height: 100%; background: linear-gradient(90deg, #e67e22, #d35400); width: 0%; transition: width 0.3s ease;"></div>
+                        </div>
+                        <div id="architectureProgressText" style="text-align: center; font-weight: bold; color: #666;">
+                            Przygotowywanie generatora...
+                        </div>
+                        <div id="architectureSteps" style="margin-top: 15px; font-size: 14px; color: #666;"></div>
+                    </div>
+
+                    <!-- Results Section -->
+                    <div id="architectureResults" style="background: #f8f9fa; border-radius: 8px; padding: 20px; margin: 15px 0; display: none; text-align: left;">
+                        <!-- Wyniki generowania architektury będą tutaj -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODUŁ 4: CONTENT BRIEFS -->
+        <div class="module-section" id="module4" style="display: none; margin-top:40px;">
+            <div class="module-header">
+                <h2>📝 MODUŁ 4: CONTENT BRIEF GENERATOR</h2>
+                <p>Generuj szczegółowe plany treści dla każdej strony w architekturze</p>
+            </div>
+            <div class="content-brief-controls">
+                <button onclick="generateContentBriefs()" class="btn-primary">
+                    🚀 Generuj Content Briefs
+                </button>
+                <div id="content-brief-results" style="margin-top:20px;"></div>
+            </div>
+        </div>
+
+        <!-- MODUŁ 5: CONTENT SCAFFOLD DESIGNER -->
+        <div class="section-container" id="scaffoldSection" style="display:none;">
+            <div class="scaffold-header">
+                <h2>🧩 MODUŁ 5: CONTENT SCAFFOLD DESIGNER</h2>
+            </div>
+
+            <div style="margin:10px 0; display:flex; gap:10px; flex-wrap:wrap;">
+                <button id="generateScaffoldBtn" class="scaffold-button">🧠 Generuj Scaffold z Briefu</button>
+                <button id="exportScaffoldJsonBtn" class="scaffold-button" style="background:#17a2b8;">📄 Eksport JSON</button>
+            </div>
+
+            <div id="scaffoldMetaCard" class="module-status" style="display:none;"></div>
+
+            <div style="display:flex; gap:20px; align-items:flex-start; flex-wrap:wrap;">
+                <div style="flex:2; min-width:320px;" id="scaffoldOutline"></div>
+                <aside style="flex:1; min-width:280px;" id="dataProvenance">
+                    <h4>📎 Pochodzenie danych</h4>
+                    <ul id="provenanceList"></ul>
+                    <h4>🔗 Link Planner</h4>
+                    <div id="linkPlanner"></div>
+                </aside>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Basic JavaScript functionality - tylko podstawowe funkcje dla V0
+        document.getElementById('keywordForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const keyword = document.getElementById('keyword').value;
+            const country = document.getElementById('country').value;
+
+            if (!keyword || !country) {
+                alert('Wypełnij wszystkie pola');
+                return;
+            }
+
+            // Show progress
+            document.getElementById('progressContainer').style.display = 'block';
+            document.getElementById('progressText').textContent = 'Rozpoczynam analizę...';
+            document.getElementById('progressFill').style.width = '0%';
+
+            // Simulate analysis progress
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += Math.random() * 20;
+                if (progress > 100) progress = 100;
+
+                document.getElementById('progressFill').style.width = progress + '%';
+                document.getElementById('progressText').textContent = `Analiza w toku... ${Math.round(progress)}%`;
+
+                if (progress >= 100) {
+                    clearInterval(progressInterval);
+                    document.getElementById('progressText').textContent = 'Analiza zakończona!';
+                    document.getElementById('resultsContainer').style.display = 'block';
+
+                    // Show first module after analysis
+                    setTimeout(() => {
+                        document.getElementById('clusteringSection').style.display = 'block';
+                    }, 500);
+                }
+            }, 500);
+
+            // Hide form during analysis
+            document.querySelector('.container').style.opacity = '0.5';
+            document.getElementById('submitBtn').disabled = true;
+        });
+
+        // Module interactions
+        document.getElementById('clusteringBtn').addEventListener('click', function() {
+            document.getElementById('clusteringProgress').style.display = 'block';
+            document.getElementById('clusteringProgressText').textContent = 'Analiza semantyczna...';
+
+            // Simulate clustering
+            let progress = 0;
+            const clusterInterval = setInterval(() => {
+                progress += Math.random() * 25;
+                if (progress > 100) progress = 100;
+
+                document.getElementById('clusteringProgressFill').style.width = progress + '%';
+
+                if (progress >= 100) {
+                    clearInterval(clusterInterval);
+                    document.getElementById('clusteringProgressText').textContent = 'Klastrowanie zakończone!';
+
+                    // Show results
+                    document.getElementById('clusteringResults').style.display = 'block';
+                    document.getElementById('clusteringResults').innerHTML = `
+                        <div style="background: white; padding: 20px; border-radius: 8px; margin-top: 15px;">
+                            <h4 style="color: #8e44ad; margin-bottom: 15px;">Wyniki klastrowania:</h4>
+                            <div class="cluster-group">
+                                <h4>Grupa 1: Główne słowa kluczowe</h4>
+                                <span class="cluster-phrase representative">okna pcv</span>
+                                <span class="cluster-phrase">okna pcv cena</span>
+                                <span class="cluster-phrase">okna pcv warszawa</span>
+                                <span class="cluster-phrase">okna pcv 3 szybowe</span>
+                            </div>
+                            <div class="cluster-group">
+                                <h4>Grupa 2: Materiały i technologie</h4>
+                                <span class="cluster-phrase">profile pcv</span>
+                                <span class="cluster-phrase">uszczelki do okien</span>
+                                <span class="cluster-phrase">montaż okien</span>
+                            </div>
+                        </div>
+                    `;
+
+                    // Show architecture module
+                    setTimeout(() => {
+                        document.getElementById('architectureSection').style.display = 'block';
+                        document.getElementById('architectureSection').scrollIntoView({behavior: 'smooth'});
+                    }, 1000);
+                }
+            }, 300);
+        });
+
+        // Export functionality
+        document.getElementById('exportJsonBtn').addEventListener('click', function() {
+            alert('📄 Eksport do JSON - funkcjonalność zostanie zaimplementowana');
+        });
+
+        document.getElementById('exportHtmlBtn').addEventListener('click', function() {
+            alert('📋 Eksport do HTML - funkcjonalność zostanie zaimplementowana');
+        });
+
+        console.log('🚀 SEO Analysis Tool z rzeczywistymi sekcjami załadowany!');
+    </script>
+</body>
+</html>

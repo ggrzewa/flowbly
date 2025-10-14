@@ -1,0 +1,2136 @@
+https://docs.dataforseo.com/v3/keywords_data/google_trends/explore/live/?bash
+Finalny kod endpointu /trends/google – działa zawsze - 0.009000$
+
+
+
+# DataForSEO Google Trends Explore API - Szybka Dokumentacja
+
+## PODSTAWOWE INFO
+- Endpoint: /v3/keywords_data/google_trends/explore/live
+- Method: POST (Live - instant results)
+- Format: JSON (UTF-8)
+- Limit: 2000 calls/min, max 250 Live tasks/min
+- Max keywords: 5 per request
+
+---
+
+## POLA ŻĄDANIA (POST REQUEST)
+
+| Pole | Typ | Wymagane | Opis |
+|------|-----|----------|------|
+| keywords | array | TAK | Słowa kluczowe (max 5, max 100 znaków/słowo) |
+| location_name | string | NIE | Pełna nazwa lokalizacji (np. "United States") |
+| location_code | integer | NIE | Kod lokalizacji (np. 2840) |
+| language_name | string | NIE | Pełna nazwa języka (default: English) |
+| language_code | string | NIE | Kod języka (default: en) |
+| type | string | NIE | Typ: web/news/youtube/images/froogle (default: web) |
+| category_code | integer | NIE | Kategoria wyszukiwania (default: 0 = wszystkie) |
+| date_from | string | NIE | Data od (yyyy-mm-dd), min: 2004-01-01 dla web |
+| date_to | string | NIE | Data do (yyyy-mm-dd) |
+| time_range | string | NIE | past_hour/past_4_hours/past_day/past_7_days/past_30_days/past_90_days/past_12_months/past_5_years/2004_present/2008_present |
+| item_types | array | NIE | Typy elementów: google_trends_graph/google_trends_map/google_trends_topics_list/google_trends_queries_list |
+| tag | string | NIE | Identyfikator zadania (max 255 znaków) |
+
+---
+
+## GŁÓWNA STRUKTURA ODPOWIEDZI
+
+```
+response
+├── version (string)
+├── status_code (integer)
+├── status_message (string)
+├── time (string)
+├── cost (float)
+├── tasks_count (integer)
+├── tasks_error (integer)
+└── tasks (array)
+    └── [task_object]
+```
+
+---
+
+## OBIEKT ZADANIA (tasks[])
+
+| Pole | Typ | Opis |
+|------|-----|------|
+| id | string | UUID zadania |
+| status_code | integer | Status kod (10000-60000) |
+| status_message | string | Wiadomość statusu |
+| time | string | Czas wykonania |
+| cost | float | Koszt w USD |
+| result_count | integer | Liczba wyników |
+| path | array | Ścieżka URL |
+| data | object | Parametry z POST request |
+| result | array | Tablica wyników |
+
+---
+
+## STRUKTURA WYNIKU (result[])
+
+### PODSTAWOWE POLA WYNIKU
+| Pole | Typ | Opis |
+|------|-----|------|
+| keywords | array | Słowa kluczowe z POST |
+| location_code | integer | Kod lokalizacji (null jeśli brak) |
+| language_code | string | Kod języka (null jeśli brak) |
+| check_url | string | Bezpośredni URL do Google Trends |
+| datetime | string | Data UTC: yyyy-mm-dd hh-mm-ss +00:00 |
+| items_count | integer | Liczba elementów w items |
+| items | array | Główne dane wyników |
+
+---
+
+## ELEMENTY W ITEMS[]
+
+### 1. GOOGLE_TRENDS_GRAPH
+```
+google_trends_graph
+├── position (integer) - pozycja elementu
+├── type (string) - "google_trends_graph"
+├── title (string) - tytuł elementu
+├── keywords (array) - słowa kluczowe
+├── data (array)
+│   ├── date_from (string) - data od
+│   ├── date_to (string) - data do
+│   ├── timestamp (integer) - Unix timestamp
+│   ├── missing_data (boolean) - czy brak danych
+│   └── values (array) - wartości popularności (0-100/null)
+└── averages (array) - średnie wartości
+```
+
+### 2. GOOGLE_TRENDS_MAP
+```
+google_trends_map
+├── position (integer)
+├── type (string) - "google_trends_map"
+├── title (string) - tytuł elementu
+├── keywords (array)
+└── data (array)
+    ├── geo_id (string) - ID lokalizacji (np. US-NY)
+    ├── geo_name (string) - nazwa lokalizacji
+    ├── values (array) - wartości popularności (0-100/null)
+    └── max_value_index (integer) - indeks max wartości
+```
+
+### 3. GOOGLE_TRENDS_TOPICS_LIST
+```
+google_trends_topics_list
+├── position (integer)
+├── type (string) - "google_trends_topics_list"
+├── title (string) - tytuł elementu
+├── keywords (array)
+└── data (object)
+    ├── top (array) - najpopularniejsze tematy
+    │   ├── topic_id (string) - unikalny ID tematu
+    │   ├── topic_title (string) - tytuł tematu
+    │   ├── topic_type (string) - typ tematu
+    │   └── value (integer) - popularność (0-100)
+    └── rising (array) - rosnące tematy
+        ├── topic_id (string)
+        ├── topic_title (string)
+        ├── topic_type (string)
+        └── value (integer) - wzrost w % (bez znaku %)
+```
+
+### 4. GOOGLE_TRENDS_QUERIES_LIST
+```
+google_trends_queries_list
+├── position (integer)
+├── type (string) - "google_trends_queries_list"
+├── title (string) - tytuł elementu
+├── keywords (array)
+└── data (object)
+    ├── top (array) - najpopularniejsze zapytania
+    │   ├── query (string) - zapytanie
+    │   └── value (integer) - popularność (0-100)
+    └── rising (array) - rosnące zapytania
+        ├── query (string) - zapytanie
+        └── value (integer) - popularność (0-100)
+```
+
+
+
+## WAŻNE NOTATKI
+
+**LIMITY I OGRANICZENIA:**
+- Live method: max 250 zadań/min (vs Standard 2000/min)
+- Keywords: max 5, max 100 znaków każde, min 2 znaki
+- Zabronione znaki w keywords: < > | \ " - + = ~ ! : * ( ) [ ] { }
+- topics_list i queries_list: tylko przy 1 słowie kluczowym
+- Przecinki w keywords są usuwane
+
+**WARTOŚCI:**
+- values: 100 = szczyt, 50 = połowa, 0 = brak danych, null = brak danych
+- missing_data: true = brak danych (kropkowana linia w Google Trends)
+- rising values: wzrost w % (bez znaku %)
+
+**DATY:**
+- Minimalne daty: web (2004-01-01), inne typy (2008-01-01)
+- time_range vs date_from/date_to: time_range ignorowane gdy są daty
+- Format daty: yyyy-mm-dd
+
+**LOKALIZACJE I JĘZYKI:**
+- Sprawdź dostępne przez /locations i /languages endpoints
+- location_name/location_code - użyj jedno
+- language_name/language_code - użyj jedno
+
+**INNE:**
+- check_url: bezpośredni link do Google Trends dla weryfikacji
+- Koszt naliczany za request, nie za liczbę słów
+- item_types: określ konkretne typy dla szybszego wykonania
+
+
+
+python
+Kopiuj
+Edytuj
+import os
+import traceback
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
+from dotenv import load_dotenv
+import requests
+from requests.auth import HTTPBasicAuth
+
+load_dotenv()
+
+router = APIRouter()
+
+DFS_LOGIN = os.getenv("DATAFORSEO_LOGIN")
+DFS_PASSWORD = os.getenv("DATAFORSEO_PASSWORD")
+
+class GoogleTrendsInput(BaseModel):
+    keywords: list[str]
+
+@router.post("/trends/google")
+async def get_google_trends(data: GoogleTrendsInput):
+    if not all([DFS_LOGIN, DFS_PASSWORD]):
+        raise HTTPException(status_code=500, detail="Brak danych logowania do API DataForSEO.")
+
+    if not data.keywords:
+        raise HTTPException(status_code=422, detail="Musisz podać przynajmniej jedno słowo kluczowe.")
+
+    url = "https://api.dataforseo.com/v3/keywords_data/google_trends/explore/live"
+
+    payload = [
+        {
+            "keywords": data.keywords,
+            "location_name": "Poland",
+            "language_code": "pl",
+            "type": "web",
+            "item_types": [
+                "google_trends_graph",
+                "google_trends_map",
+                "google_trends_topics_list",
+                "google_trends_queries_list"
+            ]
+        }
+    ]
+
+    try:
+        response = requests.post(
+            url,
+            auth=HTTPBasicAuth(DFS_LOGIN, DFS_PASSWORD),
+            json=payload
+        )
+
+        if response.status_code != 200:
+            raise HTTPException(status_code=500, detail=f"Błąd API DFS: {response.status_code} – {response.text}")
+
+        json_data = response.json()
+        tasks = json_data.get("tasks", [])
+        if not tasks or not tasks[0].get("result"):
+            raise HTTPException(status_code=404, detail="Brak wyników dla podanych słów kluczowych.")
+
+        return tasks[0]["result"][0]  # pełna zawartość `result`
+
+    except Exception as e:
+        traceback_str = traceback.format_exc()
+        print("❌ Błąd przy zapytaniu HTTP do DataForSEO:")
+        print(traceback_str)
+        raise HTTPException(status_code=500, detail=f"Błąd serwera:\n{str(e)}")
+
+
+*****
+*****
+
+
+{
+  "keywords": [
+    "soczewki"
+  ],
+  "type": "trends",
+  "location_code": 2616,
+  "language_code": "pl",
+  "check_url": "https://trends.google.com/trends/explore?hl=pl&geo=PL&date=2024-05-22%202025-05-22&q=soczewki",
+  "datetime": "2025-05-22 08:38:23 +00:00",
+  "items_count": 4,
+  "items": [
+    {
+      "position": 1,
+      "type": "google_trends_graph",
+      "title": null,
+      "keywords": [
+        "soczewki"
+      ],
+      "data": [
+        {
+          "date_from": "2024-05-19",
+          "date_to": "2024-05-25",
+          "timestamp": 1716076800,
+          "missing_data": false,
+          "values": [
+            81
+          ]
+        },
+        {
+          "date_from": "2024-05-26",
+          "date_to": "2024-06-01",
+          "timestamp": 1716681600,
+          "missing_data": false,
+          "values": [
+            69
+          ]
+        },
+        {
+          "date_from": "2024-06-02",
+          "date_to": "2024-06-08",
+          "timestamp": 1717286400,
+          "missing_data": false,
+          "values": [
+            80
+          ]
+        },
+        {
+          "date_from": "2024-06-09",
+          "date_to": "2024-06-15",
+          "timestamp": 1717891200,
+          "missing_data": false,
+          "values": [
+            81
+          ]
+        },
+        {
+          "date_from": "2024-06-16",
+          "date_to": "2024-06-22",
+          "timestamp": 1718496000,
+          "missing_data": false,
+          "values": [
+            71
+          ]
+        },
+        {
+          "date_from": "2024-06-23",
+          "date_to": "2024-06-29",
+          "timestamp": 1719100800,
+          "missing_data": false,
+          "values": [
+            73
+          ]
+        },
+        {
+          "date_from": "2024-06-30",
+          "date_to": "2024-07-06",
+          "timestamp": 1719705600,
+          "missing_data": false,
+          "values": [
+            76
+          ]
+        },
+        {
+          "date_from": "2024-07-07",
+          "date_to": "2024-07-13",
+          "timestamp": 1720310400,
+          "missing_data": false,
+          "values": [
+            77
+          ]
+        },
+        {
+          "date_from": "2024-07-14",
+          "date_to": "2024-07-20",
+          "timestamp": 1720915200,
+          "missing_data": false,
+          "values": [
+            79
+          ]
+        },
+        {
+          "date_from": "2024-07-21",
+          "date_to": "2024-07-27",
+          "timestamp": 1721520000,
+          "missing_data": false,
+          "values": [
+            77
+          ]
+        },
+        {
+          "date_from": "2024-07-28",
+          "date_to": "2024-08-03",
+          "timestamp": 1722124800,
+          "missing_data": false,
+          "values": [
+            74
+          ]
+        },
+        {
+          "date_from": "2024-08-04",
+          "date_to": "2024-08-10",
+          "timestamp": 1722729600,
+          "missing_data": false,
+          "values": [
+            77
+          ]
+        },
+        {
+          "date_from": "2024-08-11",
+          "date_to": "2024-08-17",
+          "timestamp": 1723334400,
+          "missing_data": false,
+          "values": [
+            76
+          ]
+        },
+        {
+          "date_from": "2024-08-18",
+          "date_to": "2024-08-24",
+          "timestamp": 1723939200,
+          "missing_data": false,
+          "values": [
+            75
+          ]
+        },
+        {
+          "date_from": "2024-08-25",
+          "date_to": "2024-08-31",
+          "timestamp": 1724544000,
+          "missing_data": false,
+          "values": [
+            78
+          ]
+        },
+        {
+          "date_from": "2024-09-01",
+          "date_to": "2024-09-07",
+          "timestamp": 1725148800,
+          "missing_data": false,
+          "values": [
+            78
+          ]
+        },
+        {
+          "date_from": "2024-09-08",
+          "date_to": "2024-09-14",
+          "timestamp": 1725753600,
+          "missing_data": false,
+          "values": [
+            76
+          ]
+        },
+        {
+          "date_from": "2024-09-15",
+          "date_to": "2024-09-21",
+          "timestamp": 1726358400,
+          "missing_data": false,
+          "values": [
+            69
+          ]
+        },
+        {
+          "date_from": "2024-09-22",
+          "date_to": "2024-09-28",
+          "timestamp": 1726963200,
+          "missing_data": false,
+          "values": [
+            71
+          ]
+        },
+        {
+          "date_from": "2024-09-29",
+          "date_to": "2024-10-05",
+          "timestamp": 1727568000,
+          "missing_data": false,
+          "values": [
+            73
+          ]
+        },
+        {
+          "date_from": "2024-10-06",
+          "date_to": "2024-10-12",
+          "timestamp": 1728172800,
+          "missing_data": false,
+          "values": [
+            76
+          ]
+        },
+        {
+          "date_from": "2024-10-13",
+          "date_to": "2024-10-19",
+          "timestamp": 1728777600,
+          "missing_data": false,
+          "values": [
+            93
+          ]
+        },
+        {
+          "date_from": "2024-10-20",
+          "date_to": "2024-10-26",
+          "timestamp": 1729382400,
+          "missing_data": false,
+          "values": [
+            94
+          ]
+        },
+        {
+          "date_from": "2024-10-27",
+          "date_to": "2024-11-02",
+          "timestamp": 1729987200,
+          "missing_data": false,
+          "values": [
+            100
+          ]
+        },
+        {
+          "date_from": "2024-11-03",
+          "date_to": "2024-11-09",
+          "timestamp": 1730592000,
+          "missing_data": false,
+          "values": [
+            72
+          ]
+        },
+        {
+          "date_from": "2024-11-10",
+          "date_to": "2024-11-16",
+          "timestamp": 1731196800,
+          "missing_data": false,
+          "values": [
+            71
+          ]
+        },
+        {
+          "date_from": "2024-11-17",
+          "date_to": "2024-11-23",
+          "timestamp": 1731801600,
+          "missing_data": false,
+          "values": [
+            76
+          ]
+        },
+        {
+          "date_from": "2024-11-24",
+          "date_to": "2024-11-30",
+          "timestamp": 1732406400,
+          "missing_data": false,
+          "values": [
+            73
+          ]
+        },
+        {
+          "date_from": "2024-12-01",
+          "date_to": "2024-12-07",
+          "timestamp": 1733011200,
+          "missing_data": false,
+          "values": [
+            71
+          ]
+        },
+        {
+          "date_from": "2024-12-08",
+          "date_to": "2024-12-14",
+          "timestamp": 1733616000,
+          "missing_data": false,
+          "values": [
+            71
+          ]
+        },
+        {
+          "date_from": "2024-12-15",
+          "date_to": "2024-12-21",
+          "timestamp": 1734220800,
+          "missing_data": false,
+          "values": [
+            62
+          ]
+        },
+        {
+          "date_from": "2024-12-22",
+          "date_to": "2024-12-28",
+          "timestamp": 1734825600,
+          "missing_data": false,
+          "values": [
+            54
+          ]
+        },
+        {
+          "date_from": "2024-12-29",
+          "date_to": "2025-01-04",
+          "timestamp": 1735430400,
+          "missing_data": false,
+          "values": [
+            62
+          ]
+        },
+        {
+          "date_from": "2025-01-05",
+          "date_to": "2025-01-11",
+          "timestamp": 1736035200,
+          "missing_data": false,
+          "values": [
+            75
+          ]
+        },
+        {
+          "date_from": "2025-01-12",
+          "date_to": "2025-01-18",
+          "timestamp": 1736640000,
+          "missing_data": false,
+          "values": [
+            75
+          ]
+        },
+        {
+          "date_from": "2025-01-19",
+          "date_to": "2025-01-25",
+          "timestamp": 1737244800,
+          "missing_data": false,
+          "values": [
+            70
+          ]
+        },
+        {
+          "date_from": "2025-01-26",
+          "date_to": "2025-02-01",
+          "timestamp": 1737849600,
+          "missing_data": false,
+          "values": [
+            72
+          ]
+        },
+        {
+          "date_from": "2025-02-02",
+          "date_to": "2025-02-08",
+          "timestamp": 1738454400,
+          "missing_data": false,
+          "values": [
+            76
+          ]
+        },
+        {
+          "date_from": "2025-02-09",
+          "date_to": "2025-02-15",
+          "timestamp": 1739059200,
+          "missing_data": false,
+          "values": [
+            74
+          ]
+        },
+        {
+          "date_from": "2025-02-16",
+          "date_to": "2025-02-22",
+          "timestamp": 1739664000,
+          "missing_data": false,
+          "values": [
+            79
+          ]
+        },
+        {
+          "date_from": "2025-02-23",
+          "date_to": "2025-03-01",
+          "timestamp": 1740268800,
+          "missing_data": false,
+          "values": [
+            72
+          ]
+        },
+        {
+          "date_from": "2025-03-02",
+          "date_to": "2025-03-08",
+          "timestamp": 1740873600,
+          "missing_data": false,
+          "values": [
+            73
+          ]
+        },
+        {
+          "date_from": "2025-03-09",
+          "date_to": "2025-03-15",
+          "timestamp": 1741478400,
+          "missing_data": false,
+          "values": [
+            72
+          ]
+        },
+        {
+          "date_from": "2025-03-16",
+          "date_to": "2025-03-22",
+          "timestamp": 1742083200,
+          "missing_data": false,
+          "values": [
+            76
+          ]
+        },
+        {
+          "date_from": "2025-03-23",
+          "date_to": "2025-03-29",
+          "timestamp": 1742688000,
+          "missing_data": false,
+          "values": [
+            79
+          ]
+        },
+        {
+          "date_from": "2025-03-30",
+          "date_to": "2025-04-05",
+          "timestamp": 1743292800,
+          "missing_data": false,
+          "values": [
+            78
+          ]
+        },
+        {
+          "date_from": "2025-04-06",
+          "date_to": "2025-04-12",
+          "timestamp": 1743897600,
+          "missing_data": false,
+          "values": [
+            74
+          ]
+        },
+        {
+          "date_from": "2025-04-13",
+          "date_to": "2025-04-19",
+          "timestamp": 1744502400,
+          "missing_data": false,
+          "values": [
+            76
+          ]
+        },
+        {
+          "date_from": "2025-04-20",
+          "date_to": "2025-04-26",
+          "timestamp": 1745107200,
+          "missing_data": false,
+          "values": [
+            76
+          ]
+        },
+        {
+          "date_from": "2025-04-27",
+          "date_to": "2025-05-03",
+          "timestamp": 1745712000,
+          "missing_data": false,
+          "values": [
+            66
+          ]
+        },
+        {
+          "date_from": "2025-05-04",
+          "date_to": "2025-05-10",
+          "timestamp": 1746316800,
+          "missing_data": false,
+          "values": [
+            73
+          ]
+        },
+        {
+          "date_from": "2025-05-11",
+          "date_to": "2025-05-17",
+          "timestamp": 1746921600,
+          "missing_data": false,
+          "values": [
+            73
+          ]
+        },
+        {
+          "date_from": "2025-05-18",
+          "date_to": "2025-05-22",
+          "timestamp": 1747526400,
+          "missing_data": true,
+          "values": [
+            76
+          ]
+        }
+      ],
+      "averages": []
+    },
+    {
+      "position": 2,
+      "type": "google_trends_map",
+      "title": null,
+      "keywords": [
+        "soczewki"
+      ],
+      "data": [
+        {
+          "geo_id": "PL-DS",
+          "geo_name": "Województwo dolnośląskie",
+          "values": [
+            100
+          ],
+          "max_value_index": 0
+        },
+        {
+          "geo_id": "PL-PD",
+          "geo_name": "podlaskie",
+          "values": [
+            94
+          ],
+          "max_value_index": 0
+        },
+        {
+          "geo_id": "PL-MZ",
+          "geo_name": "mazowieckie",
+          "values": [
+            93
+          ],
+          "max_value_index": 0
+        },
+        {
+          "geo_id": "PL-WP",
+          "geo_name": "wielkopolskie",
+          "values": [
+            86
+          ],
+          "max_value_index": 0
+        },
+        {
+          "geo_id": "PL-MA",
+          "geo_name": "małopolskie",
+          "values": [
+            86
+          ],
+          "max_value_index": 0
+        },
+        {
+          "geo_id": "PL-SK",
+          "geo_name": "świętokrzyskie",
+          "values": [
+            86
+          ],
+          "max_value_index": 0
+        },
+        {
+          "geo_id": "PL-OP",
+          "geo_name": "opolskie",
+          "values": [
+            85
+          ],
+          "max_value_index": 0
+        },
+        {
+          "geo_id": "PL-LU",
+          "geo_name": "lubelskie",
+          "values": [
+            84
+          ],
+          "max_value_index": 0
+        },
+        {
+          "geo_id": "PL-PM",
+          "geo_name": "pomorskie",
+          "values": [
+            84
+          ],
+          "max_value_index": 0
+        },
+        {
+          "geo_id": "PL-SL",
+          "geo_name": "śląskie",
+          "values": [
+            84
+          ],
+          "max_value_index": 0
+        },
+        {
+          "geo_id": "PL-LB",
+          "geo_name": "lubuskie",
+          "values": [
+            83
+          ],
+          "max_value_index": 0
+        },
+        {
+          "geo_id": "PL-WN",
+          "geo_name": "warmińsko-mazurskie",
+          "values": [
+            83
+          ],
+          "max_value_index": 0
+        },
+        {
+          "geo_id": "PL-KP",
+          "geo_name": "kujawsko-pomorskie",
+          "values": [
+            81
+          ],
+          "max_value_index": 0
+        },
+        {
+          "geo_id": "PL-PK",
+          "geo_name": "Województwo podkarpackie",
+          "values": [
+            78
+          ],
+          "max_value_index": 0
+        },
+        {
+          "geo_id": "PL-ZP",
+          "geo_name": "Województwo zachodniopomorskie",
+          "values": [
+            78
+          ],
+          "max_value_index": 0
+        },
+        {
+          "geo_id": "PL-LD",
+          "geo_name": "województwo łódzkie",
+          "values": [
+            77
+          ],
+          "max_value_index": 0
+        }
+      ]
+    },
+    {
+      "position": 3,
+      "type": "google_trends_topics_list",
+      "title": null,
+      "keywords": [
+        "soczewki"
+      ],
+      "data": {
+        "top": [
+          {
+            "topic_id": "/m/04n4x",
+            "topic_title": "Soczewka",
+            "topic_type": "Temat",
+            "value": 100
+          },
+          {
+            "topic_id": "/m/0jyfz",
+            "topic_title": "Soczewka kontaktowa",
+            "topic_type": "Temat",
+            "value": 23
+          },
+          {
+            "topic_id": "/m/014sv8",
+            "topic_title": "Oko",
+            "topic_type": "Temat",
+            "value": 7
+          },
+          {
+            "topic_id": "/m/0jyfg",
+            "topic_title": "Okulary",
+            "topic_type": "Temat",
+            "value": 6
+          },
+          {
+            "topic_id": "/m/050rvg",
+            "topic_title": "Acuvue",
+            "topic_type": "Temat",
+            "value": 5
+          },
+          {
+            "topic_id": "/m/0chf1d",
+            "topic_title": "Astygmatyzm",
+            "topic_type": "Wada wzroku",
+            "value": 4
+          },
+          {
+            "topic_id": "/g/11cn9fgzmk",
+            "topic_title": "Soczewki kolorowe",
+            "topic_type": "Temat",
+            "value": 3
+          },
+          {
+            "topic_id": "/m/053jb",
+            "topic_title": "Miesiąc",
+            "topic_type": "Jednostka czasu",
+            "value": 3
+          },
+          {
+            "topic_id": "/m/01k1vd",
+            "topic_title": "Wzrok",
+            "topic_type": "Temat",
+            "value": 2
+          },
+          {
+            "topic_id": "/m/04h0nv",
+            "topic_title": "Vision Express",
+            "topic_type": "Firma",
+            "value": 2
+          },
+          {
+            "topic_id": "/g/11bbrhvt7c",
+            "topic_title": "Twoje Soczewki",
+            "topic_type": "Temat",
+            "value": 2
+          },
+          {
+            "topic_id": "/g/11bymzt54m",
+            "topic_title": "Vision Express",
+            "topic_type": "Temat",
+            "value": 2
+          },
+          {
+            "topic_id": "/g/11b65mt949",
+            "topic_title": "Toric",
+            "topic_type": "Temat",
+            "value": 2
+          },
+          {
+            "topic_id": "/m/039jq",
+            "topic_title": "Szkło",
+            "topic_type": "Temat",
+            "value": 2
+          },
+          {
+            "topic_id": "/m/0m7h6",
+            "topic_title": "Zaćma",
+            "topic_type": "Choroba",
+            "value": 2
+          },
+          {
+            "topic_id": "/g/11cks5s03t",
+            "topic_title": "ACUVUE OASYS 12 szt",
+            "topic_type": "Soczewka kontaktowa",
+            "value": 1
+          },
+          {
+            "topic_id": "/m/01s92x",
+            "topic_title": "Recepta",
+            "topic_type": "Temat",
+            "value": 1
+          },
+          {
+            "topic_id": "/m/09q2t",
+            "topic_title": "Barwa brązowa",
+            "topic_type": "Barwa",
+            "value": 1
+          },
+          {
+            "topic_id": "/g/11w9chthwc",
+            "topic_title": "soczewki kontaktowe, miesięczne, moc -1,00, 2 szt.",
+            "topic_type": "Soczewka kontaktowa",
+            "value": 1
+          },
+          {
+            "topic_id": "/m/0jyct",
+            "topic_title": "Szkła korekcyjne",
+            "topic_type": "Temat",
+            "value": 1
+          },
+          {
+            "topic_id": "/g/11cp7qyhmc",
+            "topic_title": "Bausch + Lomb",
+            "topic_type": "Temat",
+            "value": 1
+          },
+          {
+            "topic_id": "/m/0b7z1",
+            "topic_title": "Kropla",
+            "topic_type": "Temat",
+            "value": 1
+          },
+          {
+            "topic_id": "/m/05mn2",
+            "topic_title": "Optyka",
+            "topic_type": "Temat",
+            "value": 1
+          },
+          {
+            "topic_id": "/g/123268jf",
+            "topic_title": "Okulista",
+            "topic_type": "Temat",
+            "value": 1
+          },
+          {
+            "topic_id": "/g/11j68ngmxc",
+            "topic_title": "Kodano Optyk",
+            "topic_type": "Temat",
+            "value": 1
+          }
+        ],
+        "rising": [
+          {
+            "topic_id": "/g/11w9chthwc",
+            "topic_title": "soczewki kontaktowe, miesięczne, moc -1,00, 2 szt.",
+            "topic_type": "Soczewka kontaktowa",
+            "value": 115150
+          },
+          {
+            "topic_id": "/g/11rxnlzm4k",
+            "topic_title": "Bausch & Lomb",
+            "topic_type": "Spółka",
+            "value": 44600
+          },
+          {
+            "topic_id": "/g/11w44dhmc9",
+            "topic_title": "Acuvue Oasys for Astigmatism",
+            "topic_type": "Temat",
+            "value": 44400
+          },
+          {
+            "topic_id": "/g/11wy0pj0yr",
+            "topic_title": "Biofinity szt",
+            "topic_type": "Temat",
+            "value": 28750
+          },
+          {
+            "topic_id": "/g/11whg3j4zz",
+            "topic_title": "ACUVUE Oasys 1-Day",
+            "topic_type": "Soczewka kontaktowa",
+            "value": 28450
+          },
+          {
+            "topic_id": "/g/11y77xf8ct",
+            "topic_title": "soczewki kontaktowe, jednodniowe, moc: -1,00, 4 szt.",
+            "topic_type": "Soczewka kontaktowa",
+            "value": 25150
+          },
+          {
+            "topic_id": "/g/11vxg4x_22",
+            "topic_title": "soczewki kontaktowe, miesięczne, Blue, moc -0,00, 2 szt.",
+            "topic_type": "Temat",
+            "value": 23350
+          },
+          {
+            "topic_id": "/g/11wj214yrk",
+            "topic_title": "SofLens Daily Disposable",
+            "topic_type": "Soczewka kontaktowa",
+            "value": 17850
+          },
+          {
+            "topic_id": "/g/11w8nmfx_8",
+            "topic_title": "Precision1 Soczewki kontaktowe",
+            "topic_type": "Soczewka kontaktowa",
+            "value": 17800
+          },
+          {
+            "topic_id": "/g/11y6lkqdm_",
+            "topic_title": "Biofinity Multifocal 3 szt",
+            "topic_type": "Soczewka kontaktowa",
+            "value": 15900
+          },
+          {
+            "topic_id": "/g/11w4qpvwgs",
+            "topic_title": "soczewki kontaktowe, miesięczne, Blue, moc -0,00, 2 szt.",
+            "topic_type": "Temat",
+            "value": 14100
+          },
+          {
+            "topic_id": "/g/11j68ngmxc",
+            "topic_title": "Kodano Optyk",
+            "topic_type": "Temat",
+            "value": 11000
+          },
+          {
+            "topic_id": "/g/11ltxy605n",
+            "topic_title": "Air Optix Plus HydraGlyde",
+            "topic_type": "Soczewka kontaktowa",
+            "value": 2400
+          },
+          {
+            "topic_id": "/g/11wfg73zr9",
+            "topic_title": "Dailies Total 1 Multifocal",
+            "topic_type": "Soczewka kontaktowa",
+            "value": 2200
+          },
+          {
+            "topic_id": "/g/11lyjqpclv",
+            "topic_title": "TOTAL30 (3 soczewki)",
+            "topic_type": "Soczewka kontaktowa",
+            "value": 1500
+          },
+          {
+            "topic_id": "/m/03t1zm",
+            "topic_title": "Vue Cinemas",
+            "topic_type": "Kino",
+            "value": 400
+          },
+          {
+            "topic_id": "/g/11sb0zzkw2",
+            "topic_title": "Acuvue Oasys for Astigmatism",
+            "topic_type": "Soczewka kontaktowa",
+            "value": 300
+          },
+          {
+            "topic_id": "/g/11bc69_ykv",
+            "topic_title": "Vue",
+            "topic_type": "Temat",
+            "value": 300
+          },
+          {
+            "topic_id": "/g/11l2_n714q",
+            "topic_title": "BIOFINITY TORIC 3 szt",
+            "topic_type": "Soczewka kontaktowa",
+            "value": 300
+          },
+          {
+            "topic_id": "/g/123268jf",
+            "topic_title": "Okulista",
+            "topic_type": "Temat",
+            "value": 250
+          },
+          {
+            "topic_id": "/g/11v0k411vk",
+            "topic_title": "Meta Quest 3",
+            "topic_type": "Gogle VR",
+            "value": 250
+          },
+          {
+            "topic_id": "/g/11b64zwf5j",
+            "topic_title": "Multifocal",
+            "topic_type": "Temat",
+            "value": 250
+          },
+          {
+            "topic_id": "/g/11bc5lthvj",
+            "topic_title": "Powłoka",
+            "topic_type": "Temat",
+            "value": 250
+          }
+        ]
+      }
+    },
+    {
+      "position": 4,
+      "type": "google_trends_queries_list",
+      "title": null,
+      "keywords": [
+        "soczewki"
+      ],
+      "data": {
+        "top": [
+          {
+            "query": "soczewki kontaktowe",
+            "value": 100
+          },
+          {
+            "query": "soczewki jednodniowe",
+            "value": 37
+          },
+          {
+            "query": "soczewki kolorowe",
+            "value": 30
+          },
+          {
+            "query": "acuvue",
+            "value": 28
+          },
+          {
+            "query": "acuvue soczewki",
+            "value": 28
+          },
+          {
+            "query": "soczewki miesięczne",
+            "value": 28
+          },
+          {
+            "query": "okulary",
+            "value": 24
+          },
+          {
+            "query": "soczewki oasys",
+            "value": 22
+          },
+          {
+            "query": "astygmatyzm soczewki",
+            "value": 22
+          },
+          {
+            "query": "astygmatyzm",
+            "value": 22
+          },
+          {
+            "query": "soczewki acuvue oasys",
+            "value": 19
+          },
+          {
+            "query": "acuvue oasys",
+            "value": 19
+          },
+          {
+            "query": "soczewki cena",
+            "value": 18
+          },
+          {
+            "query": "soczewki progresywne",
+            "value": 15
+          },
+          {
+            "query": "soczewki biofinity",
+            "value": 15
+          },
+          {
+            "query": "biofinity",
+            "value": 15
+          },
+          {
+            "query": "kodano",
+            "value": 14
+          },
+          {
+            "query": "soczewki kodano",
+            "value": 14
+          },
+          {
+            "query": "twoje soczewki",
+            "value": 14
+          },
+          {
+            "query": "vision express",
+            "value": 14
+          },
+          {
+            "query": "vision express soczewki",
+            "value": 14
+          },
+          {
+            "query": "soczewki korekcyjne",
+            "value": 14
+          },
+          {
+            "query": "soczewki toryczne",
+            "value": 14
+          },
+          {
+            "query": "soczewki rossmann",
+            "value": 13
+          },
+          {
+            "query": "soczewka",
+            "value": 13
+          }
+        ],
+        "rising": [
+          {
+            "query": "soczewki kontaktowe 1-dniowe",
+            "value": 200
+          },
+          {
+            "query": "refrakcyjna wymiana soczewki cena",
+            "value": 100
+          },
+          {
+            "query": "zmętnienie soczewki",
+            "value": 90
+          },
+          {
+            "query": "alensa opinie",
+            "value": 80
+          },
+          {
+            "query": "family optic",
+            "value": 70
+          },
+          {
+            "query": "zmętnienie soczewki oka",
+            "value": 60
+          }
+        ]
+      }
+    }
+  ]
+}
+
+
+****
+****
+{
+  "keywords": [
+    "grzegrzółka"
+  ],
+  "type": "trends",
+  "location_code": 2616,
+  "language_code": "pl",
+  "check_url": "https://trends.google.com/trends/explore?hl=pl&geo=PL&date=2024-05-22%202025-05-22&q=grzegrz%C3%B3%C5%82ka",
+  "datetime": "2025-05-22 18:38:47 +00:00",
+  "items_count": 4,
+  "items": [
+    {
+      "position": 1,
+      "type": "google_trends_graph",
+      "title": null,
+      "keywords": [
+        "grzegrzółka"
+      ],
+      "data": [
+        {
+          "date_from": "2024-05-19",
+          "date_to": "2024-05-25",
+          "timestamp": 1716076800,
+          "missing_data": false,
+          "values": [
+            39
+          ]
+        },
+        {
+          "date_from": "2024-05-26",
+          "date_to": "2024-06-01",
+          "timestamp": 1716681600,
+          "missing_data": false,
+          "values": [
+            67
+          ]
+        },
+        {
+          "date_from": "2024-06-02",
+          "date_to": "2024-06-08",
+          "timestamp": 1717286400,
+          "missing_data": false,
+          "values": [
+            69
+          ]
+        },
+        {
+          "date_from": "2024-06-09",
+          "date_to": "2024-06-15",
+          "timestamp": 1717891200,
+          "missing_data": false,
+          "values": [
+            50
+          ]
+        },
+        {
+          "date_from": "2024-06-16",
+          "date_to": "2024-06-22",
+          "timestamp": 1718496000,
+          "missing_data": false,
+          "values": [
+            63
+          ]
+        },
+        {
+          "date_from": "2024-06-23",
+          "date_to": "2024-06-29",
+          "timestamp": 1719100800,
+          "missing_data": false,
+          "values": [
+            50
+          ]
+        },
+        {
+          "date_from": "2024-06-30",
+          "date_to": "2024-07-06",
+          "timestamp": 1719705600,
+          "missing_data": false,
+          "values": [
+            46
+          ]
+        },
+        {
+          "date_from": "2024-07-07",
+          "date_to": "2024-07-13",
+          "timestamp": 1720310400,
+          "missing_data": false,
+          "values": [
+            27
+          ]
+        },
+        {
+          "date_from": "2024-07-14",
+          "date_to": "2024-07-20",
+          "timestamp": 1720915200,
+          "missing_data": false,
+          "values": [
+            45
+          ]
+        },
+        {
+          "date_from": "2024-07-21",
+          "date_to": "2024-07-27",
+          "timestamp": 1721520000,
+          "missing_data": false,
+          "values": [
+            50
+          ]
+        },
+        {
+          "date_from": "2024-07-28",
+          "date_to": "2024-08-03",
+          "timestamp": 1722124800,
+          "missing_data": false,
+          "values": [
+            36
+          ]
+        },
+        {
+          "date_from": "2024-08-04",
+          "date_to": "2024-08-10",
+          "timestamp": 1722729600,
+          "missing_data": false,
+          "values": [
+            32
+          ]
+        },
+        {
+          "date_from": "2024-08-11",
+          "date_to": "2024-08-17",
+          "timestamp": 1723334400,
+          "missing_data": false,
+          "values": [
+            43
+          ]
+        },
+        {
+          "date_from": "2024-08-18",
+          "date_to": "2024-08-24",
+          "timestamp": 1723939200,
+          "missing_data": false,
+          "values": [
+            36
+          ]
+        },
+        {
+          "date_from": "2024-08-25",
+          "date_to": "2024-08-31",
+          "timestamp": 1724544000,
+          "missing_data": false,
+          "values": [
+            61
+          ]
+        },
+        {
+          "date_from": "2024-09-01",
+          "date_to": "2024-09-07",
+          "timestamp": 1725148800,
+          "missing_data": false,
+          "values": [
+            69
+          ]
+        },
+        {
+          "date_from": "2024-09-08",
+          "date_to": "2024-09-14",
+          "timestamp": 1725753600,
+          "missing_data": false,
+          "values": [
+            40
+          ]
+        },
+        {
+          "date_from": "2024-09-15",
+          "date_to": "2024-09-21",
+          "timestamp": 1726358400,
+          "missing_data": false,
+          "values": [
+            44
+          ]
+        },
+        {
+          "date_from": "2024-09-22",
+          "date_to": "2024-09-28",
+          "timestamp": 1726963200,
+          "missing_data": false,
+          "values": [
+            59
+          ]
+        },
+        {
+          "date_from": "2024-09-29",
+          "date_to": "2024-10-05",
+          "timestamp": 1727568000,
+          "missing_data": false,
+          "values": [
+            65
+          ]
+        },
+        {
+          "date_from": "2024-10-06",
+          "date_to": "2024-10-12",
+          "timestamp": 1728172800,
+          "missing_data": false,
+          "values": [
+            100
+          ]
+        },
+        {
+          "date_from": "2024-10-13",
+          "date_to": "2024-10-19",
+          "timestamp": 1728777600,
+          "missing_data": false,
+          "values": [
+            44
+          ]
+        },
+        {
+          "date_from": "2024-10-20",
+          "date_to": "2024-10-26",
+          "timestamp": 1729382400,
+          "missing_data": false,
+          "values": [
+            58
+          ]
+        },
+        {
+          "date_from": "2024-10-27",
+          "date_to": "2024-11-02",
+          "timestamp": 1729987200,
+          "missing_data": false,
+          "values": [
+            58
+          ]
+        },
+        {
+          "date_from": "2024-11-03",
+          "date_to": "2024-11-09",
+          "timestamp": 1730592000,
+          "missing_data": false,
+          "values": [
+            55
+          ]
+        },
+        {
+          "date_from": "2024-11-10",
+          "date_to": "2024-11-16",
+          "timestamp": 1731196800,
+          "missing_data": false,
+          "values": [
+            53
+          ]
+        },
+        {
+          "date_from": "2024-11-17",
+          "date_to": "2024-11-23",
+          "timestamp": 1731801600,
+          "missing_data": false,
+          "values": [
+            44
+          ]
+        },
+        {
+          "date_from": "2024-11-24",
+          "date_to": "2024-11-30",
+          "timestamp": 1732406400,
+          "missing_data": false,
+          "values": [
+            53
+          ]
+        },
+        {
+          "date_from": "2024-12-01",
+          "date_to": "2024-12-07",
+          "timestamp": 1733011200,
+          "missing_data": false,
+          "values": [
+            49
+          ]
+        },
+        {
+          "date_from": "2024-12-08",
+          "date_to": "2024-12-14",
+          "timestamp": 1733616000,
+          "missing_data": false,
+          "values": [
+            41
+          ]
+        },
+        {
+          "date_from": "2024-12-15",
+          "date_to": "2024-12-21",
+          "timestamp": 1734220800,
+          "missing_data": false,
+          "values": [
+            50
+          ]
+        },
+        {
+          "date_from": "2024-12-22",
+          "date_to": "2024-12-28",
+          "timestamp": 1734825600,
+          "missing_data": false,
+          "values": [
+            54
+          ]
+        },
+        {
+          "date_from": "2024-12-29",
+          "date_to": "2025-01-04",
+          "timestamp": 1735430400,
+          "missing_data": false,
+          "values": [
+            33
+          ]
+        },
+        {
+          "date_from": "2025-01-05",
+          "date_to": "2025-01-11",
+          "timestamp": 1736035200,
+          "missing_data": false,
+          "values": [
+            59
+          ]
+        },
+        {
+          "date_from": "2025-01-12",
+          "date_to": "2025-01-18",
+          "timestamp": 1736640000,
+          "missing_data": false,
+          "values": [
+            60
+          ]
+        },
+        {
+          "date_from": "2025-01-19",
+          "date_to": "2025-01-25",
+          "timestamp": 1737244800,
+          "missing_data": false,
+          "values": [
+            54
+          ]
+        },
+        {
+          "date_from": "2025-01-26",
+          "date_to": "2025-02-01",
+          "timestamp": 1737849600,
+          "missing_data": false,
+          "values": [
+            49
+          ]
+        },
+        {
+          "date_from": "2025-02-02",
+          "date_to": "2025-02-08",
+          "timestamp": 1738454400,
+          "missing_data": false,
+          "values": [
+            78
+          ]
+        },
+        {
+          "date_from": "2025-02-09",
+          "date_to": "2025-02-15",
+          "timestamp": 1739059200,
+          "missing_data": false,
+          "values": [
+            48
+          ]
+        },
+        {
+          "date_from": "2025-02-16",
+          "date_to": "2025-02-22",
+          "timestamp": 1739664000,
+          "missing_data": false,
+          "values": [
+            60
+          ]
+        },
+        {
+          "date_from": "2025-02-23",
+          "date_to": "2025-03-01",
+          "timestamp": 1740268800,
+          "missing_data": false,
+          "values": [
+            42
+          ]
+        },
+        {
+          "date_from": "2025-03-02",
+          "date_to": "2025-03-08",
+          "timestamp": 1740873600,
+          "missing_data": false,
+          "values": [
+            76
+          ]
+        },
+        {
+          "date_from": "2025-03-09",
+          "date_to": "2025-03-15",
+          "timestamp": 1741478400,
+          "missing_data": false,
+          "values": [
+            69
+          ]
+        },
+        {
+          "date_from": "2025-03-16",
+          "date_to": "2025-03-22",
+          "timestamp": 1742083200,
+          "missing_data": false,
+          "values": [
+            64
+          ]
+        },
+        {
+          "date_from": "2025-03-23",
+          "date_to": "2025-03-29",
+          "timestamp": 1742688000,
+          "missing_data": false,
+          "values": [
+            43
+          ]
+        },
+        {
+          "date_from": "2025-03-30",
+          "date_to": "2025-04-05",
+          "timestamp": 1743292800,
+          "missing_data": false,
+          "values": [
+            51
+          ]
+        },
+        {
+          "date_from": "2025-04-06",
+          "date_to": "2025-04-12",
+          "timestamp": 1743897600,
+          "missing_data": false,
+          "values": [
+            45
+          ]
+        },
+        {
+          "date_from": "2025-04-13",
+          "date_to": "2025-04-19",
+          "timestamp": 1744502400,
+          "missing_data": false,
+          "values": [
+            55
+          ]
+        },
+        {
+          "date_from": "2025-04-20",
+          "date_to": "2025-04-26",
+          "timestamp": 1745107200,
+          "missing_data": false,
+          "values": [
+            67
+          ]
+        },
+        {
+          "date_from": "2025-04-27",
+          "date_to": "2025-05-03",
+          "timestamp": 1745712000,
+          "missing_data": false,
+          "values": [
+            38
+          ]
+        },
+        {
+          "date_from": "2025-05-04",
+          "date_to": "2025-05-10",
+          "timestamp": 1746316800,
+          "missing_data": false,
+          "values": [
+            41
+          ]
+        },
+        {
+          "date_from": "2025-05-11",
+          "date_to": "2025-05-17",
+          "timestamp": 1746921600,
+          "missing_data": false,
+          "values": [
+            42
+          ]
+        },
+        {
+          "date_from": "2025-05-18",
+          "date_to": "2025-05-22",
+          "timestamp": 1747526400,
+          "missing_data": true,
+          "values": [
+            38
+          ]
+        }
+      ],
+      "averages": []
+    },
+    {
+      "position": 2,
+      "type": "google_trends_map",
+      "title": null,
+      "keywords": [
+        "grzegrzółka"
+      ],
+      "data": [
+        {
+          "geo_id": "PL-MZ",
+          "geo_name": "mazowieckie",
+          "values": [
+            100
+          ],
+          "max_value_index": 0
+        },
+        {
+          "geo_id": "PL-WN",
+          "geo_name": "warmińsko-mazurskie",
+          "values": [
+            90
+          ],
+          "max_value_index": 0
+        },
+        {
+          "geo_id": "PL-LB",
+          "geo_name": "lubuskie",
+          "values": [
+            85
+          ],
+          "max_value_index": 0
+        },
+        {
+          "geo_id": "PL-ZP",
+          "geo_name": "Województwo zachodniopomorskie",
+          "values": [
+            74
+          ],
+          "max_value_index": 0
+        },
+        {
+          "geo_id": "PL-PM",
+          "geo_name": "pomorskie",
+          "values": [
+            74
+          ],
+          "max_value_index": 0
+        },
+        {
+          "geo_id": "PL-KP",
+          "geo_name": "kujawsko-pomorskie",
+          "values": [
+            72
+          ],
+          "max_value_index": 0
+        },
+        {
+          "geo_id": "PL-PD",
+          "geo_name": "podlaskie",
+          "values": [
+            66
+          ],
+          "max_value_index": 0
+        },
+        {
+          "geo_id": "PL-SK",
+          "geo_name": "świętokrzyskie",
+          "values": [
+            62
+          ],
+          "max_value_index": 0
+        },
+        {
+          "geo_id": "PL-LU",
+          "geo_name": "lubelskie",
+          "values": [
+            61
+          ],
+          "max_value_index": 0
+        },
+        {
+          "geo_id": "PL-WP",
+          "geo_name": "wielkopolskie",
+          "values": [
+            61
+          ],
+          "max_value_index": 0
+        },
+        {
+          "geo_id": "PL-MA",
+          "geo_name": "małopolskie",
+          "values": [
+            58
+          ],
+          "max_value_index": 0
+        },
+        {
+          "geo_id": "PL-SL",
+          "geo_name": "śląskie",
+          "values": [
+            51
+          ],
+          "max_value_index": 0
+        },
+        {
+          "geo_id": "PL-LD",
+          "geo_name": "województwo łódzkie",
+          "values": [
+            51
+          ],
+          "max_value_index": 0
+        },
+        {
+          "geo_id": "PL-DS",
+          "geo_name": "Województwo dolnośląskie",
+          "values": [
+            50
+          ],
+          "max_value_index": 0
+        },
+        {
+          "geo_id": "PL-OP",
+          "geo_name": "opolskie",
+          "values": [
+            46
+          ],
+          "max_value_index": 0
+        },
+        {
+          "geo_id": "PL-PK",
+          "geo_name": "Województwo podkarpackie",
+          "values": [
+            40
+          ],
+          "max_value_index": 0
+        }
+      ]
+    },
+    {
+      "position": 3,
+      "type": "google_trends_topics_list",
+      "title": null,
+      "keywords": [
+        "grzegrzółka"
+      ],
+      "data": {
+        "top": [
+          {
+            "topic_id": "/m/05p1rw1",
+            "topic_title": "Grzegrzółki",
+            "topic_type": "Wieś w Polsce",
+            "value": 100
+          },
+          {
+            "topic_id": "/m/015p6",
+            "topic_title": "Ptaki",
+            "topic_type": "Zwierzę",
+            "value": 9
+          },
+          {
+            "topic_id": "/g/11w9zgkvqg",
+            "topic_title": "Gżegżółka",
+            "topic_type": "Temat",
+            "value": 6
+          },
+          {
+            "topic_id": "/m/05kns",
+            "topic_title": "Ortografia",
+            "topic_type": "Temat",
+            "value": 4
+          },
+          {
+            "topic_id": "/m/05s2s",
+            "topic_title": "Roślina",
+            "topic_type": "Temat",
+            "value": 4
+          },
+          {
+            "topic_id": "/m/052jhp",
+            "topic_title": "Wyraz",
+            "topic_type": "Temat",
+            "value": 4
+          },
+          {
+            "topic_id": "/m/03jqmn",
+            "topic_title": "Rzeżucha",
+            "topic_type": "Roślina",
+            "value": 2
+          },
+          {
+            "topic_id": "/g/11gk8pxth0",
+            "topic_title": "Komornik Leszno Przemysław Grzegrzółka - Komornik Sądowy przy Sądzie Rejonowym w Lesznie.",
+            "topic_type": "Temat",
+            "value": 2
+          }
+        ],
+        "rising": [
+          {
+            "topic_id": "/g/11w9zgkvqg",
+            "topic_title": "Gżegżółka",
+            "topic_type": "Temat",
+            "value": 432250
+          },
+          {
+            "topic_id": "/g/11gk8pxth0",
+            "topic_title": "Komornik Leszno Przemysław Grzegrzółka - Komornik Sądowy przy Sądzie Rejonowym w Lesznie.",
+            "topic_type": "Temat",
+            "value": 70
+          }
+        ]
+      }
+    },
+    {
+      "position": 4,
+      "type": "google_trends_queries_list",
+      "title": null,
+      "keywords": [
+        "grzegrzółka"
+      ],
+      "data": {
+        "top": [
+          {
+            "query": "grzegrzółka ptak",
+            "value": 100
+          },
+          {
+            "query": "gżegżółka",
+            "value": 86
+          },
+          {
+            "query": "jak sie pisze grzegrzółka",
+            "value": 81
+          },
+          {
+            "query": "grzegrzółka co to jest",
+            "value": 48
+          },
+          {
+            "query": "grzegrzółka roślina",
+            "value": 39
+          },
+          {
+            "query": "grzegrzółka czy gżegżółka",
+            "value": 39
+          },
+          {
+            "query": "grzegrzółka pisownia",
+            "value": 24
+          },
+          {
+            "query": "grzegrzółka jak się pisze",
+            "value": 23
+          },
+          {
+            "query": "grzegrzółka roslina",
+            "value": 18
+          },
+          {
+            "query": "adam grzegrzółka",
+            "value": 17
+          },
+          {
+            "query": "dariusz grzegrzółka",
+            "value": 14
+          },
+          {
+            "query": "andrzej grzegrzółka",
+            "value": 13
+          },
+          {
+            "query": "rzeżucha",
+            "value": 13
+          },
+          {
+            "query": "grzegrzółka warzywo",
+            "value": 8
+          }
+        ],
+        "rising": [
+          {
+            "query": "grzegrzółka roslina",
+            "value": 70
+          },
+          {
+            "query": "grzegrzółka roślina",
+            "value": 50
+          },
+          {
+            "query": "dariusz grzegrzółka",
+            "value": 40
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,305 @@
+https://docs.dataforseo.com/v3/keywords_data/google_ads/search_volume/live/?bash
+
+Poniżej masz pełny zaktualizowany kod, który wyświetla cały surowy wynik z endpointu google_ads/search_volume/live dzięki .to_dict() - 0.075000
+
+
+📍 Endpoint: keywords_data/google_ads/search_volume/live
+Koszt: $0.075 za zapytanie (niezależnie od liczby słów do 1000)
+
+────────────────────────────────────────────
+📌 Google Ads Search Volume – Parsowane Dane
+────────────────────────────────────────────
+➡️ Endpoint: /v3/keywords_data/google_ads/search_volume/live
+
+📤 PARAMETRY REQUEST (POST)
+────────────────────────────
+• keywords[]                – frazy (max: 1000)
+• location_code             – kod lokalizacji (np. 2616 = Polska)
+• language_code             – kod języka (np. "pl")
+• search_partners           – true/false (czy uwzględnić partnerów)
+• date_from / date_to       – zakres dat (np. "2023-01-01")
+• include_adult_keywords    – true/false
+• sort_by                   – sortowanie (np. "search_volume")
+• tag                       – etykieta użytkownika
+
+📥 STRUKTURA RESPONSE – result[]
+────────────────────────────
+Dla każdej frazy zwracane są:
+
+• keyword                    – string (fraza kluczowa)
+• spell                      – string/null (ew. poprawka pisowni)
+• location_code              – int
+• language_code              – string
+• search_partners            – bool
+• competition                – string: LOW / MEDIUM / HIGH
+• competition_index          – int (0–100)
+• search_volume              – int (średni miesięczny wolumen)
+• cpc                        – float (średni koszt kliknięcia)
+• low_top_of_page_bid        – float (min bid CPC)
+• high_top_of_page_bid       – float (max bid CPC)
+
+🔁 monthly_searches[]
+  • year                     – int
+  • month                    – int
+  • search_volume            – int
+
+📎 Uwagi:
+────────────────────────────
+✓ Dane pochodzą **z Google Ads API** – dokładne, ale zanonimizowane (np. 90, 2600 itp.)
+✓ `competition_index` = lepszy do scoringu niż `competition`
+✓ Można pobierać dane do 48 mies. wstecz (z `date_from`)
+✓ Przy jednej paczce można przetworzyć do 1000 fraz jednocześnie (ta sama cena)
+
+💡 Rekomendacje:
+────────────────────────────
+✔ Idealny do: estymacji potencjału frazy, SEO scoringu, CPC analizy
+✔ Używaj `competition_index` + `search_volume` do priorytetyzacji fraz
+✔ Nie duplikuj z `related_keywords` – ten endpoint zawiera bazowe metryki
+
+
+
+🔍 WAŻNE INFORMACJE Z DOKUMENTACJI (które nie są bezpośrednio parsowane z JSON)
+
+────────────────────────────────────────────
+Element                             | Opis
+────────────────────────────────────────────
+max 1000 keywords                   | Można przesłać do 1000 słów kluczowych w jednej paczce – opłata stała, niezależnie od liczby fraz
+12 requests / min                  | Limit zapytań: 12 zapytań na minutę na konto (ważne przy skalowaniu!)
+search_volume może być grupowany   | Google Ads łączy wolumen dla podobnych fraz – np. „buy laptop” i „purchase laptop” mogą dostać ten sam search_volume
+monthly_searches domyślnie = 12 mies. | Domyślnie zwracane są dane z 12 mies., ale można pobrać nawet 48 miesięcy (przez date_from)
+location_code / language_code      | Jeśli nie podasz – otrzymasz dane globalne w dominującym języku
+search_partners                    | Jeśli true – uwzględnia partnerów Google (więcej danych, ale mniej precyzyjnych)
+spell                              | Jeśli fraza jest błędna – Google zwróci poprawioną wersję (pole `spell`)
+null values                        | Niektóre pola (np. cpc, competition) mogą zwrócić null – trzeba obsłużyć brak danych
+sort_by                            | Można sortować po: relevance, search_volume, competition_index, low_top_of_page_bid, high_top_of_page_bid (domyślnie: relevance)
+date_from i date_to                | Zakres czasowy danych. Domyślnie: ostatnie 12 mies., ale można ustawić np. od 2021-08-01
+
+────────────────────────────────────────────
+💡 WSKAZÓWKI DO DOBREGO NARZĘDZIA SEO:
+────────────────────────────────────────────
+• Uwzględnij `spell` w UI – pokaż użytkownikowi poprawioną wersję
+• Umożliwiaj pobranie `monthly_searches` do 48 mies. – to przewaga nad konkurencją
+• Wybór `search_partners: true/false` – daj użytkownikowi kontrolę nad źródłem danych
+• Pamiętaj o null-checkach – nie wszystkie frazy mają CPC, bidy, competition
+
+────────────────────────────────────────────
+
+
+
+
+Skopiuj i wklej całość do analyze_keywords.py:
+
+python
+Kopiuj
+Edytuj
+import os
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
+from dotenv import load_dotenv
+from dataforseo_client import configuration as dfs_config, api_client as dfs_api_provider
+from dataforseo_client.api.keywords_data_api import KeywordsDataApi
+from dataforseo_client.models.keywords_data_google_ads_search_volume_live_request_info import KeywordsDataGoogleAdsSearchVolumeLiveRequestInfo
+
+load_dotenv()
+
+router = APIRouter()
+
+# Wczytanie danych z .env
+DFS_LOGIN = os.getenv("DATAFORSEO_LOGIN")
+DFS_PASSWORD = os.getenv("DATAFORSEO_PASSWORD")
+
+# Model danych wejściowych
+class KeywordInput(BaseModel):
+    keyword: str
+    language: str
+    country: str
+
+@router.post("/analyze")
+async def analyze_keyword(data: KeywordInput):
+    if not all([DFS_LOGIN, DFS_PASSWORD]):
+        raise HTTPException(status_code=500, detail="Brak danych logowania do API DataForSEO.")
+
+    config = dfs_config.Configuration(username=DFS_LOGIN, password=DFS_PASSWORD)
+
+    # Na razie na sztywno: PL / Polska
+    request_data = [
+        KeywordsDataGoogleAdsSearchVolumeLiveRequestInfo(
+            keywords=[data.keyword],
+            language_code="pl",
+            location_code=2616  # Polska
+        )
+    ]
+
+    with dfs_api_provider.ApiClient(config) as client:
+        api_instance = KeywordsDataApi(client)
+
+        try:
+            api_response = api_instance.google_ads_search_volume_live(request_data)
+            result = api_response.tasks[0].result[0]
+            return result.to_dict()
+
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+			
+			
+********
+********			
+			
+			{
+  "keyword": "soczewki",
+  "location_code": 2616,
+  "language_code": "pl",
+  "search_partners": false,
+  "competition": "HIGH",
+  "competition_index": 100,
+  "search_volume": 18100,
+  "low_top_of_page_bid": 0.43,
+  "high_top_of_page_bid": 1.82,
+  "cpc": 1.73,
+  "monthly_searches": [
+    {
+      "year": 2025,
+      "month": 4,
+      "search_volume": 18100
+    },
+    {
+      "year": 2025,
+      "month": 3,
+      "search_volume": 18100
+    },
+    {
+      "year": 2025,
+      "month": 2,
+      "search_volume": 14800
+    },
+    {
+      "year": 2025,
+      "month": 1,
+      "search_volume": 18100
+    },
+    {
+      "year": 2024,
+      "month": 12,
+      "search_volume": 14800
+    },
+    {
+      "year": 2024,
+      "month": 11,
+      "search_volume": 18100
+    },
+    {
+      "year": 2024,
+      "month": 10,
+      "search_volume": 22200
+    },
+    {
+      "year": 2024,
+      "month": 9,
+      "search_volume": 18100
+    },
+    {
+      "year": 2024,
+      "month": 8,
+      "search_volume": 18100
+    },
+    {
+      "year": 2024,
+      "month": 7,
+      "search_volume": 22200
+    },
+    {
+      "year": 2024,
+      "month": 6,
+      "search_volume": 22200
+    },
+    {
+      "year": 2024,
+      "month": 5,
+      "search_volume": 22200
+    }
+  ],
+  "spell": null
+}
+
+koszt: $ 0.075000
+
+
+
+****
+****
+
+{
+  "keyword": "grzegrzółka",
+  "location_code": 2616,
+  "language_code": "pl",
+  "search_partners": false,
+  "competition": "LOW",
+  "competition_index": 1,
+  "search_volume": 9900,
+  "low_top_of_page_bid": 0.58,
+  "high_top_of_page_bid": 1.35,
+  "cpc": 1.43,
+  "monthly_searches": [
+    {
+      "year": 2025,
+      "month": 4,
+      "search_volume": 9900
+    },
+    {
+      "year": 2025,
+      "month": 3,
+      "search_volume": 12100
+    },
+    {
+      "year": 2025,
+      "month": 2,
+      "search_volume": 12100
+    },
+    {
+      "year": 2025,
+      "month": 1,
+      "search_volume": 9900
+    },
+    {
+      "year": 2024,
+      "month": 12,
+      "search_volume": 9900
+    },
+    {
+      "year": 2024,
+      "month": 11,
+      "search_volume": 9900
+    },
+    {
+      "year": 2024,
+      "month": 10,
+      "search_volume": 12100
+    },
+    {
+      "year": 2024,
+      "month": 9,
+      "search_volume": 8100
+    },
+    {
+      "year": 2024,
+      "month": 8,
+      "search_volume": 6600
+    },
+    {
+      "year": 2024,
+      "month": 7,
+      "search_volume": 6600
+    },
+    {
+      "year": 2024,
+      "month": 6,
+      "search_volume": 8100
+    },
+    {
+      "year": 2024,
+      "month": 5,
+      "search_volume": 9900
+    }
+  ],
+  "spell": null
+}

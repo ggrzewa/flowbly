@@ -1,0 +1,4893 @@
+https://docs.dataforseo.com/v3/dataforseo_labs/google/keyword_suggestions/live/?bash
+🔹 Keyword Suggestions  DataForSEO Labs API - 0.013000$
+
+🔹 Endpoint: /dataforseo_labs/google/keyword_suggestions/live
+
+# DATAFORSEO KEYWORD SUGGESTIONS API - KOMPLETNA DOKUMENTACJA
+
+## ENDPOINT INFO
+| Parametr | Wartość |
+|----------|---------|
+| **Endpoint** | https://api.dataforseo.com/v3/dataforseo_labs/google/keyword_suggestions/live |
+| **Method** | POST |
+| **Format** | JSON (UTF-8) |
+| **Rate Limit** | 2000 calls/min |
+| **Max Concurrent** | 30 requests |
+| **Max Tasks per Request** | 2000 |
+
+---
+
+## REQUEST PARAMETERS
+
+| Pole | Typ | Wymagane | Default | Opis |
+|------|-----|----------|---------|------|
+| keyword | string | **TAK** | - | Słowo kluczowe seed (UTF-8, konwertowane na lowercase) |
+| location_name | string | NIE | - | Pełna nazwa lokalizacji (np. "United Kingdom") |
+| location_code | integer | NIE | - | Kod lokalizacji (np. 2840 dla USA) |
+| language_name | string | NIE | auto | Pełna nazwa języka (np. "English") |
+| language_code | string | NIE | auto | Kod języka (np. "en") |
+| include_seed_keyword | boolean | NIE | false | Czy zawrzeć dane dla seed keyword |
+| include_serp_info | boolean | NIE | false | Czy zawrzeć dane SERP dla każdego słowa |
+| include_clickstream_data | boolean | NIE | false | Czy zawrzeć dane clickstream (podwójna opłata) |
+| exact_match | boolean | NIE | false | Szukaj dokładnej frazy |
+| ignore_synonyms | boolean | NIE | false | Ignoruj bardzo podobne słowa kluczowe |
+| filters | array | NIE | - | Filtry wyników (max 8) |
+| order_by | array | NIE | search_volume,desc | Reguły sortowania (max 3) |
+| limit | integer | NIE | 100 | Max liczba wyników (max 1000) |
+| offset | integer | NIE | 0 | Przesunięcie w wynikach |
+| offset_token | string | NIE | - | Token dla kolejnych requestów |
+| tag | string | NIE | - | Identyfikator zadania (max 255 znaków) |
+
+---
+
+## RESPONSE ROOT STRUCTURE
+
+| Pole | Typ | Opis |
+|------|-----|------|
+| version | string | Aktualna wersja API |
+| status_code | integer | Ogólny kod statusu |
+| status_message | string | Ogólna wiadomość informacyjna |
+| time | string | Czas wykonania (sekundy) |
+| cost | float | Całkowity koszt zadań (USD) |
+| tasks_count | integer | Liczba zadań w tablicy |
+| tasks_error | integer | Liczba zadań z błędem |
+| tasks | array | Tablica zadań |
+
+---
+
+## TASKS STRUCTURE
+
+```
+tasks[]
+├── id (string) - unikalny identyfikator zadania (UUID)
+├── status_code (integer) - kod statusu zadania (10000-60000)
+├── status_message (string) - wiadomość informacyjna zadania
+├── time (string) - czas wykonania w sekundach
+├── cost (float) - koszt zadania w USD
+├── result_count (integer) - liczba elementów w result
+├── path (array) - ścieżka URL
+├── data (object) - parametry z POST request
+└── result (array) - tablica wyników
+```
+
+---
+
+## RESULT STRUCTURE
+
+```
+result[]
+├── se_type (string) - typ wyszukiwarki
+├── seed_keyword (string) - słowo kluczowe z POST
+├── seed_keyword_data (object) - dane dla seed keyword (struktura jak items)
+├── location_code (integer) - kod lokalizacji z POST
+├── language_code (string) - kod języka z POST  
+├── total_count (integer) - całkowita liczba wyników w bazie
+├── items_count (integer) - liczba wyników w items[]
+├── offset (integer) - aktualne przesunięcie
+├── offset_token (string) - token dla kolejnych requestów
+└── items (array) - słowa kluczowe i dane
+```
+
+---
+
+## ITEMS[] STRUCTURE - GŁÓWNE SŁOWA KLUCZOWE
+
+| Pole | Typ | Opis |
+|------|-----|------|
+| se_type | string | Typ wyszukiwarki |
+| keyword | string | Sugerowane słowo kluczowe |
+| location_code | integer | Kod lokalizacji |
+| language_code | string | Kod języka |
+| keyword_info | object | **Podstawowe dane słowa kluczowego** |
+| clickstream_keyword_info | object/null | **Dane clickstream (opcjonalne)** |
+| keyword_properties | object | **Dodatkowe właściwości słowa** |
+| serp_info | object/null | **Dane SERP (opcjonalne)** |
+| avg_backlinks_info | object | **Średnie dane backlinkowe** |
+| search_intent_info | object | **Informacje o intencji wyszukiwania** |
+| keyword_info_normalized_with_bing | object | **Dane znormalizowane z Bing** |
+| keyword_info_normalized_with_clickstream | object | **Dane znormalizowane z clickstream** |
+
+---
+
+## KEYWORD_INFO STRUCTURE
+
+```
+keyword_info
+├── se_type (string) - typ wyszukiwarki
+├── last_updated_time (string) - data ostatniej aktualizacji (UTC)
+├── competition (float) - konkurencja 0-1 (bazuje na Google Ads)
+├── competition_level (string) - poziom konkurencji: LOW/MEDIUM/HIGH/null
+├── cpc (float) - średni koszt za kliknięcie (USD)
+├── search_volume (integer) - średni miesięczny wolumen wyszukiwań
+├── low_top_of_page_bid (float) - minimalna stawka dla top strony
+├── high_top_of_page_bid (float) - maksymalna stawka dla top strony
+├── categories (array) - kategorie produktów/usług (kody numeryczne)
+├── monthly_searches (array) - dane miesięczne z ostatnich 12 miesięcy
+�?  ├── year (integer) - rok
+�?  ├── month (integer) - miesiąc
+�?  └── search_volume (integer) - miesięczny wolumen
+└── search_volume_trend (object) - trendy zmian wolumenu
+    ├── monthly (integer) - zmiana % vs poprzedni miesiąc
+    ├── quarterly (integer) - zmiana % vs poprzedni kwartał
+    └── yearly (integer) - zmiana % vs poprzedni rok
+```
+
+---
+
+## CLICKSTREAM_KEYWORD_INFO STRUCTURE
+*(Dostępne gdy include_clickstream_data = true)*
+
+```
+clickstream_keyword_info
+├── search_volume (integer) - miesięczny wolumen clickstream
+├── last_updated_time (string) - data aktualizacji clickstream (UTC)
+├── gender_distribution (object) - rozkład według płci
+�?  ├── female (integer) - liczba użytkowniczek
+�?  └── male (integer) - liczba użytkowników
+├── age_distribution (object) - rozkład według wieku
+�?  ├── 18-24 (integer) - użytkownicy 18-24 lat
+�?  ├── 25-34 (integer) - użytkownicy 25-34 lat
+�?  ├── 35-44 (integer) - użytkownicy 35-44 lat
+�?  ├── 45-54 (integer) - użytkownicy 45-54 lat
+�?  └── 55-64 (integer) - użytkownicy 55-64 lat
+└── monthly_searches (array) - miesięczne dane clickstream
+    ├── year (integer) - rok
+    ├── month (integer) - miesiąc
+    └── search_volume (integer) - clickstream wolumen w danym miesiącu
+```
+
+---
+
+## KEYWORD_PROPERTIES STRUCTURE
+
+| Pole | Typ | Opis |
+|------|-----|------|
+| se_type | string | Typ wyszukiwarki |
+| core_keyword | string/null | Główne słowo w grupie synonimów |
+| synonym_clustering_algorithm | string | Algorytm grupowania: "keyword_metrics"/"text_processing"/null |
+| keyword_difficulty | integer | Trudność rankowania 0-100 (skala logarytmiczna) |
+| detected_language | string | Wykryty język słowa kluczowego |
+| is_another_language | boolean | Czy wykryty język różni się od ustawionego |
+
+---
+
+## SERP_INFO STRUCTURE
+*(Dostępne gdy include_serp_info = true)*
+
+```
+serp_info
+├── se_type (string) - typ wyszukiwarki
+├── check_url (string) - bezpośredni URL do wyników wyszukiwania
+├── serp_item_types (array) - typy elementów w SERP
+�?  └── możliwe wartości: answer_box, app, carousel, multi_carousel,
+�?      featured_snippet, google_flights, google_reviews, images, jobs,
+�?      knowledge_graph, local_pack, map, organic, paid, people_also_ask,
+�?      related_searches, people_also_search, shopping, top_stories,
+�?      twitter, video, events, mention_carousel, recipes, top_sights,
+�?      scholarly_articles, popular_products, podcasts, questions_and_answers,
+�?      find_results_on, stocks_box
+├── se_results_count (string) - liczba wyników wyszukiwania
+├── last_updated_time (string) - data ostatniej aktualizacji SERP (UTC)
+└── previous_updated_time (string) - poprzednia data aktualizacji SERP (UTC)
+```
+
+---
+
+## AVG_BACKLINKS_INFO STRUCTURE
+
+| Pole | Typ | Opis |
+|------|-----|------|
+| se_type | string | Typ wyszukiwarki |
+| backlinks | float | Średnia liczba backlinkó w top-10 |
+| dofollow | float | Średnia liczba linków dofollow |
+| referring_pages | float | Średnia liczba stron linkujących |
+| referring_domains | float | Średnia liczba domen linkujących |
+| referring_main_domains | float | Średnia liczba głównych domen linkujących |
+| rank | float | Średni rank |
+| main_domain_rank | float | Średni rank głównej domeny |
+| last_updated_time | string | Data aktualizacji danych backlinkowych (UTC) |
+
+---
+
+## SEARCH_INTENT_INFO STRUCTURE
+
+| Pole | Typ | Opis |
+|------|-----|------|
+| se_type | string | Typ wyszukiwarki |
+| main_intent | string | Główna intencja: "informational"/"navigational"/"commercial"/"transactional" |
+| foreign_intent | array/null | Dodatkowe intencje (te same wartości co main_intent) |
+| last_updated_time | string | Data aktualizacji danych intencji (UTC) |
+
+---
+
+## KEYWORD_INFO_NORMALIZED_WITH_BING STRUCTURE
+
+```
+keyword_info_normalized_with_bing
+├── last_updated_time (string) - data aktualizacji datasetu (UTC)
+├── search_volume (integer) - aktualny wolumen wyszukiwań
+├── is_normalized (boolean) - czy dane są znormalizowane z Bing
+└── monthly_searches (array) - miesięczne wolumeny wyszukiwań
+    ├── year (integer) - rok
+    ├── month (integer) - miesiąc
+    └── search_volume (integer) - wolumen w danym miesiącu
+```
+
+---
+
+## KEYWORD_INFO_NORMALIZED_WITH_CLICKSTREAM STRUCTURE
+
+```
+keyword_info_normalized_with_clickstream
+├── last_updated_time (string) - data aktualizacji datasetu (UTC)  
+├── search_volume (integer) - aktualny wolumen wyszukiwań
+├── is_normalized (boolean) - czy dane są znormalizowane z clickstream
+└── monthly_searches (array) - miesięczne wolumeny wyszukiwań
+    ├── year (integer) - rok
+    ├── month (integer) - miesiąc
+    └── search_volume (integer) - wolumen w danym miesiącu
+```
+
+---
+
+## FILTERING & SORTING
+
+### DOSTĘPNE POLA DO FILTROWANIA I SORTOWANIA:
+- `keyword_info.search_volume`
+- `keyword_info.competition`
+- `keyword_info.competition_level`
+- `keyword_info.cpc`
+- `keyword_info.low_top_of_page_bid`
+- `keyword_info.high_top_of_page_bid`
+- `keyword_properties.keyword_difficulty`
+- `avg_backlinks_info.backlinks`
+- `avg_backlinks_info.rank`
+- `search_intent_info.main_intent`
+
+### OPERATORY FILTRÓW:
+`regex`, `not_regex`, `<`, `<=`, `>`, `>=`, `=`, `<>`, `in`, `not_in`, `match`, `not_match`, `ilike`, `not_ilike`, `like`, `not_like`
+
+
+
+## KOSZTY I LIMITY
+
+| Parametr | Wartość |
+|----------|---------|
+| **Podstawowy koszt** | ~0.01 USD za request |
+| **Z clickstream_data** | Podwójna opłata |
+| **Max wyników na request** | 1000 |
+| **Max zadań na request** | 2000 |
+| **Rate limit** | 2000 calls/min |
+| **Max równoczesnych** | 30 requests |
+
+---
+
+
+
+import os
+import logging
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
+from dotenv import load_dotenv
+
+from dataforseo_client import configuration as dfs_config, api_client as dfs_api_provider
+from dataforseo_client.api.dataforseo_labs_api import DataforseoLabsApi
+from dataforseo_client.models.dataforseo_labs_google_keyword_suggestions_live_request_info import (
+    DataforseoLabsGoogleKeywordSuggestionsLiveRequestInfo,
+)
+
+# 📦 Załaduj zmienne środowiskowe
+load_dotenv()
+
+# 📍 Router FastAPI
+router = APIRouter()
+
+# 🧾 Logger
+logger = logging.getLogger("dfs_labs_keyword_suggestions")
+logger.setLevel(logging.DEBUG)
+handler = logging.StreamHandler()
+formatter = logging.Formatter('%(asctime)s | %(levelname)s | %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+
+# 🔐 Dane logowania do API
+DFS_LOGIN = os.getenv("DATAFORSEO_LOGIN")
+DFS_PASSWORD = os.getenv("DATAFORSEO_PASSWORD")
+
+# �?Model danych wejściowych
+class KeywordSuggestionInput(BaseModel):
+    keyword: str
+    location_code: int = 2616       # Polska
+    language_code: str = "pl"       # Język polski
+    limit: int = 10                 # Ile propozycji zwrócić
+
+# 🚀 Endpoint
+@router.post("/labs/keyword-suggestions")
+async def get_keyword_suggestions(data: KeywordSuggestionInput):
+    if not DFS_LOGIN or not DFS_PASSWORD:
+        logger.error("�?Brak danych logowania do API")
+        raise HTTPException(status_code=500, detail="Brak danych logowania do API DataForSEO.")
+
+    logger.info(f"➡️ Zapytanie o sugestie dla słowa kluczowego: {data.keyword}")
+
+    config = dfs_config.Configuration(username=DFS_LOGIN, password=DFS_PASSWORD)
+
+    request_data = [
+        DataforseoLabsGoogleKeywordSuggestionsLiveRequestInfo(
+            keyword=data.keyword,
+            location_code=data.location_code,
+            language_code=data.language_code,
+            include_seed_keyword=True,
+            include_serp_info=False,
+            limit=data.limit
+        )
+    ]
+
+    try:
+        with dfs_api_provider.ApiClient(config) as api_client:
+            api_instance = DataforseoLabsApi(api_client)
+
+            logger.debug("➡️ Wysyłanie żądania do DFS Labs API (Keyword Suggestions)...")
+            api_response = api_instance.google_keyword_suggestions_live(request_data)
+
+            task = api_response.tasks[0]
+            if not task.result or not task.result[0].items:
+                logger.warning("⚠️ Brak wyników dla podanego słowa.")
+                raise HTTPException(status_code=404, detail="Brak sugestii dla danego słowa kluczowego.")
+
+            logger.info("�?Pobrano dane z DFS Labs API (Keyword Suggestions).")
+            return {
+                "seed_keyword": task.result[0].seed_keyword,
+                "suggestions": [item.to_dict() for item in task.result[0].items]
+            }
+
+    except Exception as e:
+        logger.exception("�?Błąd podczas pobierania sugestii z DFS Labs API")
+        raise HTTPException(status_code=500, detail=f"Błąd serwera:\n{str(e)}")
+
+
+
+
+
+******
+******
+{
+  "seed_keyword": "soczewki",
+  "suggestions": [
+    {
+      "se_type": "google",
+      "keyword": "soczewki kontaktowe",
+      "location_code": 2616,
+      "language_code": "pl",
+      "keyword_info": {
+        "se_type": "google",
+        "last_updated_time": "2025-05-09 20:45:49 +00:00",
+        "competition": 1,
+        "competition_level": "HIGH",
+        "cpc": 1.63,
+        "search_volume": 27100,
+        "low_top_of_page_bid": 0.41,
+        "high_top_of_page_bid": 1.54,
+        "categories": [
+          10011,
+          10085,
+          10091,
+          10460,
+          10515,
+          12867
+        ],
+        "monthly_searches": [
+          {
+            "year": 2025,
+            "month": 4,
+            "search_volume": 22200
+          },
+          {
+            "year": 2025,
+            "month": 3,
+            "search_volume": 27100
+          },
+          {
+            "year": 2025,
+            "month": 2,
+            "search_volume": 22200
+          },
+          {
+            "year": 2025,
+            "month": 1,
+            "search_volume": 27100
+          },
+          {
+            "year": 2024,
+            "month": 12,
+            "search_volume": 22200
+          },
+          {
+            "year": 2024,
+            "month": 11,
+            "search_volume": 22200
+          },
+          {
+            "year": 2024,
+            "month": 10,
+            "search_volume": 27100
+          },
+          {
+            "year": 2024,
+            "month": 9,
+            "search_volume": 22200
+          },
+          {
+            "year": 2024,
+            "month": 8,
+            "search_volume": 27100
+          },
+          {
+            "year": 2024,
+            "month": 7,
+            "search_volume": 27100
+          },
+          {
+            "year": 2024,
+            "month": 6,
+            "search_volume": 27100
+          },
+          {
+            "year": 2024,
+            "month": 5,
+            "search_volume": 27100
+          }
+        ],
+        "search_volume_trend": {
+          "monthly": -18,
+          "quarterly": 0,
+          "yearly": -18
+        }
+      },
+      "keyword_properties": {
+        "se_type": "google",
+        "synonym_clustering_algorithm": "text_processing",
+        "keyword_difficulty": 35,
+        "detected_language": "pl",
+        "is_another_language": false,
+        "core_keyword": null
+      },
+      "avg_backlinks_info": {
+        "se_type": "google",
+        "backlinks": 1797.8,
+        "dofollow": 1744.8,
+        "referring_pages": 1787.8,
+        "referring_domains": 100.7,
+        "referring_main_domains": 97.6,
+        "rank": 165.8,
+        "main_domain_rank": 335.4,
+        "last_updated_time": "2025-04-29 23:34:19 +00:00"
+      },
+      "search_intent_info": {
+        "se_type": "google",
+        "main_intent": "transactional",
+        "last_updated_time": "2023-03-01 19:09:16 +00:00",
+        "foreign_intent": null
+      },
+      "clickstream_keyword_info": null
+    },
+    {
+      "se_type": "google",
+      "keyword": "soczewki",
+      "location_code": 2616,
+      "language_code": "pl",
+      "keyword_info": {
+        "se_type": "google",
+        "last_updated_time": "2025-05-12 11:37:13 +00:00",
+        "competition": 1,
+        "competition_level": "HIGH",
+        "cpc": 1.73,
+        "search_volume": 18100,
+        "low_top_of_page_bid": 0.43,
+        "high_top_of_page_bid": 1.82,
+        "categories": [
+          10011,
+          10085,
+          10460,
+          12867,
+          12868
+        ],
+        "monthly_searches": [
+          {
+            "year": 2025,
+            "month": 4,
+            "search_volume": 18100
+          },
+          {
+            "year": 2025,
+            "month": 3,
+            "search_volume": 18100
+          },
+          {
+            "year": 2025,
+            "month": 2,
+            "search_volume": 14800
+          },
+          {
+            "year": 2025,
+            "month": 1,
+            "search_volume": 18100
+          },
+          {
+            "year": 2024,
+            "month": 12,
+            "search_volume": 14800
+          },
+          {
+            "year": 2024,
+            "month": 11,
+            "search_volume": 18100
+          },
+          {
+            "year": 2024,
+            "month": 10,
+            "search_volume": 22200
+          },
+          {
+            "year": 2024,
+            "month": 9,
+            "search_volume": 18100
+          },
+          {
+            "year": 2024,
+            "month": 8,
+            "search_volume": 18100
+          },
+          {
+            "year": 2024,
+            "month": 7,
+            "search_volume": 22200
+          },
+          {
+            "year": 2024,
+            "month": 6,
+            "search_volume": 22200
+          },
+          {
+            "year": 2024,
+            "month": 5,
+            "search_volume": 22200
+          }
+        ],
+        "search_volume_trend": {
+          "monthly": 0,
+          "quarterly": 22,
+          "yearly": -18
+        }
+      },
+      "keyword_properties": {
+        "se_type": "google",
+        "keyword_difficulty": 42,
+        "detected_language": "pl",
+        "is_another_language": false,
+        "core_keyword": null,
+        "synonym_clustering_algorithm": null
+      },
+      "avg_backlinks_info": {
+        "se_type": "google",
+        "backlinks": 1648.6,
+        "dofollow": 1601.5,
+        "referring_pages": 1643.6,
+        "referring_domains": 31.7,
+        "referring_main_domains": 29.9,
+        "rank": 175.6,
+        "main_domain_rank": 275.3,
+        "last_updated_time": "2025-04-29 23:59:39 +00:00"
+      },
+      "search_intent_info": {
+        "se_type": "google",
+        "main_intent": "transactional",
+        "last_updated_time": "2023-03-01 19:09:15 +00:00",
+        "foreign_intent": null
+      },
+      "clickstream_keyword_info": null
+    },
+    {
+      "se_type": "google",
+      "keyword": "soczewki jednodniowe",
+      "location_code": 2616,
+      "language_code": "pl",
+      "keyword_info": {
+        "se_type": "google",
+        "last_updated_time": "2025-05-10 11:01:52 +00:00",
+        "competition": 1,
+        "competition_level": "HIGH",
+        "cpc": 1.46,
+        "search_volume": 8100,
+        "low_top_of_page_bid": 0.36,
+        "high_top_of_page_bid": 1.25,
+        "categories": [
+          10011,
+          10085,
+          10460,
+          12866,
+          12867,
+          12868
+        ],
+        "monthly_searches": [
+          {
+            "year": 2025,
+            "month": 4,
+            "search_volume": 8100
+          },
+          {
+            "year": 2025,
+            "month": 3,
+            "search_volume": 8100
+          },
+          {
+            "year": 2025,
+            "month": 2,
+            "search_volume": 6600
+          },
+          {
+            "year": 2025,
+            "month": 1,
+            "search_volume": 8100
+          },
+          {
+            "year": 2024,
+            "month": 12,
+            "search_volume": 5400
+          },
+          {
+            "year": 2024,
+            "month": 11,
+            "search_volume": 6600
+          },
+          {
+            "year": 2024,
+            "month": 10,
+            "search_volume": 8100
+          },
+          {
+            "year": 2024,
+            "month": 9,
+            "search_volume": 8100
+          },
+          {
+            "year": 2024,
+            "month": 8,
+            "search_volume": 9900
+          },
+          {
+            "year": 2024,
+            "month": 7,
+            "search_volume": 9900
+          },
+          {
+            "year": 2024,
+            "month": 6,
+            "search_volume": 9900
+          },
+          {
+            "year": 2024,
+            "month": 5,
+            "search_volume": 9900
+          }
+        ],
+        "search_volume_trend": {
+          "monthly": 0,
+          "quarterly": 23,
+          "yearly": -18
+        }
+      },
+      "keyword_properties": {
+        "se_type": "google",
+        "keyword_difficulty": 0,
+        "detected_language": "pl",
+        "is_another_language": false,
+        "core_keyword": null,
+        "synonym_clustering_algorithm": null
+      },
+      "avg_backlinks_info": {
+        "se_type": "google",
+        "backlinks": 10.4,
+        "dofollow": 6.1,
+        "referring_pages": 10.4,
+        "referring_domains": 5.2,
+        "referring_main_domains": 5,
+        "rank": 55.2,
+        "main_domain_rank": 309.3,
+        "last_updated_time": "2025-04-30 04:21:44 +00:00"
+      },
+      "search_intent_info": {
+        "se_type": "google",
+        "main_intent": "commercial",
+        "foreign_intent": [
+          "transactional"
+        ],
+        "last_updated_time": "2023-03-01 19:09:15 +00:00"
+      },
+      "clickstream_keyword_info": null
+    },
+    {
+      "se_type": "google",
+      "keyword": "soczewki kolorowe",
+      "location_code": 2616,
+      "language_code": "pl",
+      "keyword_info": {
+        "se_type": "google",
+        "last_updated_time": "2025-05-14 07:25:36 +00:00",
+        "competition": 1,
+        "competition_level": "HIGH",
+        "cpc": 0.43,
+        "search_volume": 6600,
+        "low_top_of_page_bid": 0.11,
+        "high_top_of_page_bid": 0.48,
+        "categories": [
+          10011,
+          10085,
+          10460,
+          12867
+        ],
+        "monthly_searches": [
+          {
+            "year": 2025,
+            "month": 4,
+            "search_volume": 4400
+          },
+          {
+            "year": 2025,
+            "month": 3,
+            "search_volume": 5400
+          },
+          {
+            "year": 2025,
+            "month": 2,
+            "search_volume": 5400
+          },
+          {
+            "year": 2025,
+            "month": 1,
+            "search_volume": 6600
+          },
+          {
+            "year": 2024,
+            "month": 12,
+            "search_volume": 5400
+          },
+          {
+            "year": 2024,
+            "month": 11,
+            "search_volume": 6600
+          },
+          {
+            "year": 2024,
+            "month": 10,
+            "search_volume": 14800
+          },
+          {
+            "year": 2024,
+            "month": 9,
+            "search_volume": 6600
+          },
+          {
+            "year": 2024,
+            "month": 8,
+            "search_volume": 6600
+          },
+          {
+            "year": 2024,
+            "month": 7,
+            "search_volume": 6600
+          },
+          {
+            "year": 2024,
+            "month": 6,
+            "search_volume": 6600
+          },
+          {
+            "year": 2024,
+            "month": 5,
+            "search_volume": 6600
+          }
+        ],
+        "search_volume_trend": {
+          "monthly": -19,
+          "quarterly": -19,
+          "yearly": -33
+        }
+      },
+      "keyword_properties": {
+        "se_type": "google",
+        "synonym_clustering_algorithm": "text_processing",
+        "keyword_difficulty": 0,
+        "detected_language": "pl",
+        "is_another_language": false,
+        "core_keyword": null
+      },
+      "avg_backlinks_info": {
+        "se_type": "google",
+        "backlinks": 8.4,
+        "dofollow": 7.3,
+        "referring_pages": 8.2,
+        "referring_domains": 5.8,
+        "referring_main_domains": 5.6,
+        "rank": 60,
+        "main_domain_rank": 363.9,
+        "last_updated_time": "2025-05-18 16:45:43 +00:00"
+      },
+      "search_intent_info": {
+        "se_type": "google",
+        "main_intent": "transactional",
+        "last_updated_time": "2023-03-01 19:09:16 +00:00",
+        "foreign_intent": null
+      },
+      "clickstream_keyword_info": null
+    },
+    {
+      "se_type": "google",
+      "keyword": "soczewki miesieczne",
+      "location_code": 2616,
+      "language_code": "pl",
+      "keyword_info": {
+        "se_type": "google",
+        "last_updated_time": "2025-05-14 13:15:49 +00:00",
+        "competition": 1,
+        "competition_level": "HIGH",
+        "cpc": 1.19,
+        "search_volume": 6600,
+        "low_top_of_page_bid": 0.31,
+        "high_top_of_page_bid": 1.05,
+        "categories": [
+          10011,
+          10085,
+          10460,
+          12866,
+          12867,
+          12868
+        ],
+        "monthly_searches": [
+          {
+            "year": 2025,
+            "month": 4,
+            "search_volume": 5400
+          },
+          {
+            "year": 2025,
+            "month": 3,
+            "search_volume": 6600
+          },
+          {
+            "year": 2025,
+            "month": 2,
+            "search_volume": 5400
+          },
+          {
+            "year": 2025,
+            "month": 1,
+            "search_volume": 5400
+          },
+          {
+            "year": 2024,
+            "month": 12,
+            "search_volume": 4400
+          },
+          {
+            "year": 2024,
+            "month": 11,
+            "search_volume": 5400
+          },
+          {
+            "year": 2024,
+            "month": 10,
+            "search_volume": 6600
+          },
+          {
+            "year": 2024,
+            "month": 9,
+            "search_volume": 6600
+          },
+          {
+            "year": 2024,
+            "month": 8,
+            "search_volume": 8100
+          },
+          {
+            "year": 2024,
+            "month": 7,
+            "search_volume": 8100
+          },
+          {
+            "year": 2024,
+            "month": 6,
+            "search_volume": 6600
+          },
+          {
+            "year": 2024,
+            "month": 5,
+            "search_volume": 6600
+          }
+        ],
+        "search_volume_trend": {
+          "monthly": -18,
+          "quarterly": 0,
+          "yearly": -18
+        }
+      },
+      "keyword_properties": {
+        "se_type": "google",
+        "keyword_difficulty": 11,
+        "detected_language": "pl",
+        "is_another_language": false,
+        "core_keyword": null,
+        "synonym_clustering_algorithm": null
+      },
+      "avg_backlinks_info": {
+        "se_type": "google",
+        "backlinks": 10.4,
+        "dofollow": 10,
+        "referring_pages": 10.4,
+        "referring_domains": 7.5,
+        "referring_main_domains": 7.2,
+        "rank": 63.8,
+        "main_domain_rank": 318,
+        "last_updated_time": "2024-10-01 14:20:09 +00:00"
+      },
+      "search_intent_info": {
+        "se_type": "google",
+        "main_intent": "navigational",
+        "foreign_intent": [
+          "transactional",
+          "commercial"
+        ],
+        "last_updated_time": "2023-03-01 19:09:16 +00:00"
+      },
+      "clickstream_keyword_info": null
+    },
+    {
+      "se_type": "google",
+      "keyword": "soczewki miesięczne",
+      "location_code": 2616,
+      "language_code": "pl",
+      "keyword_info": {
+        "se_type": "google",
+        "last_updated_time": "2025-05-10 07:21:53 +00:00",
+        "competition": 1,
+        "competition_level": "HIGH",
+        "cpc": 1.19,
+        "search_volume": 6600,
+        "low_top_of_page_bid": 0.31,
+        "high_top_of_page_bid": 1.05,
+        "categories": [
+          10011,
+          10085,
+          10091,
+          10460,
+          10515,
+          12867
+        ],
+        "monthly_searches": [
+          {
+            "year": 2025,
+            "month": 4,
+            "search_volume": 5400
+          },
+          {
+            "year": 2025,
+            "month": 3,
+            "search_volume": 6600
+          },
+          {
+            "year": 2025,
+            "month": 2,
+            "search_volume": 5400
+          },
+          {
+            "year": 2025,
+            "month": 1,
+            "search_volume": 5400
+          },
+          {
+            "year": 2024,
+            "month": 12,
+            "search_volume": 4400
+          },
+          {
+            "year": 2024,
+            "month": 11,
+            "search_volume": 5400
+          },
+          {
+            "year": 2024,
+            "month": 10,
+            "search_volume": 6600
+          },
+          {
+            "year": 2024,
+            "month": 9,
+            "search_volume": 6600
+          },
+          {
+            "year": 2024,
+            "month": 8,
+            "search_volume": 8100
+          },
+          {
+            "year": 2024,
+            "month": 7,
+            "search_volume": 8100
+          },
+          {
+            "year": 2024,
+            "month": 6,
+            "search_volume": 6600
+          },
+          {
+            "year": 2024,
+            "month": 5,
+            "search_volume": 6600
+          }
+        ],
+        "search_volume_trend": {
+          "monthly": -18,
+          "quarterly": 0,
+          "yearly": -18
+        }
+      },
+      "keyword_properties": {
+        "se_type": "google",
+        "synonym_clustering_algorithm": "text_processing",
+        "keyword_difficulty": 2,
+        "detected_language": "pl",
+        "is_another_language": false,
+        "core_keyword": null
+      },
+      "avg_backlinks_info": {
+        "se_type": "google",
+        "backlinks": 14.8,
+        "dofollow": 13.5,
+        "referring_pages": 14.8,
+        "referring_domains": 9.1,
+        "referring_main_domains": 8.6,
+        "rank": 83.2,
+        "main_domain_rank": 336.1,
+        "last_updated_time": "2025-04-30 23:34:41 +00:00"
+      },
+      "search_intent_info": {
+        "se_type": "google",
+        "main_intent": "commercial",
+        "foreign_intent": [
+          "navigational"
+        ],
+        "last_updated_time": "2023-03-01 19:09:16 +00:00"
+      },
+      "clickstream_keyword_info": null
+    },
+    {
+      "se_type": "google",
+      "keyword": "twoje soczewki",
+      "location_code": 2616,
+      "language_code": "pl",
+      "keyword_info": {
+        "se_type": "google",
+        "last_updated_time": "2025-05-10 09:54:50 +00:00",
+        "competition": 0.99,
+        "competition_level": "HIGH",
+        "cpc": 1.11,
+        "search_volume": 5400,
+        "low_top_of_page_bid": 0.6,
+        "high_top_of_page_bid": 1.82,
+        "categories": [
+          10011,
+          10085,
+          10460,
+          12866,
+          12868
+        ],
+        "monthly_searches": [
+          {
+            "year": 2025,
+            "month": 4,
+            "search_volume": 5400
+          },
+          {
+            "year": 2025,
+            "month": 3,
+            "search_volume": 5400
+          },
+          {
+            "year": 2025,
+            "month": 2,
+            "search_volume": 5400
+          },
+          {
+            "year": 2025,
+            "month": 1,
+            "search_volume": 5400
+          },
+          {
+            "year": 2024,
+            "month": 12,
+            "search_volume": 5400
+          },
+          {
+            "year": 2024,
+            "month": 11,
+            "search_volume": 6600
+          },
+          {
+            "year": 2024,
+            "month": 10,
+            "search_volume": 6600
+          },
+          {
+            "year": 2024,
+            "month": 9,
+            "search_volume": 5400
+          },
+          {
+            "year": 2024,
+            "month": 8,
+            "search_volume": 6600
+          },
+          {
+            "year": 2024,
+            "month": 7,
+            "search_volume": 6600
+          },
+          {
+            "year": 2024,
+            "month": 6,
+            "search_volume": 6600
+          },
+          {
+            "year": 2024,
+            "month": 5,
+            "search_volume": 6600
+          }
+        ],
+        "search_volume_trend": {
+          "monthly": 0,
+          "quarterly": 0,
+          "yearly": -18
+        }
+      },
+      "keyword_properties": {
+        "se_type": "google",
+        "synonym_clustering_algorithm": "text_processing",
+        "keyword_difficulty": 15,
+        "detected_language": "pl",
+        "is_another_language": false,
+        "core_keyword": null
+      },
+      "avg_backlinks_info": {
+        "se_type": "google",
+        "backlinks": 288.1,
+        "dofollow": 148.7,
+        "referring_pages": 171.4,
+        "referring_domains": 18.3,
+        "referring_main_domains": 17.6,
+        "rank": 103.5,
+        "main_domain_rank": 603.4,
+        "last_updated_time": "2025-04-30 23:31:26 +00:00"
+      },
+      "search_intent_info": {
+        "se_type": "google",
+        "main_intent": "navigational",
+        "foreign_intent": [
+          "commercial"
+        ],
+        "last_updated_time": "2023-03-01 19:58:24 +00:00"
+      },
+      "clickstream_keyword_info": null
+    },
+    {
+      "se_type": "google",
+      "keyword": "acuvue oasys soczewki",
+      "location_code": 2616,
+      "language_code": "pl",
+      "keyword_info": {
+        "se_type": "google",
+        "last_updated_time": "2025-05-11 07:37:31 +00:00",
+        "competition": 1,
+        "competition_level": "HIGH",
+        "cpc": 2.04,
+        "search_volume": 3600,
+        "low_top_of_page_bid": 0.78,
+        "high_top_of_page_bid": 2.23,
+        "categories": [
+          10011,
+          10085,
+          10460,
+          12867
+        ],
+        "monthly_searches": [
+          {
+            "year": 2025,
+            "month": 4,
+            "search_volume": 3600
+          },
+          {
+            "year": 2025,
+            "month": 3,
+            "search_volume": 3600
+          },
+          {
+            "year": 2025,
+            "month": 2,
+            "search_volume": 2900
+          },
+          {
+            "year": 2025,
+            "month": 1,
+            "search_volume": 3600
+          },
+          {
+            "year": 2024,
+            "month": 12,
+            "search_volume": 2900
+          },
+          {
+            "year": 2024,
+            "month": 11,
+            "search_volume": 3600
+          },
+          {
+            "year": 2024,
+            "month": 10,
+            "search_volume": 2900
+          },
+          {
+            "year": 2024,
+            "month": 9,
+            "search_volume": 2900
+          },
+          {
+            "year": 2024,
+            "month": 8,
+            "search_volume": 3600
+          },
+          {
+            "year": 2024,
+            "month": 7,
+            "search_volume": 3600
+          },
+          {
+            "year": 2024,
+            "month": 6,
+            "search_volume": 3600
+          },
+          {
+            "year": 2024,
+            "month": 5,
+            "search_volume": 3600
+          }
+        ],
+        "search_volume_trend": {
+          "monthly": 0,
+          "quarterly": 24,
+          "yearly": 0
+        }
+      },
+      "keyword_properties": {
+        "se_type": "google",
+        "core_keyword": "soczewki acuvue oasys",
+        "synonym_clustering_algorithm": "text_processing",
+        "keyword_difficulty": 0,
+        "detected_language": "pl",
+        "is_another_language": false
+      },
+      "avg_backlinks_info": {
+        "se_type": "google",
+        "backlinks": 1.8,
+        "dofollow": 1.7,
+        "referring_pages": 1.8,
+        "referring_domains": 1.4,
+        "referring_main_domains": 1.2,
+        "rank": 24,
+        "main_domain_rank": 358.9,
+        "last_updated_time": "2024-12-12 03:08:38 +00:00"
+      },
+      "search_intent_info": {
+        "se_type": "google",
+        "main_intent": "transactional",
+        "last_updated_time": "2023-03-02 18:50:31 +00:00",
+        "foreign_intent": null
+      },
+      "clickstream_keyword_info": null
+    },
+    {
+      "se_type": "google",
+      "keyword": "soczewki acuvue oasys",
+      "location_code": 2616,
+      "language_code": "pl",
+      "keyword_info": {
+        "se_type": "google",
+        "last_updated_time": "2025-05-09 19:19:42 +00:00",
+        "competition": 1,
+        "competition_level": "HIGH",
+        "cpc": 2.04,
+        "search_volume": 3600,
+        "low_top_of_page_bid": 0.78,
+        "high_top_of_page_bid": 2.23,
+        "categories": [
+          10011,
+          10085,
+          10460,
+          12867
+        ],
+        "monthly_searches": [
+          {
+            "year": 2025,
+            "month": 4,
+            "search_volume": 3600
+          },
+          {
+            "year": 2025,
+            "month": 3,
+            "search_volume": 3600
+          },
+          {
+            "year": 2025,
+            "month": 2,
+            "search_volume": 2900
+          },
+          {
+            "year": 2025,
+            "month": 1,
+            "search_volume": 3600
+          },
+          {
+            "year": 2024,
+            "month": 12,
+            "search_volume": 2900
+          },
+          {
+            "year": 2024,
+            "month": 11,
+            "search_volume": 3600
+          },
+          {
+            "year": 2024,
+            "month": 10,
+            "search_volume": 2900
+          },
+          {
+            "year": 2024,
+            "month": 9,
+            "search_volume": 2900
+          },
+          {
+            "year": 2024,
+            "month": 8,
+            "search_volume": 3600
+          },
+          {
+            "year": 2024,
+            "month": 7,
+            "search_volume": 3600
+          },
+          {
+            "year": 2024,
+            "month": 6,
+            "search_volume": 3600
+          },
+          {
+            "year": 2024,
+            "month": 5,
+            "search_volume": 3600
+          }
+        ],
+        "search_volume_trend": {
+          "monthly": 0,
+          "quarterly": 24,
+          "yearly": 0
+        }
+      },
+      "keyword_properties": {
+        "se_type": "google",
+        "synonym_clustering_algorithm": "text_processing",
+        "keyword_difficulty": 0,
+        "detected_language": "pl",
+        "is_another_language": false,
+        "core_keyword": null
+      },
+      "avg_backlinks_info": {
+        "se_type": "google",
+        "backlinks": 2.9,
+        "dofollow": 2.3,
+        "referring_pages": 2.9,
+        "referring_domains": 1.8,
+        "referring_main_domains": 1.7,
+        "rank": 24.2,
+        "main_domain_rank": 374.1,
+        "last_updated_time": "2025-05-01 03:59:13 +00:00"
+      },
+      "search_intent_info": {
+        "se_type": "google",
+        "main_intent": "transactional",
+        "last_updated_time": "2023-03-01 19:09:14 +00:00",
+        "foreign_intent": null
+      },
+      "clickstream_keyword_info": null
+    },
+    {
+      "se_type": "google",
+      "keyword": "soczewki acuvue",
+      "location_code": 2616,
+      "language_code": "pl",
+      "keyword_info": {
+        "se_type": "google",
+        "last_updated_time": "2025-05-10 00:11:50 +00:00",
+        "competition": 1,
+        "competition_level": "HIGH",
+        "cpc": 1.51,
+        "search_volume": 2400,
+        "low_top_of_page_bid": 0.58,
+        "high_top_of_page_bid": 1.78,
+        "categories": [
+          10011,
+          10085,
+          10460,
+          12867
+        ],
+        "monthly_searches": [
+          {
+            "year": 2025,
+            "month": 4,
+            "search_volume": 2400
+          },
+          {
+            "year": 2025,
+            "month": 3,
+            "search_volume": 2400
+          },
+          {
+            "year": 2025,
+            "month": 2,
+            "search_volume": 1900
+          },
+          {
+            "year": 2025,
+            "month": 1,
+            "search_volume": 2400
+          },
+          {
+            "year": 2024,
+            "month": 12,
+            "search_volume": 1900
+          },
+          {
+            "year": 2024,
+            "month": 11,
+            "search_volume": 1900
+          },
+          {
+            "year": 2024,
+            "month": 10,
+            "search_volume": 1900
+          },
+          {
+            "year": 2024,
+            "month": 9,
+            "search_volume": 2400
+          },
+          {
+            "year": 2024,
+            "month": 8,
+            "search_volume": 2400
+          },
+          {
+            "year": 2024,
+            "month": 7,
+            "search_volume": 2900
+          },
+          {
+            "year": 2024,
+            "month": 6,
+            "search_volume": 2900
+          },
+          {
+            "year": 2024,
+            "month": 5,
+            "search_volume": 2900
+          }
+        ],
+        "search_volume_trend": {
+          "monthly": 0,
+          "quarterly": 26,
+          "yearly": -17
+        }
+      },
+      "keyword_properties": {
+        "se_type": "google",
+        "synonym_clustering_algorithm": "text_processing",
+        "keyword_difficulty": 0,
+        "detected_language": "pl",
+        "is_another_language": false,
+        "core_keyword": null
+      },
+      "avg_backlinks_info": {
+        "se_type": "google",
+        "backlinks": 284.4,
+        "dofollow": 260.4,
+        "referring_pages": 276.8,
+        "referring_domains": 82.7,
+        "referring_main_domains": 80.6,
+        "rank": 76.7,
+        "main_domain_rank": 332,
+        "last_updated_time": "2025-05-01 22:52:47 +00:00"
+      },
+      "search_intent_info": {
+        "se_type": "google",
+        "main_intent": "transactional",
+        "last_updated_time": "2023-03-01 19:09:14 +00:00",
+        "foreign_intent": null
+      },
+      "clickstream_keyword_info": null
+    }
+  ]
+}
+
+
+
+
+******
+******
+
+{
+  "seed_keyword": "grzegrzółka",
+  "suggestions": [
+    {
+      "se_type": "google",
+      "keyword": "grzegrzółka",
+      "location_code": 2616,
+      "language_code": "pl",
+      "keyword_info": {
+        "se_type": "google",
+        "last_updated_time": "2025-05-09 18:19:58 +00:00",
+        "competition": 0.01,
+        "competition_level": "LOW",
+        "cpc": 1.43,
+        "search_volume": 9900,
+        "low_top_of_page_bid": 0.58,
+        "high_top_of_page_bid": 1.35,
+        "categories": [
+          10010,
+          10082,
+          11613,
+          12832
+        ],
+        "monthly_searches": [
+          {
+            "year": 2025,
+            "month": 4,
+            "search_volume": 9900
+          },
+          {
+            "year": 2025,
+            "month": 3,
+            "search_volume": 12100
+          },
+          {
+            "year": 2025,
+            "month": 2,
+            "search_volume": 12100
+          },
+          {
+            "year": 2025,
+            "month": 1,
+            "search_volume": 9900
+          },
+          {
+            "year": 2024,
+            "month": 12,
+            "search_volume": 9900
+          },
+          {
+            "year": 2024,
+            "month": 11,
+            "search_volume": 9900
+          },
+          {
+            "year": 2024,
+            "month": 10,
+            "search_volume": 12100
+          },
+          {
+            "year": 2024,
+            "month": 9,
+            "search_volume": 8100
+          },
+          {
+            "year": 2024,
+            "month": 8,
+            "search_volume": 6600
+          },
+          {
+            "year": 2024,
+            "month": 7,
+            "search_volume": 6600
+          },
+          {
+            "year": 2024,
+            "month": 6,
+            "search_volume": 8100
+          },
+          {
+            "year": 2024,
+            "month": 5,
+            "search_volume": 9900
+          }
+        ],
+        "search_volume_trend": {
+          "monthly": -18,
+          "quarterly": -18,
+          "yearly": -18
+        }
+      },
+      "keyword_properties": {
+        "se_type": "google",
+        "synonym_clustering_algorithm": "keyword_metrics",
+        "keyword_difficulty": 0,
+        "detected_language": "pl",
+        "is_another_language": false,
+        "core_keyword": null
+      },
+      "avg_backlinks_info": {
+        "se_type": "google",
+        "backlinks": 3.5,
+        "dofollow": 2.1,
+        "referring_pages": 3.5,
+        "referring_domains": 3,
+        "referring_main_domains": 3,
+        "rank": 23.1,
+        "main_domain_rank": 384.9,
+        "last_updated_time": "2025-04-30 02:53:18 +00:00"
+      },
+      "search_intent_info": {
+        "se_type": "google",
+        "main_intent": "commercial",
+        "foreign_intent": [
+          "informational"
+        ],
+        "last_updated_time": "2023-03-06 13:40:52 +00:00"
+      },
+      "clickstream_keyword_info": null
+    },
+    {
+      "se_type": "google",
+      "keyword": "grzegrzółka co to",
+      "location_code": 2616,
+      "language_code": "pl",
+      "keyword_info": {
+        "se_type": "google",
+        "last_updated_time": "2025-05-14 04:02:46 +00:00",
+        "competition_level": "LOW",
+        "search_volume": 4400,
+        "categories": [
+          10010,
+          10082,
+          11613,
+          12832
+        ],
+        "monthly_searches": [
+          {
+            "year": 2025,
+            "month": 4,
+            "search_volume": 3600
+          },
+          {
+            "year": 2025,
+            "month": 3,
+            "search_volume": 6600
+          },
+          {
+            "year": 2025,
+            "month": 2,
+            "search_volume": 5400
+          },
+          {
+            "year": 2025,
+            "month": 1,
+            "search_volume": 5400
+          },
+          {
+            "year": 2024,
+            "month": 12,
+            "search_volume": 3600
+          },
+          {
+            "year": 2024,
+            "month": 11,
+            "search_volume": 4400
+          },
+          {
+            "year": 2024,
+            "month": 10,
+            "search_volume": 3600
+          },
+          {
+            "year": 2024,
+            "month": 9,
+            "search_volume": 3600
+          },
+          {
+            "year": 2024,
+            "month": 8,
+            "search_volume": 2900
+          },
+          {
+            "year": 2024,
+            "month": 7,
+            "search_volume": 2900
+          },
+          {
+            "year": 2024,
+            "month": 6,
+            "search_volume": 4400
+          },
+          {
+            "year": 2024,
+            "month": 5,
+            "search_volume": 4400
+          }
+        ],
+        "search_volume_trend": {
+          "monthly": -45,
+          "quarterly": -33,
+          "yearly": -33
+        },
+        "competition": null,
+        "cpc": null,
+        "low_top_of_page_bid": null,
+        "high_top_of_page_bid": null
+      },
+      "keyword_properties": {
+        "se_type": "google",
+        "keyword_difficulty": 12,
+        "detected_language": "pl",
+        "is_another_language": false,
+        "core_keyword": null,
+        "synonym_clustering_algorithm": null
+      },
+      "avg_backlinks_info": {
+        "se_type": "google",
+        "backlinks": 1.3,
+        "dofollow": 1.2,
+        "referring_pages": 1.3,
+        "referring_domains": 0.2,
+        "referring_main_domains": 0.8,
+        "rank": 3.2,
+        "main_domain_rank": 511,
+        "last_updated_time": "2023-10-24 15:20:48 +00:00"
+      },
+      "search_intent_info": {
+        "se_type": "google",
+        "main_intent": "informational",
+        "last_updated_time": "2023-03-06 13:40:53 +00:00",
+        "foreign_intent": null
+      },
+      "clickstream_keyword_info": null
+    },
+    {
+      "se_type": "google",
+      "keyword": "jak sie pisze grzegrzółka",
+      "location_code": 2616,
+      "language_code": "pl",
+      "keyword_info": {
+        "se_type": "google",
+        "last_updated_time": "2025-05-10 01:53:47 +00:00",
+        "competition_level": "LOW",
+        "search_volume": 1600,
+        "categories": [
+          10004,
+          10276,
+          11100
+        ],
+        "monthly_searches": [
+          {
+            "year": 2025,
+            "month": 4,
+            "search_volume": 1900
+          },
+          {
+            "year": 2025,
+            "month": 3,
+            "search_volume": 2400
+          },
+          {
+            "year": 2025,
+            "month": 2,
+            "search_volume": 1900
+          },
+          {
+            "year": 2025,
+            "month": 1,
+            "search_volume": 1300
+          },
+          {
+            "year": 2024,
+            "month": 12,
+            "search_volume": 1300
+          },
+          {
+            "year": 2024,
+            "month": 11,
+            "search_volume": 1600
+          },
+          {
+            "year": 2024,
+            "month": 10,
+            "search_volume": 1600
+          },
+          {
+            "year": 2024,
+            "month": 9,
+            "search_volume": 1300
+          },
+          {
+            "year": 2024,
+            "month": 8,
+            "search_volume": 880
+          },
+          {
+            "year": 2024,
+            "month": 7,
+            "search_volume": 880
+          },
+          {
+            "year": 2024,
+            "month": 6,
+            "search_volume": 1300
+          },
+          {
+            "year": 2024,
+            "month": 5,
+            "search_volume": 1600
+          }
+        ],
+        "search_volume_trend": {
+          "monthly": -21,
+          "quarterly": 0,
+          "yearly": -21
+        },
+        "competition": null,
+        "cpc": null,
+        "low_top_of_page_bid": null,
+        "high_top_of_page_bid": null
+      },
+      "keyword_properties": {
+        "se_type": "google",
+        "keyword_difficulty": 0,
+        "detected_language": "pl",
+        "is_another_language": false,
+        "core_keyword": null,
+        "synonym_clustering_algorithm": null
+      },
+      "avg_backlinks_info": {
+        "se_type": "google",
+        "backlinks": 0.5,
+        "dofollow": 0.5,
+        "referring_pages": 0.5,
+        "referring_domains": 0.3,
+        "referring_main_domains": 0.4,
+        "rank": 5.1,
+        "main_domain_rank": 439.4,
+        "last_updated_time": "2023-11-01 04:31:23 +00:00"
+      },
+      "search_intent_info": {
+        "se_type": "google",
+        "main_intent": "informational",
+        "last_updated_time": "2023-03-06 16:47:21 +00:00",
+        "foreign_intent": null
+      },
+      "clickstream_keyword_info": null
+    },
+    {
+      "se_type": "google",
+      "keyword": "jak się pisze grzegrzółka",
+      "location_code": 2616,
+      "language_code": "pl",
+      "keyword_info": {
+        "se_type": "google",
+        "last_updated_time": "2025-05-09 12:00:43 +00:00",
+        "competition_level": "LOW",
+        "search_volume": 1600,
+        "categories": [
+          10004,
+          10010,
+          10016,
+          10082,
+          10141,
+          10276,
+          11100,
+          11613,
+          12832,
+          13849
+        ],
+        "monthly_searches": [
+          {
+            "year": 2025,
+            "month": 4,
+            "search_volume": 1900
+          },
+          {
+            "year": 2025,
+            "month": 3,
+            "search_volume": 2400
+          },
+          {
+            "year": 2025,
+            "month": 2,
+            "search_volume": 1900
+          },
+          {
+            "year": 2025,
+            "month": 1,
+            "search_volume": 1300
+          },
+          {
+            "year": 2024,
+            "month": 12,
+            "search_volume": 1300
+          },
+          {
+            "year": 2024,
+            "month": 11,
+            "search_volume": 1600
+          },
+          {
+            "year": 2024,
+            "month": 10,
+            "search_volume": 1600
+          },
+          {
+            "year": 2024,
+            "month": 9,
+            "search_volume": 1300
+          },
+          {
+            "year": 2024,
+            "month": 8,
+            "search_volume": 880
+          },
+          {
+            "year": 2024,
+            "month": 7,
+            "search_volume": 880
+          },
+          {
+            "year": 2024,
+            "month": 6,
+            "search_volume": 1300
+          },
+          {
+            "year": 2024,
+            "month": 5,
+            "search_volume": 1600
+          }
+        ],
+        "search_volume_trend": {
+          "monthly": -21,
+          "quarterly": 0,
+          "yearly": -21
+        },
+        "competition": null,
+        "cpc": null,
+        "low_top_of_page_bid": null,
+        "high_top_of_page_bid": null
+      },
+      "keyword_properties": {
+        "se_type": "google",
+        "synonym_clustering_algorithm": "text_processing",
+        "keyword_difficulty": 0,
+        "detected_language": "pl",
+        "is_another_language": false,
+        "core_keyword": null
+      },
+      "avg_backlinks_info": {
+        "se_type": "google",
+        "backlinks": 0.5,
+        "dofollow": 0.5,
+        "referring_pages": 0.5,
+        "referring_domains": 0.3,
+        "referring_main_domains": 0.4,
+        "rank": 5.1,
+        "main_domain_rank": 404.5,
+        "last_updated_time": "2023-11-01 04:31:10 +00:00"
+      },
+      "search_intent_info": {
+        "se_type": "google",
+        "main_intent": "informational",
+        "last_updated_time": "2023-03-06 16:47:53 +00:00",
+        "foreign_intent": null
+      },
+      "clickstream_keyword_info": null
+    },
+    {
+      "se_type": "google",
+      "keyword": "grzegrzółka ptak",
+      "location_code": 2616,
+      "language_code": "pl",
+      "keyword_info": {
+        "se_type": "google",
+        "last_updated_time": "2025-05-13 07:15:15 +00:00",
+        "competition_level": "LOW",
+        "search_volume": 1600,
+        "categories": [
+          10015,
+          10134
+        ],
+        "monthly_searches": [
+          {
+            "year": 2025,
+            "month": 4,
+            "search_volume": 1600
+          },
+          {
+            "year": 2025,
+            "month": 3,
+            "search_volume": 1900
+          },
+          {
+            "year": 2025,
+            "month": 2,
+            "search_volume": 1600
+          },
+          {
+            "year": 2025,
+            "month": 1,
+            "search_volume": 1600
+          },
+          {
+            "year": 2024,
+            "month": 12,
+            "search_volume": 1300
+          },
+          {
+            "year": 2024,
+            "month": 11,
+            "search_volume": 1300
+          },
+          {
+            "year": 2024,
+            "month": 10,
+            "search_volume": 1600
+          },
+          {
+            "year": 2024,
+            "month": 9,
+            "search_volume": 1300
+          },
+          {
+            "year": 2024,
+            "month": 8,
+            "search_volume": 1000
+          },
+          {
+            "year": 2024,
+            "month": 7,
+            "search_volume": 1000
+          },
+          {
+            "year": 2024,
+            "month": 6,
+            "search_volume": 1600
+          },
+          {
+            "year": 2024,
+            "month": 5,
+            "search_volume": 1600
+          }
+        ],
+        "search_volume_trend": {
+          "monthly": -16,
+          "quarterly": 0,
+          "yearly": -33
+        },
+        "competition": null,
+        "cpc": null,
+        "low_top_of_page_bid": null,
+        "high_top_of_page_bid": null
+      },
+      "keyword_properties": {
+        "se_type": "google",
+        "keyword_difficulty": 12,
+        "detected_language": "pl",
+        "is_another_language": false,
+        "core_keyword": null,
+        "synonym_clustering_algorithm": null
+      },
+      "avg_backlinks_info": {
+        "se_type": "google",
+        "backlinks": 2.2,
+        "dofollow": 2.1,
+        "referring_pages": 2.2,
+        "referring_domains": 0.5,
+        "referring_main_domains": 1,
+        "rank": 8.5,
+        "main_domain_rank": 497,
+        "last_updated_time": "2023-10-27 05:15:44 +00:00"
+      },
+      "search_intent_info": {
+        "se_type": "google",
+        "main_intent": "informational",
+        "foreign_intent": [
+          "commercial"
+        ],
+        "last_updated_time": "2023-03-06 13:40:53 +00:00"
+      },
+      "clickstream_keyword_info": null
+    },
+    {
+      "se_type": "google",
+      "keyword": "grzegrzółka pisownia",
+      "location_code": 2616,
+      "language_code": "pl",
+      "keyword_info": {
+        "se_type": "google",
+        "last_updated_time": "2025-05-10 09:05:06 +00:00",
+        "competition_level": "LOW",
+        "search_volume": 880,
+        "categories": [
+          10002,
+          10127,
+          10231,
+          13471
+        ],
+        "monthly_searches": [
+          {
+            "year": 2025,
+            "month": 4,
+            "search_volume": 880
+          },
+          {
+            "year": 2025,
+            "month": 3,
+            "search_volume": 1300
+          },
+          {
+            "year": 2025,
+            "month": 2,
+            "search_volume": 880
+          },
+          {
+            "year": 2025,
+            "month": 1,
+            "search_volume": 880
+          },
+          {
+            "year": 2024,
+            "month": 12,
+            "search_volume": 480
+          },
+          {
+            "year": 2024,
+            "month": 11,
+            "search_volume": 720
+          },
+          {
+            "year": 2024,
+            "month": 10,
+            "search_volume": 880
+          },
+          {
+            "year": 2024,
+            "month": 9,
+            "search_volume": 720
+          },
+          {
+            "year": 2024,
+            "month": 8,
+            "search_volume": 390
+          },
+          {
+            "year": 2024,
+            "month": 7,
+            "search_volume": 390
+          },
+          {
+            "year": 2024,
+            "month": 6,
+            "search_volume": 880
+          },
+          {
+            "year": 2024,
+            "month": 5,
+            "search_volume": 1000
+          }
+        ],
+        "search_volume_trend": {
+          "monthly": -32,
+          "quarterly": 0,
+          "yearly": -54
+        },
+        "competition": null,
+        "cpc": null,
+        "low_top_of_page_bid": null,
+        "high_top_of_page_bid": null
+      },
+      "keyword_properties": {
+        "se_type": "google",
+        "keyword_difficulty": 0,
+        "detected_language": "pl",
+        "is_another_language": false,
+        "core_keyword": null,
+        "synonym_clustering_algorithm": null
+      },
+      "avg_backlinks_info": {
+        "se_type": "google",
+        "backlinks": 0.5,
+        "dofollow": 0.5,
+        "referring_pages": 0.5,
+        "referring_domains": 0.3,
+        "referring_main_domains": 0.4,
+        "rank": 5.1,
+        "main_domain_rank": 438.1,
+        "last_updated_time": "2023-11-01 05:56:38 +00:00"
+      },
+      "search_intent_info": {
+        "se_type": "google",
+        "main_intent": "informational",
+        "last_updated_time": "2023-03-06 13:40:52 +00:00",
+        "foreign_intent": null
+      },
+      "clickstream_keyword_info": null
+    },
+    {
+      "se_type": "google",
+      "keyword": "grzegrzółka czy gżegżółka",
+      "location_code": 2616,
+      "language_code": "pl",
+      "keyword_info": {
+        "se_type": "google",
+        "last_updated_time": "2025-05-13 19:31:04 +00:00",
+        "competition_level": "LOW",
+        "search_volume": 720,
+        "categories": [
+          10010,
+          10082,
+          11613,
+          12832
+        ],
+        "monthly_searches": [
+          {
+            "year": 2025,
+            "month": 4,
+            "search_volume": 720
+          },
+          {
+            "year": 2025,
+            "month": 3,
+            "search_volume": 1000
+          },
+          {
+            "year": 2025,
+            "month": 2,
+            "search_volume": 590
+          },
+          {
+            "year": 2025,
+            "month": 1,
+            "search_volume": 590
+          },
+          {
+            "year": 2024,
+            "month": 12,
+            "search_volume": 590
+          },
+          {
+            "year": 2024,
+            "month": 11,
+            "search_volume": 720
+          },
+          {
+            "year": 2024,
+            "month": 10,
+            "search_volume": 720
+          },
+          {
+            "year": 2024,
+            "month": 9,
+            "search_volume": 590
+          },
+          {
+            "year": 2024,
+            "month": 8,
+            "search_volume": 480
+          },
+          {
+            "year": 2024,
+            "month": 7,
+            "search_volume": 320
+          },
+          {
+            "year": 2024,
+            "month": 6,
+            "search_volume": 480
+          },
+          {
+            "year": 2024,
+            "month": 5,
+            "search_volume": 880
+          }
+        ],
+        "search_volume_trend": {
+          "monthly": -28,
+          "quarterly": 22,
+          "yearly": -45
+        },
+        "competition": null,
+        "cpc": null,
+        "low_top_of_page_bid": null,
+        "high_top_of_page_bid": null
+      },
+      "keyword_properties": {
+        "se_type": "google",
+        "synonym_clustering_algorithm": "text_processing",
+        "keyword_difficulty": 0,
+        "detected_language": "pl",
+        "is_another_language": false,
+        "core_keyword": null
+      },
+      "avg_backlinks_info": {
+        "se_type": "google",
+        "backlinks": 0.5,
+        "dofollow": 0.5,
+        "referring_pages": 0.5,
+        "referring_domains": 0.3,
+        "referring_main_domains": 0.4,
+        "rank": 5.1,
+        "main_domain_rank": 438.8,
+        "last_updated_time": "2023-11-07 18:43:50 +00:00"
+      },
+      "search_intent_info": {
+        "se_type": "google",
+        "main_intent": "informational",
+        "last_updated_time": "2023-03-06 13:40:52 +00:00",
+        "foreign_intent": null
+      },
+      "clickstream_keyword_info": null
+    },
+    {
+      "se_type": "google",
+      "keyword": "grzegrzółka jak się pisze",
+      "location_code": 2616,
+      "language_code": "pl",
+      "keyword_info": {
+        "se_type": "google",
+        "last_updated_time": "2025-05-11 01:40:06 +00:00",
+        "competition_level": "LOW",
+        "search_volume": 720,
+        "categories": [
+          10004,
+          10010,
+          10016,
+          10082,
+          10141,
+          10276,
+          11100,
+          11613,
+          12832,
+          13849
+        ],
+        "monthly_searches": [
+          {
+            "year": 2025,
+            "month": 4,
+            "search_volume": 1000
+          },
+          {
+            "year": 2025,
+            "month": 3,
+            "search_volume": 1300
+          },
+          {
+            "year": 2025,
+            "month": 2,
+            "search_volume": 880
+          },
+          {
+            "year": 2025,
+            "month": 1,
+            "search_volume": 590
+          },
+          {
+            "year": 2024,
+            "month": 12,
+            "search_volume": 590
+          },
+          {
+            "year": 2024,
+            "month": 11,
+            "search_volume": 880
+          },
+          {
+            "year": 2024,
+            "month": 10,
+            "search_volume": 880
+          },
+          {
+            "year": 2024,
+            "month": 9,
+            "search_volume": 1000
+          },
+          {
+            "year": 2024,
+            "month": 8,
+            "search_volume": 320
+          },
+          {
+            "year": 2024,
+            "month": 7,
+            "search_volume": 210
+          },
+          {
+            "year": 2024,
+            "month": 6,
+            "search_volume": 590
+          },
+          {
+            "year": 2024,
+            "month": 5,
+            "search_volume": 1000
+          }
+        ],
+        "search_volume_trend": {
+          "monthly": -23,
+          "quarterly": 14,
+          "yearly": 0
+        },
+        "competition": null,
+        "cpc": null,
+        "low_top_of_page_bid": null,
+        "high_top_of_page_bid": null
+      },
+      "keyword_properties": {
+        "se_type": "google",
+        "core_keyword": "jak się pisze grzegrzółka",
+        "synonym_clustering_algorithm": "text_processing",
+        "keyword_difficulty": 0,
+        "detected_language": "pl",
+        "is_another_language": false
+      },
+      "avg_backlinks_info": {
+        "se_type": "google",
+        "backlinks": 0.5,
+        "dofollow": 0.5,
+        "referring_pages": 0.5,
+        "referring_domains": 0.3,
+        "referring_main_domains": 0.4,
+        "rank": 5.1,
+        "main_domain_rank": 419.8,
+        "last_updated_time": "2023-10-10 10:46:22 +00:00"
+      },
+      "search_intent_info": {
+        "se_type": "google",
+        "main_intent": "informational",
+        "last_updated_time": "2023-03-06 13:40:53 +00:00",
+        "foreign_intent": null
+      },
+      "clickstream_keyword_info": null
+    },
+    {
+      "se_type": "google",
+      "keyword": "co to jest grzegrzółka",
+      "location_code": 2616,
+      "language_code": "pl",
+      "keyword_info": {
+        "se_type": "google",
+        "last_updated_time": "2025-05-10 20:29:38 +00:00",
+        "competition_level": "LOW",
+        "search_volume": 720,
+        "categories": [
+          10010,
+          10082,
+          11613,
+          12832
+        ],
+        "monthly_searches": [
+          {
+            "year": 2025,
+            "month": 4,
+            "search_volume": 720
+          },
+          {
+            "year": 2025,
+            "month": 3,
+            "search_volume": 1000
+          },
+          {
+            "year": 2025,
+            "month": 2,
+            "search_volume": 880
+          },
+          {
+            "year": 2025,
+            "month": 1,
+            "search_volume": 720
+          },
+          {
+            "year": 2024,
+            "month": 12,
+            "search_volume": 590
+          },
+          {
+            "year": 2024,
+            "month": 11,
+            "search_volume": 720
+          },
+          {
+            "year": 2024,
+            "month": 10,
+            "search_volume": 880
+          },
+          {
+            "year": 2024,
+            "month": 9,
+            "search_volume": 590
+          },
+          {
+            "year": 2024,
+            "month": 8,
+            "search_volume": 480
+          },
+          {
+            "year": 2024,
+            "month": 7,
+            "search_volume": 390
+          },
+          {
+            "year": 2024,
+            "month": 6,
+            "search_volume": 480
+          },
+          {
+            "year": 2024,
+            "month": 5,
+            "search_volume": 720
+          }
+        ],
+        "search_volume_trend": {
+          "monthly": -28,
+          "quarterly": -18,
+          "yearly": -18
+        },
+        "competition": null,
+        "cpc": null,
+        "low_top_of_page_bid": null,
+        "high_top_of_page_bid": null
+      },
+      "keyword_properties": {
+        "se_type": "google",
+        "core_keyword": "grzegrzółka co to jest",
+        "synonym_clustering_algorithm": "text_processing",
+        "keyword_difficulty": 11,
+        "detected_language": "pl",
+        "is_another_language": false
+      },
+      "avg_backlinks_info": {
+        "se_type": "google",
+        "backlinks": 1.3,
+        "dofollow": 1.2,
+        "referring_pages": 1.3,
+        "referring_domains": 0.2,
+        "referring_main_domains": 0.8,
+        "rank": 3.2,
+        "main_domain_rank": 487.9,
+        "last_updated_time": "2023-10-09 06:18:29 +00:00"
+      },
+      "search_intent_info": {
+        "se_type": "google",
+        "main_intent": "informational",
+        "last_updated_time": "2023-03-02 19:55:19 +00:00",
+        "foreign_intent": null
+      },
+      "clickstream_keyword_info": null
+    },
+    {
+      "se_type": "google",
+      "keyword": "grzegrzółka roślina",
+      "location_code": 2616,
+      "language_code": "pl",
+      "keyword_info": {
+        "se_type": "google",
+        "last_updated_time": "2025-05-12 03:31:17 +00:00",
+        "competition_level": "LOW",
+        "search_volume": 590,
+        "categories": [
+          10004,
+          10010,
+          10015,
+          10082,
+          10135,
+          10719,
+          11076,
+          11613,
+          12833,
+          13460
+        ],
+        "monthly_searches": [
+          {
+            "year": 2025,
+            "month": 4,
+            "search_volume": 720
+          },
+          {
+            "year": 2025,
+            "month": 3,
+            "search_volume": 880
+          },
+          {
+            "year": 2025,
+            "month": 2,
+            "search_volume": 880
+          },
+          {
+            "year": 2025,
+            "month": 1,
+            "search_volume": 720
+          },
+          {
+            "year": 2024,
+            "month": 12,
+            "search_volume": 590
+          },
+          {
+            "year": 2024,
+            "month": 11,
+            "search_volume": 480
+          },
+          {
+            "year": 2024,
+            "month": 10,
+            "search_volume": 590
+          },
+          {
+            "year": 2024,
+            "month": 9,
+            "search_volume": 480
+          },
+          {
+            "year": 2024,
+            "month": 8,
+            "search_volume": 480
+          },
+          {
+            "year": 2024,
+            "month": 7,
+            "search_volume": 480
+          },
+          {
+            "year": 2024,
+            "month": 6,
+            "search_volume": 720
+          },
+          {
+            "year": 2024,
+            "month": 5,
+            "search_volume": 590
+          }
+        ],
+        "search_volume_trend": {
+          "monthly": -18,
+          "quarterly": -18,
+          "yearly": -18
+        },
+        "competition": null,
+        "cpc": null,
+        "low_top_of_page_bid": null,
+        "high_top_of_page_bid": null
+      },
+      "keyword_properties": {
+        "se_type": "google",
+        "synonym_clustering_algorithm": "text_processing",
+        "keyword_difficulty": 12,
+        "detected_language": "pl",
+        "is_another_language": false,
+        "core_keyword": null
+      },
+      "avg_backlinks_info": {
+        "se_type": "google",
+        "backlinks": 1.3,
+        "dofollow": 1.2,
+        "referring_pages": 1.3,
+        "referring_domains": 0.2,
+        "referring_main_domains": 0.8,
+        "rank": 3.2,
+        "main_domain_rank": 530.3,
+        "last_updated_time": "2023-11-06 16:03:33 +00:00"
+      },
+      "search_intent_info": {
+        "se_type": "google",
+        "main_intent": "informational",
+        "foreign_intent": [
+          "commercial"
+        ],
+        "last_updated_time": "2023-03-06 13:40:53 +00:00"
+      },
+      "clickstream_keyword_info": null
+    },
+    {
+      "se_type": "google",
+      "keyword": "grzegrzółka co to jest",
+      "location_code": 2616,
+      "language_code": "pl",
+      "keyword_info": {
+        "se_type": "google",
+        "last_updated_time": "2025-05-10 20:42:16 +00:00",
+        "competition_level": "LOW",
+        "search_volume": 480,
+        "categories": [
+          10108,
+          10756
+        ],
+        "monthly_searches": [
+          {
+            "year": 2025,
+            "month": 4,
+            "search_volume": 260
+          },
+          {
+            "year": 2025,
+            "month": 3,
+            "search_volume": 480
+          },
+          {
+            "year": 2025,
+            "month": 2,
+            "search_volume": 590
+          },
+          {
+            "year": 2025,
+            "month": 1,
+            "search_volume": 480
+          },
+          {
+            "year": 2024,
+            "month": 12,
+            "search_volume": 320
+          },
+          {
+            "year": 2024,
+            "month": 11,
+            "search_volume": 590
+          },
+          {
+            "year": 2024,
+            "month": 10,
+            "search_volume": 1000
+          },
+          {
+            "year": 2024,
+            "month": 9,
+            "search_volume": 720
+          },
+          {
+            "year": 2024,
+            "month": 8,
+            "search_volume": 210
+          },
+          {
+            "year": 2024,
+            "month": 7,
+            "search_volume": 260
+          },
+          {
+            "year": 2024,
+            "month": 6,
+            "search_volume": 390
+          },
+          {
+            "year": 2024,
+            "month": 5,
+            "search_volume": 480
+          }
+        ],
+        "search_volume_trend": {
+          "monthly": -46,
+          "quarterly": -56,
+          "yearly": -56
+        },
+        "competition": null,
+        "cpc": null,
+        "low_top_of_page_bid": null,
+        "high_top_of_page_bid": null
+      },
+      "keyword_properties": {
+        "se_type": "google",
+        "synonym_clustering_algorithm": "text_processing",
+        "keyword_difficulty": 0,
+        "detected_language": "pl",
+        "is_another_language": false,
+        "core_keyword": null
+      },
+      "avg_backlinks_info": {
+        "se_type": "google",
+        "backlinks": 1.3,
+        "dofollow": 1.2,
+        "referring_pages": 1.3,
+        "referring_domains": 0.2,
+        "referring_main_domains": 0.8,
+        "rank": 3.2,
+        "main_domain_rank": 476.3,
+        "last_updated_time": "2023-11-05 07:36:32 +00:00"
+      },
+      "search_intent_info": {
+        "se_type": "google",
+        "main_intent": "informational",
+        "foreign_intent": [
+          "commercial"
+        ],
+        "last_updated_time": "2023-03-06 13:40:53 +00:00"
+      },
+      "clickstream_keyword_info": null
+    },
+    {
+      "se_type": "google",
+      "keyword": "gżegżółka czy grzegrzółka",
+      "location_code": 2616,
+      "language_code": "pl",
+      "keyword_info": {
+        "se_type": "google",
+        "last_updated_time": "2025-05-12 14:45:46 +00:00",
+        "competition_level": "LOW",
+        "search_volume": 260,
+        "categories": [
+          10010,
+          10082,
+          11613,
+          12832
+        ],
+        "monthly_searches": [
+          {
+            "year": 2025,
+            "month": 4,
+            "search_volume": 140
+          },
+          {
+            "year": 2025,
+            "month": 3,
+            "search_volume": 210
+          },
+          {
+            "year": 2025,
+            "month": 2,
+            "search_volume": 90
+          },
+          {
+            "year": 2025,
+            "month": 1,
+            "search_volume": 170
+          },
+          {
+            "year": 2024,
+            "month": 12,
+            "search_volume": 320
+          },
+          {
+            "year": 2024,
+            "month": 11,
+            "search_volume": 390
+          },
+          {
+            "year": 2024,
+            "month": 10,
+            "search_volume": 390
+          },
+          {
+            "year": 2024,
+            "month": 9,
+            "search_volume": 320
+          },
+          {
+            "year": 2024,
+            "month": 8,
+            "search_volume": 170
+          },
+          {
+            "year": 2024,
+            "month": 7,
+            "search_volume": 210
+          },
+          {
+            "year": 2024,
+            "month": 6,
+            "search_volume": 260
+          },
+          {
+            "year": 2024,
+            "month": 5,
+            "search_volume": 390
+          }
+        ],
+        "search_volume_trend": {
+          "monthly": -33,
+          "quarterly": 56,
+          "yearly": -46
+        },
+        "competition": null,
+        "cpc": null,
+        "low_top_of_page_bid": null,
+        "high_top_of_page_bid": null
+      },
+      "keyword_properties": {
+        "se_type": "google",
+        "core_keyword": "grzegrzółka czy gżegżółka",
+        "synonym_clustering_algorithm": "text_processing",
+        "keyword_difficulty": 0,
+        "detected_language": "pl",
+        "is_another_language": false
+      },
+      "avg_backlinks_info": {
+        "se_type": "google",
+        "backlinks": 0.5,
+        "dofollow": 0.5,
+        "referring_pages": 0.5,
+        "referring_domains": 0.3,
+        "referring_main_domains": 0.4,
+        "rank": 5.1,
+        "main_domain_rank": 439.9,
+        "last_updated_time": "2023-10-17 21:08:30 +00:00"
+      },
+      "search_intent_info": {
+        "se_type": "google",
+        "main_intent": "informational",
+        "last_updated_time": "2023-03-06 13:56:59 +00:00",
+        "foreign_intent": null
+      },
+      "clickstream_keyword_info": null
+    },
+    {
+      "se_type": "google",
+      "keyword": "grzegrzółka warzywo",
+      "location_code": 2616,
+      "language_code": "pl",
+      "keyword_info": {
+        "se_type": "google",
+        "last_updated_time": "2025-05-09 11:21:13 +00:00",
+        "competition_level": "LOW",
+        "search_volume": 210,
+        "categories": [
+          10004,
+          10010,
+          10082,
+          10276,
+          11613,
+          12832
+        ],
+        "monthly_searches": [
+          {
+            "year": 2025,
+            "month": 4,
+            "search_volume": 170
+          },
+          {
+            "year": 2025,
+            "month": 3,
+            "search_volume": 320
+          },
+          {
+            "year": 2025,
+            "month": 2,
+            "search_volume": 390
+          },
+          {
+            "year": 2025,
+            "month": 1,
+            "search_volume": 210
+          },
+          {
+            "year": 2024,
+            "month": 12,
+            "search_volume": 170
+          },
+          {
+            "year": 2024,
+            "month": 11,
+            "search_volume": 170
+          },
+          {
+            "year": 2024,
+            "month": 10,
+            "search_volume": 260
+          },
+          {
+            "year": 2024,
+            "month": 9,
+            "search_volume": 210
+          },
+          {
+            "year": 2024,
+            "month": 8,
+            "search_volume": 140
+          },
+          {
+            "year": 2024,
+            "month": 7,
+            "search_volume": 210
+          },
+          {
+            "year": 2024,
+            "month": 6,
+            "search_volume": 170
+          },
+          {
+            "year": 2024,
+            "month": 5,
+            "search_volume": 90
+          }
+        ],
+        "search_volume_trend": {
+          "monthly": -47,
+          "quarterly": -56,
+          "yearly": -56
+        },
+        "competition": null,
+        "cpc": null,
+        "low_top_of_page_bid": null,
+        "high_top_of_page_bid": null
+      },
+      "keyword_properties": {
+        "se_type": "google",
+        "keyword_difficulty": 0,
+        "detected_language": "pl",
+        "is_another_language": false,
+        "core_keyword": null,
+        "synonym_clustering_algorithm": null
+      },
+      "avg_backlinks_info": {
+        "se_type": "google",
+        "backlinks": 1.8,
+        "dofollow": 1.7,
+        "referring_pages": 1.8,
+        "referring_domains": 0.5,
+        "referring_main_domains": 1.2,
+        "rank": 8.3,
+        "main_domain_rank": 514.5,
+        "last_updated_time": "2023-11-08 23:10:05 +00:00"
+      },
+      "search_intent_info": {
+        "se_type": "google",
+        "main_intent": "informational",
+        "foreign_intent": [
+          "commercial"
+        ],
+        "last_updated_time": "2023-03-06 13:40:53 +00:00"
+      },
+      "clickstream_keyword_info": null
+    },
+    {
+      "se_type": "google",
+      "keyword": "andrzej grzegrzółka",
+      "location_code": 2616,
+      "language_code": "pl",
+      "keyword_info": {
+        "se_type": "google",
+        "last_updated_time": "2025-05-12 15:50:15 +00:00",
+        "competition_level": "LOW",
+        "search_volume": 170,
+        "categories": [
+          10010,
+          10082,
+          11613,
+          12832
+        ],
+        "monthly_searches": [
+          {
+            "year": 2025,
+            "month": 4,
+            "search_volume": 140
+          },
+          {
+            "year": 2025,
+            "month": 3,
+            "search_volume": 90
+          },
+          {
+            "year": 2025,
+            "month": 2,
+            "search_volume": 170
+          },
+          {
+            "year": 2025,
+            "month": 1,
+            "search_volume": 170
+          },
+          {
+            "year": 2024,
+            "month": 12,
+            "search_volume": 170
+          },
+          {
+            "year": 2024,
+            "month": 11,
+            "search_volume": 210
+          },
+          {
+            "year": 2024,
+            "month": 10,
+            "search_volume": 320
+          },
+          {
+            "year": 2024,
+            "month": 9,
+            "search_volume": 260
+          },
+          {
+            "year": 2024,
+            "month": 8,
+            "search_volume": 260
+          },
+          {
+            "year": 2024,
+            "month": 7,
+            "search_volume": 210
+          },
+          {
+            "year": 2024,
+            "month": 6,
+            "search_volume": 140
+          },
+          {
+            "year": 2024,
+            "month": 5,
+            "search_volume": 170
+          }
+        ],
+        "search_volume_trend": {
+          "monthly": 56,
+          "quarterly": -18,
+          "yearly": -33
+        },
+        "competition": null,
+        "cpc": null,
+        "low_top_of_page_bid": null,
+        "high_top_of_page_bid": null
+      },
+      "keyword_properties": {
+        "se_type": "google",
+        "synonym_clustering_algorithm": "text_processing",
+        "keyword_difficulty": 0,
+        "detected_language": "pl",
+        "is_another_language": false,
+        "core_keyword": null
+      },
+      "avg_backlinks_info": {
+        "se_type": "google",
+        "backlinks": 0.9,
+        "dofollow": 0.4,
+        "referring_pages": 0.7,
+        "referring_domains": 0.7,
+        "referring_main_domains": 0.4,
+        "rank": 21.9,
+        "main_domain_rank": 649,
+        "last_updated_time": "2024-08-09 21:50:07 +00:00"
+      },
+      "search_intent_info": {
+        "se_type": "google",
+        "main_intent": "informational",
+        "last_updated_time": "2023-03-02 19:00:30 +00:00",
+        "foreign_intent": null
+      },
+      "clickstream_keyword_info": null
+    },
+    {
+      "se_type": "google",
+      "keyword": "jak się pisze grzegrzółka wikipedia",
+      "location_code": 2616,
+      "language_code": "pl",
+      "keyword_info": {
+        "se_type": "google",
+        "last_updated_time": "2025-05-10 09:36:34 +00:00",
+        "competition_level": "LOW",
+        "search_volume": 170,
+        "categories": [
+          10016,
+          10141,
+          13849
+        ],
+        "monthly_searches": [
+          {
+            "year": 2025,
+            "month": 4,
+            "search_volume": 260
+          },
+          {
+            "year": 2025,
+            "month": 3,
+            "search_volume": 480
+          },
+          {
+            "year": 2025,
+            "month": 2,
+            "search_volume": 390
+          },
+          {
+            "year": 2025,
+            "month": 1,
+            "search_volume": 260
+          },
+          {
+            "year": 2024,
+            "month": 12,
+            "search_volume": 110
+          },
+          {
+            "year": 2024,
+            "month": 11,
+            "search_volume": 170
+          },
+          {
+            "year": 2024,
+            "month": 10,
+            "search_volume": 170
+          },
+          {
+            "year": 2024,
+            "month": 9,
+            "search_volume": 140
+          },
+          {
+            "year": 2024,
+            "month": 8,
+            "search_volume": 70
+          },
+          {
+            "year": 2024,
+            "month": 7,
+            "search_volume": 70
+          },
+          {
+            "year": 2024,
+            "month": 6,
+            "search_volume": 0
+          },
+          {
+            "year": 2024,
+            "month": 5,
+            "search_volume": 0
+          }
+        ],
+        "search_volume_trend": {
+          "monthly": -46,
+          "quarterly": -33,
+          "yearly": null
+        },
+        "competition": null,
+        "cpc": null,
+        "low_top_of_page_bid": null,
+        "high_top_of_page_bid": null
+      },
+      "keyword_properties": {
+        "se_type": "google",
+        "detected_language": "pl",
+        "is_another_language": false,
+        "core_keyword": null,
+        "synonym_clustering_algorithm": null,
+        "keyword_difficulty": null
+      },
+      "search_intent_info": {
+        "se_type": "google",
+        "main_intent": "informational",
+        "last_updated_time": "2024-08-09 09:58:45 +00:00",
+        "foreign_intent": null
+      },
+      "clickstream_keyword_info": null
+    },
+    {
+      "se_type": "google",
+      "keyword": "grzegrzółka siennica",
+      "location_code": 2616,
+      "language_code": "pl",
+      "keyword_info": {
+        "se_type": "google",
+        "last_updated_time": "2025-05-10 00:22:49 +00:00",
+        "competition_level": "LOW",
+        "search_volume": 110,
+        "categories": [
+          10010,
+          10082,
+          11613,
+          12832
+        ],
+        "monthly_searches": [
+          {
+            "year": 2025,
+            "month": 4,
+            "search_volume": 110
+          },
+          {
+            "year": 2025,
+            "month": 3,
+            "search_volume": 110
+          },
+          {
+            "year": 2025,
+            "month": 2,
+            "search_volume": 70
+          },
+          {
+            "year": 2025,
+            "month": 1,
+            "search_volume": 70
+          },
+          {
+            "year": 2024,
+            "month": 12,
+            "search_volume": 50
+          },
+          {
+            "year": 2024,
+            "month": 11,
+            "search_volume": 70
+          },
+          {
+            "year": 2024,
+            "month": 10,
+            "search_volume": 140
+          },
+          {
+            "year": 2024,
+            "month": 9,
+            "search_volume": 110
+          },
+          {
+            "year": 2024,
+            "month": 8,
+            "search_volume": 140
+          },
+          {
+            "year": 2024,
+            "month": 7,
+            "search_volume": 170
+          },
+          {
+            "year": 2024,
+            "month": 6,
+            "search_volume": 140
+          },
+          {
+            "year": 2024,
+            "month": 5,
+            "search_volume": 170
+          }
+        ],
+        "search_volume_trend": {
+          "monthly": 0,
+          "quarterly": 57,
+          "yearly": -21
+        },
+        "competition": null,
+        "cpc": null,
+        "low_top_of_page_bid": null,
+        "high_top_of_page_bid": null
+      },
+      "keyword_properties": {
+        "se_type": "google",
+        "keyword_difficulty": 0,
+        "detected_language": "pl",
+        "is_another_language": false,
+        "core_keyword": null,
+        "synonym_clustering_algorithm": null
+      },
+      "search_intent_info": {
+        "se_type": "google",
+        "main_intent": "commercial",
+        "foreign_intent": [
+          "informational"
+        ],
+        "last_updated_time": "2023-03-06 13:40:53 +00:00"
+      },
+      "clickstream_keyword_info": null
+    },
+    {
+      "se_type": "google",
+      "keyword": "grzegrzółka roslina",
+      "location_code": 2616,
+      "language_code": "pl",
+      "keyword_info": {
+        "se_type": "google",
+        "last_updated_time": "2025-05-11 06:17:21 +00:00",
+        "competition_level": "LOW",
+        "search_volume": 90,
+        "categories": [
+          10010,
+          10082,
+          11613,
+          12832
+        ],
+        "monthly_searches": [
+          {
+            "year": 2025,
+            "month": 4,
+            "search_volume": 70
+          },
+          {
+            "year": 2025,
+            "month": 3,
+            "search_volume": 110
+          },
+          {
+            "year": 2025,
+            "month": 2,
+            "search_volume": 110
+          },
+          {
+            "year": 2025,
+            "month": 1,
+            "search_volume": 140
+          },
+          {
+            "year": 2024,
+            "month": 12,
+            "search_volume": 140
+          },
+          {
+            "year": 2024,
+            "month": 11,
+            "search_volume": 110
+          },
+          {
+            "year": 2024,
+            "month": 10,
+            "search_volume": 90
+          },
+          {
+            "year": 2024,
+            "month": 9,
+            "search_volume": 70
+          },
+          {
+            "year": 2024,
+            "month": 8,
+            "search_volume": 70
+          },
+          {
+            "year": 2024,
+            "month": 7,
+            "search_volume": 90
+          },
+          {
+            "year": 2024,
+            "month": 6,
+            "search_volume": 110
+          },
+          {
+            "year": 2024,
+            "month": 5,
+            "search_volume": 50
+          }
+        ],
+        "search_volume_trend": {
+          "monthly": -36,
+          "quarterly": -36,
+          "yearly": 0
+        },
+        "competition": null,
+        "cpc": null,
+        "low_top_of_page_bid": null,
+        "high_top_of_page_bid": null
+      },
+      "keyword_properties": {
+        "se_type": "google",
+        "keyword_difficulty": 0,
+        "detected_language": "pl",
+        "is_another_language": false,
+        "core_keyword": null,
+        "synonym_clustering_algorithm": null
+      },
+      "search_intent_info": {
+        "se_type": "google",
+        "main_intent": "informational",
+        "foreign_intent": [
+          "commercial"
+        ],
+        "last_updated_time": "2023-09-18 17:36:01 +00:00"
+      },
+      "clickstream_keyword_info": null
+    },
+    {
+      "se_type": "google",
+      "keyword": "grzegrzółka po angielsku",
+      "location_code": 2616,
+      "language_code": "pl",
+      "keyword_info": {
+        "se_type": "google",
+        "last_updated_time": "2025-05-10 19:12:33 +00:00",
+        "competition_level": "LOW",
+        "search_volume": 90,
+        "categories": [
+          10004,
+          10276
+        ],
+        "monthly_searches": [
+          {
+            "year": 2025,
+            "month": 4,
+            "search_volume": 90
+          },
+          {
+            "year": 2025,
+            "month": 3,
+            "search_volume": 140
+          },
+          {
+            "year": 2025,
+            "month": 2,
+            "search_volume": 90
+          },
+          {
+            "year": 2025,
+            "month": 1,
+            "search_volume": 90
+          },
+          {
+            "year": 2024,
+            "month": 12,
+            "search_volume": 90
+          },
+          {
+            "year": 2024,
+            "month": 11,
+            "search_volume": 90
+          },
+          {
+            "year": 2024,
+            "month": 10,
+            "search_volume": 90
+          },
+          {
+            "year": 2024,
+            "month": 9,
+            "search_volume": 70
+          },
+          {
+            "year": 2024,
+            "month": 8,
+            "search_volume": 70
+          },
+          {
+            "year": 2024,
+            "month": 7,
+            "search_volume": 50
+          },
+          {
+            "year": 2024,
+            "month": 6,
+            "search_volume": 70
+          },
+          {
+            "year": 2024,
+            "month": 5,
+            "search_volume": 110
+          }
+        ],
+        "search_volume_trend": {
+          "monthly": -36,
+          "quarterly": 0,
+          "yearly": -36
+        },
+        "competition": null,
+        "cpc": null,
+        "low_top_of_page_bid": null,
+        "high_top_of_page_bid": null
+      },
+      "keyword_properties": {
+        "se_type": "google",
+        "keyword_difficulty": 0,
+        "detected_language": "pl",
+        "is_another_language": false,
+        "core_keyword": null,
+        "synonym_clustering_algorithm": null
+      },
+      "search_intent_info": {
+        "se_type": "google",
+        "main_intent": "informational",
+        "last_updated_time": "2023-03-06 13:40:53 +00:00",
+        "foreign_intent": null
+      },
+      "clickstream_keyword_info": null
+    },
+    {
+      "se_type": "google",
+      "keyword": "grzegrzółka wikipedia",
+      "location_code": 2616,
+      "language_code": "pl",
+      "keyword_info": {
+        "se_type": "google",
+        "last_updated_time": "2025-05-12 02:08:21 +00:00",
+        "competition_level": "LOW",
+        "search_volume": 70,
+        "categories": [
+          10108,
+          10756,
+          13430
+        ],
+        "monthly_searches": [
+          {
+            "year": 2025,
+            "month": 4,
+            "search_volume": 50
+          },
+          {
+            "year": 2025,
+            "month": 3,
+            "search_volume": 90
+          },
+          {
+            "year": 2025,
+            "month": 2,
+            "search_volume": 70
+          },
+          {
+            "year": 2025,
+            "month": 1,
+            "search_volume": 90
+          },
+          {
+            "year": 2024,
+            "month": 12,
+            "search_volume": 50
+          },
+          {
+            "year": 2024,
+            "month": 11,
+            "search_volume": 70
+          },
+          {
+            "year": 2024,
+            "month": 10,
+            "search_volume": 90
+          },
+          {
+            "year": 2024,
+            "month": 9,
+            "search_volume": 50
+          },
+          {
+            "year": 2024,
+            "month": 8,
+            "search_volume": 40
+          },
+          {
+            "year": 2024,
+            "month": 7,
+            "search_volume": 70
+          },
+          {
+            "year": 2024,
+            "month": 6,
+            "search_volume": 90
+          },
+          {
+            "year": 2024,
+            "month": 5,
+            "search_volume": 90
+          }
+        ],
+        "search_volume_trend": {
+          "monthly": -44,
+          "quarterly": -29,
+          "yearly": 67
+        },
+        "competition": null,
+        "cpc": null,
+        "low_top_of_page_bid": null,
+        "high_top_of_page_bid": null
+      },
+      "keyword_properties": {
+        "se_type": "google",
+        "keyword_difficulty": 16,
+        "detected_language": "pl",
+        "is_another_language": false,
+        "core_keyword": null,
+        "synonym_clustering_algorithm": null
+      },
+      "avg_backlinks_info": {
+        "se_type": "google",
+        "backlinks": 1.4,
+        "dofollow": 1.2,
+        "referring_pages": 1.4,
+        "referring_domains": 0.9,
+        "referring_main_domains": 0.9,
+        "rank": 29.4,
+        "main_domain_rank": 543.5,
+        "last_updated_time": "2023-05-31 07:19:17 +00:00"
+      },
+      "search_intent_info": {
+        "se_type": "google",
+        "main_intent": "informational",
+        "last_updated_time": "2023-03-06 13:40:53 +00:00",
+        "foreign_intent": null
+      },
+      "clickstream_keyword_info": null
+    },
+    {
+      "se_type": "google",
+      "keyword": "jak się pisze słowo grzegrzółka",
+      "location_code": 2616,
+      "language_code": "pl",
+      "keyword_info": {
+        "se_type": "google",
+        "last_updated_time": "2025-05-12 01:38:13 +00:00",
+        "competition_level": "LOW",
+        "search_volume": 50,
+        "categories": [
+          10004,
+          10016,
+          10141,
+          10276,
+          10755,
+          11100
+        ],
+        "monthly_searches": [
+          {
+            "year": 2025,
+            "month": 4,
+            "search_volume": 70
+          },
+          {
+            "year": 2025,
+            "month": 3,
+            "search_volume": 90
+          },
+          {
+            "year": 2025,
+            "month": 2,
+            "search_volume": 70
+          },
+          {
+            "year": 2025,
+            "month": 1,
+            "search_volume": 50
+          },
+          {
+            "year": 2024,
+            "month": 12,
+            "search_volume": 40
+          },
+          {
+            "year": 2024,
+            "month": 11,
+            "search_volume": 50
+          },
+          {
+            "year": 2024,
+            "month": 10,
+            "search_volume": 50
+          },
+          {
+            "year": 2024,
+            "month": 9,
+            "search_volume": 50
+          },
+          {
+            "year": 2024,
+            "month": 8,
+            "search_volume": 30
+          },
+          {
+            "year": 2024,
+            "month": 7,
+            "search_volume": 10
+          },
+          {
+            "year": 2024,
+            "month": 6,
+            "search_volume": 40
+          },
+          {
+            "year": 2024,
+            "month": 5,
+            "search_volume": 40
+          }
+        ],
+        "search_volume_trend": {
+          "monthly": -22,
+          "quarterly": 0,
+          "yearly": 40
+        },
+        "competition": null,
+        "cpc": null,
+        "low_top_of_page_bid": null,
+        "high_top_of_page_bid": null
+      },
+      "keyword_properties": {
+        "se_type": "google",
+        "detected_language": "pl",
+        "is_another_language": false,
+        "core_keyword": null,
+        "synonym_clustering_algorithm": null,
+        "keyword_difficulty": null
+      },
+      "search_intent_info": {
+        "se_type": "google",
+        "main_intent": "informational",
+        "last_updated_time": "2023-03-06 16:48:00 +00:00",
+        "foreign_intent": null
+      },
+      "clickstream_keyword_info": null
+    },
+    {
+      "se_type": "google",
+      "keyword": "grzegrzółka jaskółka",
+      "location_code": 2616,
+      "language_code": "pl",
+      "keyword_info": {
+        "se_type": "google",
+        "last_updated_time": "2025-05-10 19:57:27 +00:00",
+        "competition_level": "LOW",
+        "search_volume": 50,
+        "categories": [
+          10011,
+          10021,
+          10087,
+          10176,
+          10177,
+          10913,
+          10927,
+          11767,
+          12246
+        ],
+        "monthly_searches": [
+          {
+            "year": 2025,
+            "month": 4,
+            "search_volume": 70
+          },
+          {
+            "year": 2025,
+            "month": 3,
+            "search_volume": 90
+          },
+          {
+            "year": 2025,
+            "month": 2,
+            "search_volume": 50
+          },
+          {
+            "year": 2025,
+            "month": 1,
+            "search_volume": 40
+          },
+          {
+            "year": 2024,
+            "month": 12,
+            "search_volume": 20
+          },
+          {
+            "year": 2024,
+            "month": 11,
+            "search_volume": 30
+          },
+          {
+            "year": 2024,
+            "month": 10,
+            "search_volume": 50
+          },
+          {
+            "year": 2024,
+            "month": 9,
+            "search_volume": 30
+          },
+          {
+            "year": 2024,
+            "month": 8,
+            "search_volume": 20
+          },
+          {
+            "year": 2024,
+            "month": 7,
+            "search_volume": 70
+          },
+          {
+            "year": 2024,
+            "month": 6,
+            "search_volume": 90
+          },
+          {
+            "year": 2024,
+            "month": 5,
+            "search_volume": 70
+          }
+        ],
+        "search_volume_trend": {
+          "monthly": -22,
+          "quarterly": 40,
+          "yearly": -36
+        },
+        "competition": null,
+        "cpc": null,
+        "low_top_of_page_bid": null,
+        "high_top_of_page_bid": null
+      },
+      "keyword_properties": {
+        "se_type": "google",
+        "synonym_clustering_algorithm": "text_processing",
+        "detected_language": "pl",
+        "is_another_language": false,
+        "core_keyword": null,
+        "keyword_difficulty": null
+      },
+      "search_intent_info": {
+        "se_type": "google",
+        "main_intent": "commercial",
+        "foreign_intent": [
+          "informational"
+        ],
+        "last_updated_time": "2023-03-06 13:40:52 +00:00"
+      },
+      "clickstream_keyword_info": null
+    },
+    {
+      "se_type": "google",
+      "keyword": "gżegżółka grzegrzółka",
+      "location_code": 2616,
+      "language_code": "pl",
+      "keyword_info": {
+        "se_type": "google",
+        "last_updated_time": "2025-05-12 12:30:48 +00:00",
+        "competition_level": "LOW",
+        "search_volume": 40,
+        "categories": [
+          10010,
+          10082,
+          11613,
+          12832
+        ],
+        "monthly_searches": [
+          {
+            "year": 2025,
+            "month": 4,
+            "search_volume": 30
+          },
+          {
+            "year": 2025,
+            "month": 3,
+            "search_volume": 40
+          },
+          {
+            "year": 2025,
+            "month": 2,
+            "search_volume": 40
+          },
+          {
+            "year": 2025,
+            "month": 1,
+            "search_volume": 70
+          },
+          {
+            "year": 2024,
+            "month": 12,
+            "search_volume": 40
+          },
+          {
+            "year": 2024,
+            "month": 11,
+            "search_volume": 40
+          },
+          {
+            "year": 2024,
+            "month": 10,
+            "search_volume": 50
+          },
+          {
+            "year": 2024,
+            "month": 9,
+            "search_volume": 40
+          },
+          {
+            "year": 2024,
+            "month": 8,
+            "search_volume": 10
+          },
+          {
+            "year": 2024,
+            "month": 7,
+            "search_volume": 10
+          },
+          {
+            "year": 2024,
+            "month": 6,
+            "search_volume": 40
+          },
+          {
+            "year": 2024,
+            "month": 5,
+            "search_volume": 40
+          }
+        ],
+        "search_volume_trend": {
+          "monthly": -25,
+          "quarterly": -25,
+          "yearly": -67
+        },
+        "competition": null,
+        "cpc": null,
+        "low_top_of_page_bid": null,
+        "high_top_of_page_bid": null
+      },
+      "keyword_properties": {
+        "se_type": "google",
+        "detected_language": "pl",
+        "is_another_language": false,
+        "core_keyword": null,
+        "synonym_clustering_algorithm": null,
+        "keyword_difficulty": null
+      },
+      "search_intent_info": {
+        "se_type": "google",
+        "main_intent": "commercial",
+        "foreign_intent": [
+          "informational"
+        ],
+        "last_updated_time": "2024-06-21 14:51:35 +00:00"
+      },
+      "clickstream_keyword_info": null
+    },
+    {
+      "se_type": "google",
+      "keyword": "grzegrzółka sjp",
+      "location_code": 2616,
+      "language_code": "pl",
+      "keyword_info": {
+        "se_type": "google",
+        "last_updated_time": "2025-05-10 08:08:23 +00:00",
+        "competition_level": "LOW",
+        "search_volume": 40,
+        "categories": [
+          10004,
+          10276
+        ],
+        "monthly_searches": [
+          {
+            "year": 2025,
+            "month": 4,
+            "search_volume": 70
+          },
+          {
+            "year": 2025,
+            "month": 3,
+            "search_volume": 70
+          },
+          {
+            "year": 2025,
+            "month": 2,
+            "search_volume": 40
+          },
+          {
+            "year": 2025,
+            "month": 1,
+            "search_volume": 30
+          },
+          {
+            "year": 2024,
+            "month": 12,
+            "search_volume": 30
+          },
+          {
+            "year": 2024,
+            "month": 11,
+            "search_volume": 30
+          },
+          {
+            "year": 2024,
+            "month": 10,
+            "search_volume": 40
+          },
+          {
+            "year": 2024,
+            "month": 9,
+            "search_volume": 40
+          },
+          {
+            "year": 2024,
+            "month": 8,
+            "search_volume": 20
+          },
+          {
+            "year": 2024,
+            "month": 7,
+            "search_volume": 40
+          },
+          {
+            "year": 2024,
+            "month": 6,
+            "search_volume": 30
+          },
+          {
+            "year": 2024,
+            "month": 5,
+            "search_volume": 30
+          }
+        ],
+        "search_volume_trend": {
+          "monthly": 0,
+          "quarterly": 75,
+          "yearly": 0
+        },
+        "competition": null,
+        "cpc": null,
+        "low_top_of_page_bid": null,
+        "high_top_of_page_bid": null
+      },
+      "keyword_properties": {
+        "se_type": "google",
+        "detected_language": "pl",
+        "is_another_language": false,
+        "core_keyword": null,
+        "synonym_clustering_algorithm": null,
+        "keyword_difficulty": null
+      },
+      "search_intent_info": {
+        "se_type": "google",
+        "main_intent": "informational",
+        "foreign_intent": [
+          "commercial"
+        ],
+        "last_updated_time": "2023-03-06 13:40:53 +00:00"
+      },
+      "clickstream_keyword_info": null
+    },
+    {
+      "se_type": "google",
+      "keyword": "komornik grzegrzółka",
+      "location_code": 2616,
+      "language_code": "pl",
+      "keyword_info": {
+        "se_type": "google",
+        "last_updated_time": "2025-05-12 21:56:05 +00:00",
+        "competition_level": "LOW",
+        "search_volume": 40,
+        "categories": [
+          10010,
+          10082,
+          11613,
+          12832
+        ],
+        "monthly_searches": [
+          {
+            "year": 2025,
+            "month": 4,
+            "search_volume": 40
+          },
+          {
+            "year": 2025,
+            "month": 3,
+            "search_volume": 70
+          },
+          {
+            "year": 2025,
+            "month": 2,
+            "search_volume": 40
+          },
+          {
+            "year": 2025,
+            "month": 1,
+            "search_volume": 30
+          },
+          {
+            "year": 2024,
+            "month": 12,
+            "search_volume": 20
+          },
+          {
+            "year": 2024,
+            "month": 11,
+            "search_volume": 30
+          },
+          {
+            "year": 2024,
+            "month": 10,
+            "search_volume": 50
+          },
+          {
+            "year": 2024,
+            "month": 9,
+            "search_volume": 40
+          },
+          {
+            "year": 2024,
+            "month": 8,
+            "search_volume": 30
+          },
+          {
+            "year": 2024,
+            "month": 7,
+            "search_volume": 30
+          },
+          {
+            "year": 2024,
+            "month": 6,
+            "search_volume": 40
+          },
+          {
+            "year": 2024,
+            "month": 5,
+            "search_volume": 50
+          }
+        ],
+        "search_volume_trend": {
+          "monthly": -43,
+          "quarterly": 0,
+          "yearly": 0
+        },
+        "competition": null,
+        "cpc": null,
+        "low_top_of_page_bid": null,
+        "high_top_of_page_bid": null
+      },
+      "keyword_properties": {
+        "se_type": "google",
+        "detected_language": "pl",
+        "is_another_language": false,
+        "core_keyword": null,
+        "synonym_clustering_algorithm": null,
+        "keyword_difficulty": null
+      },
+      "search_intent_info": {
+        "se_type": "google",
+        "main_intent": "commercial",
+        "last_updated_time": "2023-03-06 19:25:00 +00:00",
+        "foreign_intent": null
+      },
+      "clickstream_keyword_info": null
+    },
+    {
+      "se_type": "google",
+      "keyword": "grzegrzółka słownik",
+      "location_code": 2616,
+      "language_code": "pl",
+      "keyword_info": {
+        "se_type": "google",
+        "last_updated_time": "2025-05-09 03:23:54 +00:00",
+        "competition_level": "LOW",
+        "search_volume": 30,
+        "categories": [
+          10004,
+          10276
+        ],
+        "monthly_searches": [
+          {
+            "year": 2025,
+            "month": 4,
+            "search_volume": 50
+          },
+          {
+            "year": 2025,
+            "month": 3,
+            "search_volume": 70
+          },
+          {
+            "year": 2025,
+            "month": 2,
+            "search_volume": 70
+          },
+          {
+            "year": 2025,
+            "month": 1,
+            "search_volume": 40
+          },
+          {
+            "year": 2024,
+            "month": 12,
+            "search_volume": 20
+          },
+          {
+            "year": 2024,
+            "month": 11,
+            "search_volume": 30
+          },
+          {
+            "year": 2024,
+            "month": 10,
+            "search_volume": 30
+          },
+          {
+            "year": 2024,
+            "month": 9,
+            "search_volume": 30
+          },
+          {
+            "year": 2024,
+            "month": 8,
+            "search_volume": 20
+          },
+          {
+            "year": 2024,
+            "month": 7,
+            "search_volume": 10
+          },
+          {
+            "year": 2024,
+            "month": 6,
+            "search_volume": 10
+          },
+          {
+            "year": 2024,
+            "month": 5,
+            "search_volume": 20
+          }
+        ],
+        "search_volume_trend": {
+          "monthly": -29,
+          "quarterly": -29,
+          "yearly": 67
+        },
+        "competition": null,
+        "cpc": null,
+        "low_top_of_page_bid": null,
+        "high_top_of_page_bid": null
+      },
+      "keyword_properties": {
+        "se_type": "google",
+        "detected_language": "pl",
+        "is_another_language": false,
+        "core_keyword": null,
+        "synonym_clustering_algorithm": null,
+        "keyword_difficulty": null
+      },
+      "search_intent_info": {
+        "se_type": "google",
+        "main_intent": "commercial",
+        "foreign_intent": [
+          "navigational"
+        ],
+        "last_updated_time": "2023-03-06 13:40:53 +00:00"
+      },
+      "clickstream_keyword_info": null
+    },
+    {
+      "se_type": "google",
+      "keyword": "grzegrzółka program",
+      "location_code": 2616,
+      "language_code": "pl",
+      "keyword_info": {
+        "se_type": "google",
+        "last_updated_time": "2025-05-12 03:03:34 +00:00",
+        "competition": 0.02,
+        "competition_level": "LOW",
+        "cpc": 0.85,
+        "search_volume": 30,
+        "categories": [
+          10013,
+          10103,
+          13572,
+          13730
+        ],
+        "monthly_searches": [
+          {
+            "year": 2025,
+            "month": 4,
+            "search_volume": 20
+          },
+          {
+            "year": 2025,
+            "month": 3,
+            "search_volume": 20
+          },
+          {
+            "year": 2025,
+            "month": 2,
+            "search_volume": 20
+          },
+          {
+            "year": 2025,
+            "month": 1,
+            "search_volume": 40
+          },
+          {
+            "year": 2024,
+            "month": 12,
+            "search_volume": 20
+          },
+          {
+            "year": 2024,
+            "month": 11,
+            "search_volume": 20
+          },
+          {
+            "year": 2024,
+            "month": 10,
+            "search_volume": 40
+          },
+          {
+            "year": 2024,
+            "month": 9,
+            "search_volume": 30
+          },
+          {
+            "year": 2024,
+            "month": 8,
+            "search_volume": 20
+          },
+          {
+            "year": 2024,
+            "month": 7,
+            "search_volume": 50
+          },
+          {
+            "year": 2024,
+            "month": 6,
+            "search_volume": 30
+          },
+          {
+            "year": 2024,
+            "month": 5,
+            "search_volume": 10
+          }
+        ],
+        "search_volume_trend": {
+          "monthly": 0,
+          "quarterly": 0,
+          "yearly": -50
+        },
+        "low_top_of_page_bid": null,
+        "high_top_of_page_bid": null
+      },
+      "keyword_properties": {
+        "se_type": "google",
+        "detected_language": "pl",
+        "is_another_language": false,
+        "core_keyword": null,
+        "synonym_clustering_algorithm": null,
+        "keyword_difficulty": null
+      },
+      "search_intent_info": {
+        "se_type": "google",
+        "main_intent": "commercial",
+        "foreign_intent": [
+          "informational"
+        ],
+        "last_updated_time": "2023-03-06 13:40:53 +00:00"
+      },
+      "clickstream_keyword_info": null
+    },
+    {
+      "se_type": "google",
+      "keyword": "grzegrzółka co to znaczy",
+      "location_code": 2616,
+      "language_code": "pl",
+      "keyword_info": {
+        "se_type": "google",
+        "last_updated_time": "2025-05-11 11:37:46 +00:00",
+        "competition_level": "LOW",
+        "search_volume": 20,
+        "categories": [
+          10011,
+          10085,
+          10457,
+          11669,
+          12865
+        ],
+        "monthly_searches": [
+          {
+            "year": 2025,
+            "month": 4,
+            "search_volume": 10
+          },
+          {
+            "year": 2025,
+            "month": 3,
+            "search_volume": 10
+          },
+          {
+            "year": 2025,
+            "month": 2,
+            "search_volume": 20
+          },
+          {
+            "year": 2025,
+            "month": 1,
+            "search_volume": 20
+          },
+          {
+            "year": 2024,
+            "month": 12,
+            "search_volume": 20
+          },
+          {
+            "year": 2024,
+            "month": 11,
+            "search_volume": 30
+          },
+          {
+            "year": 2024,
+            "month": 10,
+            "search_volume": 20
+          },
+          {
+            "year": 2024,
+            "month": 9,
+            "search_volume": 10
+          },
+          {
+            "year": 2024,
+            "month": 8,
+            "search_volume": 20
+          },
+          {
+            "year": 2024,
+            "month": 7,
+            "search_volume": 20
+          },
+          {
+            "year": 2024,
+            "month": 6,
+            "search_volume": 20
+          },
+          {
+            "year": 2024,
+            "month": 5,
+            "search_volume": 90
+          }
+        ],
+        "search_volume_trend": {
+          "monthly": 0,
+          "quarterly": -50,
+          "yearly": -67
+        },
+        "competition": null,
+        "cpc": null,
+        "low_top_of_page_bid": null,
+        "high_top_of_page_bid": null
+      },
+      "keyword_properties": {
+        "se_type": "google",
+        "detected_language": "pl",
+        "is_another_language": false,
+        "core_keyword": null,
+        "synonym_clustering_algorithm": null,
+        "keyword_difficulty": null
+      },
+      "search_intent_info": {
+        "se_type": "google",
+        "main_intent": "informational",
+        "last_updated_time": "2023-03-06 13:40:53 +00:00",
+        "foreign_intent": null
+      },
+      "clickstream_keyword_info": null
+    },
+    {
+      "se_type": "google",
+      "keyword": "roślina grzegrzółka",
+      "location_code": 2616,
+      "language_code": "pl",
+      "keyword_info": {
+        "se_type": "google",
+        "last_updated_time": "2025-05-13 09:51:19 +00:00",
+        "competition_level": "LOW",
+        "search_volume": 20,
+        "categories": [
+          10004,
+          10010,
+          10015,
+          10082,
+          10135,
+          10719,
+          11076,
+          11613,
+          12833,
+          13460
+        ],
+        "monthly_searches": [
+          {
+            "year": 2025,
+            "month": 4,
+            "search_volume": 30
+          },
+          {
+            "year": 2025,
+            "month": 3,
+            "search_volume": 30
+          },
+          {
+            "year": 2025,
+            "month": 2,
+            "search_volume": 30
+          },
+          {
+            "year": 2025,
+            "month": 1,
+            "search_volume": 20
+          },
+          {
+            "year": 2024,
+            "month": 12,
+            "search_volume": 30
+          },
+          {
+            "year": 2024,
+            "month": 11,
+            "search_volume": 30
+          },
+          {
+            "year": 2024,
+            "month": 10,
+            "search_volume": 20
+          },
+          {
+            "year": 2024,
+            "month": 9,
+            "search_volume": 0
+          },
+          {
+            "year": 2024,
+            "month": 8,
+            "search_volume": 0
+          },
+          {
+            "year": 2024,
+            "month": 7,
+            "search_volume": 0
+          },
+          {
+            "year": 2024,
+            "month": 6,
+            "search_volume": 0
+          },
+          {
+            "year": 2024,
+            "month": 5,
+            "search_volume": 0
+          }
+        ],
+        "search_volume_trend": {
+          "monthly": 0,
+          "quarterly": 0,
+          "yearly": null
+        },
+        "competition": null,
+        "cpc": null,
+        "low_top_of_page_bid": null,
+        "high_top_of_page_bid": null
+      },
+      "keyword_properties": {
+        "se_type": "google",
+        "core_keyword": "grzegrzółka roślina",
+        "synonym_clustering_algorithm": "text_processing",
+        "detected_language": "pl",
+        "is_another_language": false,
+        "keyword_difficulty": null
+      },
+      "search_intent_info": {
+        "se_type": "google",
+        "main_intent": "informational",
+        "foreign_intent": [
+          "commercial"
+        ],
+        "last_updated_time": "2025-01-09 18:17:14 +00:00"
+      },
+      "clickstream_keyword_info": null
+    },
+    {
+      "se_type": "google",
+      "keyword": "grzegrzółka owad",
+      "location_code": 2616,
+      "language_code": "pl",
+      "keyword_info": {
+        "se_type": "google",
+        "last_updated_time": "2025-05-13 00:57:19 +00:00",
+        "competition_level": "LOW",
+        "search_volume": 20,
+        "categories": [
+          10009,
+          10406,
+          13250
+        ],
+        "monthly_searches": [
+          {
+            "year": 2025,
+            "month": 4,
+            "search_volume": 10
+          },
+          {
+            "year": 2025,
+            "month": 3,
+            "search_volume": 20
+          },
+          {
+            "year": 2025,
+            "month": 2,
+            "search_volume": 20
+          },
+          {
+            "year": 2025,
+            "month": 1,
+            "search_volume": 20
+          },
+          {
+            "year": 2024,
+            "month": 12,
+            "search_volume": 10
+          },
+          {
+            "year": 2024,
+            "month": 11,
+            "search_volume": 10
+          },
+          {
+            "year": 2024,
+            "month": 10,
+            "search_volume": 10
+          },
+          {
+            "year": 2024,
+            "month": 9,
+            "search_volume": 10
+          },
+          {
+            "year": 2024,
+            "month": 8,
+            "search_volume": 20
+          },
+          {
+            "year": 2024,
+            "month": 7,
+            "search_volume": 20
+          },
+          {
+            "year": 2024,
+            "month": 6,
+            "search_volume": 20
+          },
+          {
+            "year": 2024,
+            "month": 5,
+            "search_volume": 20
+          }
+        ],
+        "search_volume_trend": {
+          "monthly": -50,
+          "quarterly": -50,
+          "yearly": -67
+        },
+        "competition": null,
+        "cpc": null,
+        "low_top_of_page_bid": null,
+        "high_top_of_page_bid": null
+      },
+      "keyword_properties": {
+        "se_type": "google",
+        "detected_language": "pl",
+        "is_another_language": false,
+        "core_keyword": null,
+        "synonym_clustering_algorithm": null,
+        "keyword_difficulty": null
+      },
+      "search_intent_info": {
+        "se_type": "google",
+        "main_intent": "informational",
+        "foreign_intent": [
+          "commercial"
+        ],
+        "last_updated_time": "2023-03-06 13:40:52 +00:00"
+      },
+      "clickstream_keyword_info": null
+    },
+    {
+      "se_type": "google",
+      "keyword": "grzegrzółka nazwisko",
+      "location_code": 2616,
+      "language_code": "pl",
+      "keyword_info": {
+        "se_type": "google",
+        "last_updated_time": "2025-05-14 14:27:52 +00:00",
+        "competition_level": "LOW",
+        "search_volume": 20,
+        "categories": [
+          10004,
+          10276,
+          11100
+        ],
+        "monthly_searches": [
+          {
+            "year": 2025,
+            "month": 4,
+            "search_volume": 30
+          },
+          {
+            "year": 2025,
+            "month": 3,
+            "search_volume": 40
+          },
+          {
+            "year": 2025,
+            "month": 2,
+            "search_volume": 20
+          },
+          {
+            "year": 2025,
+            "month": 1,
+            "search_volume": 20
+          },
+          {
+            "year": 2024,
+            "month": 12,
+            "search_volume": 10
+          },
+          {
+            "year": 2024,
+            "month": 11,
+            "search_volume": 30
+          },
+          {
+            "year": 2024,
+            "month": 10,
+            "search_volume": 20
+          },
+          {
+            "year": 2024,
+            "month": 9,
+            "search_volume": 20
+          },
+          {
+            "year": 2024,
+            "month": 8,
+            "search_volume": 10
+          },
+          {
+            "year": 2024,
+            "month": 7,
+            "search_volume": 20
+          },
+          {
+            "year": 2024,
+            "month": 6,
+            "search_volume": 30
+          },
+          {
+            "year": 2024,
+            "month": 5,
+            "search_volume": 20
+          }
+        ],
+        "search_volume_trend": {
+          "monthly": -25,
+          "quarterly": 50,
+          "yearly": 0
+        },
+        "competition": null,
+        "cpc": null,
+        "low_top_of_page_bid": null,
+        "high_top_of_page_bid": null
+      },
+      "keyword_properties": {
+        "se_type": "google",
+        "detected_language": "pl",
+        "is_another_language": false,
+        "core_keyword": null,
+        "synonym_clustering_algorithm": null,
+        "keyword_difficulty": null
+      },
+      "search_intent_info": {
+        "se_type": "google",
+        "main_intent": "informational",
+        "foreign_intent": [
+          "navigational"
+        ],
+        "last_updated_time": "2023-03-06 13:40:52 +00:00"
+      },
+      "clickstream_keyword_info": null
+    }
+  ]
+}
