@@ -3,33 +3,117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SEO Analysis Tool - Modular Version</title>
+    <title>SEO Analysis Mission Control — Start Analysis</title>
     <style>
-        /* Podstawowe style CSS */
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background: #f5f5f5;
-            line-height: 1.6;
+        /* ====== NASA MISSION CONTROL — START SCREEN ====== */
+        :root{
+          --bg:#f7f8fa; --panel:#fff; --panel-2:#f0f2f5; --text:#222; --muted:#6c757d;
+          --blue:#0b3d91; --blue-2:#1560bd; --green:#198754; --red:#dc3545; --orange:#fd7e14; --purple:#6f42c1; --cyan:#17a2b8;
+          --pink:#e91e63; --teal:#20c997; --indigo:#6610f2; --yellow:#ffc107; --lime:#32cd32;
+          --border:#e5e7eb; --shadow:0 2px 8px rgba(0,0,0,.06); --glow:0 0 0 3px rgba(21,96,189,.18);
+          --gap:10px; --pad:12px; --radius:8px;
+        }
+        *{box-sizing:border-box}
+        body{margin:0;background:linear-gradient(135deg,#f7f8fa 0%,#eceff3 100%);color:var(--text);
+             font:12px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Arial,sans-serif;
+             min-height:100vh;display:flex;flex-direction:column}
+
+        /* ===== Header ===== */
+        .mission-header{
+          background:linear-gradient(90deg,var(--blue),var(--indigo));
+          color:#fff; padding:12px 20px; display:flex; align-items:center; justify-content:space-between;
+          box-shadow:var(--shadow)
+        }
+        .mission-title{display:flex;align-items:center;gap:12px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;font-size:13px}
+        .status-ind{width:10px;height:10px;border-radius:50%;background:var(--lime);box-shadow:0 0 10px var(--lime);animation:pulse 2s infinite}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+        .mission-time{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
+          font-size:11px;background:rgba(255,255,255,.15);padding:4px 8px;border-radius:4px;border:1px solid rgba(255,255,255,.2)}
+
+        /* ===== Main Container ===== */
+        .control-room{max-width:800px;margin:60px auto;padding:20px;flex:1;display:flex;align-items:center;justify-content:center}
+
+        /* ===== Start Panel ===== */
+        .start-panel{background:#fff;border:2px solid var(--blue);padding:32px;width:100%;
+          box-shadow:0 4px 20px rgba(0,0,0,.1)}
+        .panel-header{text-align:center;margin-bottom:32px}
+        .panel-icon{font-size:48px;margin-bottom:12px}
+        .panel-title{font-size:22px;font-weight:800;color:var(--blue);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px}
+        .panel-subtitle{font-size:12px;color:var(--muted);font-weight:500}
+
+        /* ===== Form ===== */
+        .form-group{margin-bottom:24px}
+        .form-label{font-size:11px;font-weight:800;color:var(--text);text-transform:uppercase;
+          letter-spacing:.5px;margin-bottom:8px;display:block}
+        .form-input{width:100%;padding:12px 16px;border:2px solid var(--border);font-size:14px;
+          font-family:inherit;transition:all .2s ease;background:#fff}
+        .form-input:focus{outline:none;border-color:var(--blue);box-shadow:var(--glow)}
+        .form-input:hover{border-color:#cbd5e1}
+
+        .form-select{width:100%;padding:12px 16px;border:2px solid var(--border);font-size:14px;
+          font-family:inherit;background:#fff;cursor:pointer;transition:all .2s ease;
+          appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236c757d' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+          background-repeat:no-repeat;background-position:right 12px center}
+        .form-select:focus{outline:none;border-color:var(--blue);box-shadow:var(--glow)}
+        .form-select:hover{border-color:#cbd5e1}
+
+        /* ===== Button ===== */
+        .btn-launch{width:100%;padding:18px 24px;
+          background:linear-gradient(135deg,#10b981 0%,#059669 100%);
+          color:#fff;border:none;border-radius:12px;
+          font-size:14px;font-weight:700;letter-spacing:.3px;
+          cursor:pointer;transition:all .3s cubic-bezier(.4,0,.2,1);
+          display:flex;align-items:center;justify-content:center;gap:10px;
+          box-shadow:0 4px 14px 0 rgba(16,185,129,.2);position:relative;overflow:hidden}
+        .btn-launch::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;
+          background:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent);
+          transition:left .5s ease}
+        .btn-launch:hover::before{left:100%}
+        .btn-launch:hover{transform:translateY(-3px);box-shadow:0 12px 28px 0 rgba(16,185,129,.35);
+          background:linear-gradient(135deg,#059669 0%,#047857 100%)}
+        .btn-launch:active{transform:translateY(-1px);box-shadow:0 6px 18px 0 rgba(16,185,129,.25)}
+        .btn-launch:disabled{background:linear-gradient(135deg,#9ca3af 0%,#6b7280 100%);
+          cursor:not-allowed;transform:none;box-shadow:0 2px 8px 0 rgba(156,163,175,.2)}
+        .btn-icon{font-size:18px;transition:transform .3s ease}
+        .btn-launch:hover .btn-icon{transform:translateX(4px) rotate(15deg)}
+
+        /* ===== Success Message ===== */
+        .success-message-new{background:#d4edda;border:2px solid var(--green);border-left:6px solid var(--green);
+          padding:16px;margin-top:24px;display:none;align-items:center;gap:12px}
+        .success-message-new.show{display:flex}
+        .success-icon{font-size:24px}
+        .success-text{font-size:13px;font-weight:700;color:#155724}
+
+        /* ===== Info Panel ===== */
+        .info-panel{background:var(--panel-2);border-left:3px solid var(--blue);padding:14px;margin-top:24px}
+        .info-title{font-size:10px;font-weight:800;color:var(--blue);text-transform:uppercase;
+          letter-spacing:.5px;margin-bottom:6px}
+        .info-text{font-size:11px;color:var(--text);line-height:1.6}
+
+        /* ===== System Status ===== */
+        .system-status{display:flex;gap:8px;margin-top:24px;padding-top:20px;border-top:1px solid var(--border)}
+        .status-item{flex:1;text-align:center}
+        .status-label{font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:4px}
+        .status-value{font-size:11px;font-weight:800;color:var(--text);font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace}
+        .status-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:4px;background:var(--green)}
+
+        /* ===== Loading State ===== */
+        @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+        .spinner-new{display:inline-block;animation:spin 1s linear infinite}
+
+        /* ===== Responsive ===== */
+        @media (max-width: 768px){
+          .control-room{margin:20px auto;padding:16px}
+          .start-panel{padding:24px}
+          .panel-title{font-size:18px}
         }
         
+        /* ===== Legacy CSS (dla pozostałych sekcji) ===== */
         .container {
             background: white;
             padding: 30px;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        
-        h1 {
-            color: #333;
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
         }
         
         label {
@@ -457,25 +541,103 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🔍 SEO Analysis Tool - Modular Version</h1>
-        
-        <form id="keywordForm">
-            <div class="form-group">
-                <label for="keyword">Słowo kluczowe:</label>
-                <input type="text" id="keyword" name="keyword" placeholder="Wpisz słowo kluczowe..." required>
-            </div>
+    <!-- Header -->
+    <div class="mission-header">
+        <div class="mission-title">
+            <span class="status-ind"></span> 
+            SEO ANALYSIS MISSION CONTROL
+        </div>
+        <div id="clock" class="mission-time">0000-00-00 00:00:00 MET</div>
+    </div>
+
+    <main class="control-room">
+        <div class="start-panel">
             
-            <div class="form-group">
-                <label for="country">Kraj i język:</label>
-                <select id="country" name="country" required>
-                    <option value="">Wybierz kraj...</option>
-                </select>
+            <!-- Panel Header -->
+            <div class="panel-header">
+                <div class="panel-icon">🔍</div>
+                <h1 class="panel-title">SEO Analysis Tool</h1>
+                <p class="panel-subtitle">Modular Version — Comprehensive Keyword Analysis System</p>
             </div>
-            
-            <button type="submit" id="submitBtn">🚀 Uruchom analizę</button>
-        </form>
-        
+
+            <!-- Analysis Form -->
+            <form id="keywordForm">
+                
+                <!-- Keyword Input -->
+                <div class="form-group">
+                    <label class="form-label" for="keyword">Słowo kluczowe:</label>
+                    <input 
+                        type="text" 
+                        id="keyword" 
+                        name="keyword"
+                        class="form-input" 
+                        placeholder="np. okna, ubezpieczenia, zegarki..."
+                        required
+                    />
+                </div>
+
+                <!-- Country/Language Select -->
+                <div class="form-group">
+                    <label class="form-label" for="country">Kraj i język:</label>
+                    <select id="country" name="country" class="form-select" required>
+                        <option value="">Wybierz kraj...</option>
+                    </select>
+                </div>
+
+                <!-- Launch Button -->
+                <button type="submit" class="btn-launch" id="submitBtn">
+                    <span class="btn-icon">🚀</span>
+                    <span>Uruchom analizę</span>
+                </button>
+
+                <!-- Success Message (hidden by default) -->
+                <div class="success-message-new" id="successMessageNew">
+                    <span class="success-icon">✅</span>
+                    <span class="success-text">Analiza zakończona pomyślnie!</span>
+                </div>
+
+            </form>
+
+            <!-- Info Panel -->
+            <div class="info-panel">
+                <div class="info-title">System Information</div>
+                <div class="info-text">
+                    Ten system przeprowadzi kompleksową analizę SEO obejmującą 10 modułów: Extended Header, 
+                    Core SEO Metrics, Intent Analysis, Demographics, Trends & Seasonality, Geographic Data, 
+                    Competition Analysis, Related Keywords, SERP Analysis oraz Autocomplete Analysis.
+                </div>
+            </div>
+
+            <!-- System Status -->
+            <div class="system-status">
+                <div class="status-item">
+                    <div class="status-label">API Status</div>
+                    <div class="status-value">
+                        <span class="status-dot"></span>
+                        ONLINE
+                    </div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Database</div>
+                    <div class="status-value">
+                        <span class="status-dot"></span>
+                        READY
+                    </div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Modules</div>
+                    <div class="status-value">
+                        <span class="status-dot"></span>
+                        10/10
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+    
+    <!-- Legacy containers (hidden initially, shown when analysis runs) -->
+    <div class="container" style="display: none;" id="legacyContainer">
         <div class="progress-container" id="progressContainer">
             <div class="progress-bar">
                 <div class="progress-fill" id="progressFill"></div>
@@ -780,6 +942,18 @@
         let currentKeywordId = null; // Dodane dla klastrowania
         let currentSemanticClusterId = null; // Dodane dla architektury (Moduł 3)
         
+        // Mission Elapsed Time Clock
+        const clockEl = document.getElementById('clock');
+        if (clockEl) {
+            function updateClock(){
+                const now = new Date();
+                const timeStr = now.toISOString().replace('T', ' ').slice(0, 19) + ' MET';
+                clockEl.textContent = timeStr;
+            }
+            updateClock();
+            setInterval(updateClock, 1000);
+        }
+        
         // Initialize countries dropdown
         async function loadCountries() {
             try {
@@ -808,11 +982,16 @@
             
             const keyword = document.getElementById('keyword').value.trim();
             const country = document.getElementById('country').value;
+            const submitBtn = document.getElementById('submitBtn');
             
             if (!keyword || !country) {
                 showMessage('⚠️ Wypełnij wszystkie pola', 'error');
                 return;
             }
+            
+            // Disable button and show loading state
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-new btn-icon">⏳</span><span>Analizowanie...</span>';
             
             loadKeywordData(keyword, country);
         });
@@ -907,6 +1086,13 @@
         async function loadKeywordData(keyword, country) {
             try {
                 console.log('🚀 Rozpoczynam pełną analizę SEO (MODULAR):', keyword, country);
+                
+                // Hide start panel and show legacy containers
+                const controlRoom = document.querySelector('.control-room');
+                const legacyContainer = document.getElementById('legacyContainer');
+                if (controlRoom) controlRoom.style.display = 'none';
+                if (legacyContainer) legacyContainer.style.display = 'block';
+                
                 showMessage('Uruchamiam analizę SEO...', 'success');
                 
                 // Załaduj wszystkie moduły sekcji
