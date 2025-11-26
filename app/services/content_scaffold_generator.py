@@ -822,6 +822,18 @@ class ContentScaffoldGenerator:
                           "required_citation": {"type": "string"}
                         }
                       },
+                      "entity_connections": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "List of 3-5 named entities that MUST appear in this section to build semantic density"
+                      },
+                      "semantic_citation": {
+                        "type": "object",
+                        "properties": {
+                          "source": {"type": "string"},
+                          "context_hook": {"type": "string", "description": "How to naturally weave this citation into the narrative"}
+                        }
+                      },
                       "target_word_count": {"type":"number"},
                       "intro_snippet": {"type":"string"},
                       "why_it_matters": {"type":"string"},
@@ -942,7 +954,9 @@ GEO (GENERATIVE ENGINE OPTIMIZATION) - RANKOWANIE W MODELACH AI:
 Twórz treści tak, aby były łatwo cytowane przez ChatGPT, Perplexity i Google SGE.
 - AI ANSWER TARGET: Każda sekcja musi mieć jedno zdanie "definicję", które jest bezpośrednią odpowiedzią na intencję użytkownika (np. "X to Y, ponieważ Z"). To zdanie musi być w polu 'snippet_text'.
 - STRUCTURAL FORMAT: Modele AI wolą tabele i listy od ściany tekstu. W polu 'structural_format' wymuś konkretny format (np. "tabela porównawcza", "lista kroków").
-- AUTHORITY INJECTION: W polu 'authority_injection' dodaj instrukcję użycia unikalnych danych lub kontrariańskich opinii (Information Gain), których AI nie ma w swoim "średnim" zbiorze treningowym.
+- AUTHORITY INJECTION: W polu 'authority_injection' dodaj instrukcję użycia unikalnych danych lub kontrariańskich opinii (Information Gain).
+- ENTITY CONNECTIONS: W polu 'entity_connections' wymień 3-5 konkretnych encji (nazwy własne, parametry techniczne, powiązane pojęcia), które muszą wystąpić w tekście blisko siebie, aby zbudować "gęstość semantyczną".
+- SEMANTIC CITATION: Jeśli sekcja wymaga źródła, w 'semantic_citation' podaj nie tylko źródło, ale też "context_hook" - czyli jak naturalnie wpleść cytat w zdanie (np. "Według raportu X w kontekście Y...").
 
 PSYCHOLOGY-DRIVEN APPROACH:
 - Tone sekcji wynika z funnel_stage: świadomość potrzeb vs gotowość decyzyjna
@@ -1168,7 +1182,9 @@ SCHEMA ODPOWIEDZI:
                     "todo_gaps": [],
                     "ai_answer_target": {},
                     "structural_format": {},
-                    "authority_injection": {}
+                    "authority_injection": {},
+                    "entity_connections": [],
+                    "semantic_citation": {}
                 })
             else:
                 coerced_sections.append({
@@ -1190,7 +1206,9 @@ SCHEMA ODPOWIEDZI:
                     "todo_gaps": [],
                     "ai_answer_target": {},
                     "structural_format": {},
-                    "authority_injection": {}
+                    "authority_injection": {},
+                    "entity_connections": [],
+                    "semantic_citation": {}
                 })
         scaffold_result['content_sections'] = coerced_sections
         

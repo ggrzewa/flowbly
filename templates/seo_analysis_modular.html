@@ -3818,6 +3818,23 @@
                                             ${section.authority_injection.required_citation ? `<div style="margin-top:2px; color:#856404; font-size:11px;">📝 Cite: <em>${section.authority_injection.required_citation}</em></div>` : ''}
                                         </div>
                                     ` : ''}
+
+                                    ${Array.isArray(section.entity_connections) && section.entity_connections.length ? `
+                                        <div style="margin-bottom:8px; font-size:11px; color:#555;">
+                                            🔗 <strong>Entity Salience (Must Connect):</strong>
+                                            <div style="display:flex; flex-wrap:wrap; gap:4px; margin-top:4px;">
+                                                ${section.entity_connections.map(ent => `<span style="background:#e8eaf6; color:#3f51b5; padding:2px 6px; border-radius:4px; border:1px solid #c5cae9;">${ent}</span>`).join('')}
+                                            </div>
+                                        </div>
+                                    ` : ''}
+
+                                    ${section.semantic_citation && section.semantic_citation.source ? `
+                                        <div style="margin-bottom:10px; padding:8px; background:#e0f2f1; border-left:3px solid #009688; font-size:12px; border-radius:0 4px 4px 0;">
+                                            📚 <strong>Semantic Citation:</strong> 
+                                            <div style="font-style:italic; margin-bottom:2px;">"${section.semantic_citation.context_hook || 'According to...'}"</div>
+                                            <div style="font-size:10px; color:#00695c;">Src: ${section.semantic_citation.source}</div>
+                                        </div>
+                                    ` : ''}
                                     <!-- End GEO Fields -->
 
                                     ${Array.isArray(section.section_kpis) && section.section_kpis.length ? `
@@ -4430,7 +4447,52 @@
                         <div class="h2-intro-label">OPENING PARAGRAPH (80–100 words)</div>
                         <div class="h2-intro">
                             ${section.intro_snippet || 'Napisz paragraf wprowadzający, który: • Definiuje temat sekcji • Wyjaśnia dlaczego ten temat jest ważny dla czytelnika • Zapowiada co zostanie omówione w podsekcjach'}
-                                </div>
+                        </div>
+
+                        <!-- GEO / AI Optimization Fields (Writer View) -->
+                        ${(section.ai_answer_target?.snippet_text || section.structural_format?.recommended || section.authority_injection?.instruction) ? `
+                            <div style="margin: 15px 0; padding: 12px; background: #f8f9fa; border-left: 4px solid #9c27b0; border-radius: 4px;">
+                                <div style="font-size: 11px; font-weight: 800; color: #9c27b0; margin-bottom: 8px; letter-spacing: 0.5px;">🤖 AI & GEO OPTIMIZATION GUIDELINES</div>
+                                
+                                ${section.ai_answer_target?.snippet_text ? `
+                                    <div style="margin-bottom: 8px;">
+                                        <strong style="font-size: 11px; color: #555;">DIRECT ANSWER TARGET:</strong>
+                                        <div style="font-style: italic; color: #333; font-size: 12px; margin-top: 2px;">"${section.ai_answer_target.snippet_text}"</div>
+                                    </div>
+                                ` : ''}
+                                
+                                ${section.structural_format?.recommended ? `
+                                    <div style="margin-bottom: 8px;">
+                                        <strong style="font-size: 11px; color: #555;">STRUCTURAL FORMAT:</strong>
+                                        <span style="font-size: 12px; background: #e9ecef; padding: 2px 6px; border-radius: 3px;">${section.structural_format.recommended}</span>
+                                        ${section.structural_format.columns ? `<span style="font-size: 11px; color: #666;">(Cols: ${section.structural_format.columns.join(', ')})</span>` : ''}
+                                    </div>
+                                ` : ''}
+                                
+                                ${section.authority_injection?.instruction ? `
+                                    <div>
+                                        <strong style="font-size: 11px; color: #555;">AUTHORITY INJECTION:</strong>
+                                        <div style="font-size: 12px; color: #333;">${section.authority_injection.instruction}</div>
+                                        ${section.authority_injection.required_citation ? `<div style="font-size: 10px; color: #856404; margin-top: 2px;">📝 Cite: ${section.authority_injection.required_citation}</div>` : ''}
+                                    </div>
+                                ` : ''}
+
+                                ${section.entity_connections?.length ? `
+                                    <div style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed #ddd;">
+                                        <strong style="font-size: 11px; color: #555;">ENTITY SALIENCE (Must Include):</strong>
+                                        <div style="font-size: 12px; color: #3f51b5; font-weight: 600;">${section.entity_connections.join(' • ')}</div>
+                                    </div>
+                                ` : ''}
+
+                                ${section.semantic_citation?.source ? `
+                                    <div style="margin-top: 8px;">
+                                        <strong style="font-size: 11px; color: #555;">SEMANTIC CITATION:</strong>
+                                        <div style="font-size: 12px; font-style: italic;">"${section.semantic_citation.context_hook}"</div>
+                                        <div style="font-size: 10px; color: #009688;">Source: ${section.semantic_citation.source}</div>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        ` : ''}
                                 
                                 <!-- H3 Subsections -->
                                 ${Array.isArray(section.subsections) ? section.subsections.map((subsection, subIndex) => `
