@@ -799,6 +799,29 @@ class ContentScaffoldGenerator:
                     ],
                     "properties": {
                       "h2": {"type":"string"},
+                      "ai_answer_target": {
+                        "type": "object",
+                        "properties": {
+                          "snippet_text": {"type": "string"},
+                          "type": {"type": "string", "enum": ["direct_answer", "definition", "step_by_step", "list"]}
+                        },
+                        "required": ["snippet_text", "type"]
+                      },
+                      "structural_format": {
+                        "type": "object",
+                        "properties": {
+                          "recommended": {"type": "string"},
+                          "columns": {"type": "array", "items": {"type": "string"}}
+                        }
+                      },
+                      "authority_injection": {
+                        "type": "object",
+                        "properties": {
+                          "type": {"type": "string"},
+                          "instruction": {"type": "string"},
+                          "required_citation": {"type": "string"}
+                        }
+                      },
                       "target_word_count": {"type":"number"},
                       "intro_snippet": {"type":"string"},
                       "why_it_matters": {"type":"string"},
@@ -914,6 +937,12 @@ Dostosuj proporcje do naturalnych potrzeb tematu z comprehensive_structure:
 - Sekcje wprowadzające: tyle ile potrzeba dla zrozumienia podstaw
 - Sekcje główne: proporcjonalnie do złożoności aspektów z cluster_phrases
 - Sekcje praktyczne: odpowiednio do liczby actionable insights
+
+GEO (GENERATIVE ENGINE OPTIMIZATION) - RANKOWANIE W MODELACH AI:
+Twórz treści tak, aby były łatwo cytowane przez ChatGPT, Perplexity i Google SGE.
+- AI ANSWER TARGET: Każda sekcja musi mieć jedno zdanie "definicję", które jest bezpośrednią odpowiedzią na intencję użytkownika (np. "X to Y, ponieważ Z"). To zdanie musi być w polu 'snippet_text'.
+- STRUCTURAL FORMAT: Modele AI wolą tabele i listy od ściany tekstu. W polu 'structural_format' wymuś konkretny format (np. "tabela porównawcza", "lista kroków").
+- AUTHORITY INJECTION: W polu 'authority_injection' dodaj instrukcję użycia unikalnych danych lub kontrariańskich opinii (Information Gain), których AI nie ma w swoim "średnim" zbiorze treningowym.
 
 PSYCHOLOGY-DRIVEN APPROACH:
 - Tone sekcji wynika z funnel_stage: świadomość potrzeb vs gotowość decyzyjna
@@ -1136,7 +1165,10 @@ SCHEMA ODPOWIEDZI:
                     "media_plan": [],
                     "psychology_integration": {},
                     "strategic_linking": [],
-                    "todo_gaps": []
+                    "todo_gaps": [],
+                    "ai_answer_target": {},
+                    "structural_format": {},
+                    "authority_injection": {}
                 })
             else:
                 coerced_sections.append({
@@ -1155,7 +1187,10 @@ SCHEMA ODPOWIEDZI:
                     "media_plan": [],
                     "psychology_integration": {},
                     "strategic_linking": [],
-                    "todo_gaps": []
+                    "todo_gaps": [],
+                    "ai_answer_target": {},
+                    "structural_format": {},
+                    "authority_injection": {}
                 })
         scaffold_result['content_sections'] = coerced_sections
         

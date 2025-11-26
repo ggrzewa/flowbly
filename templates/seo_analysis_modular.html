@@ -3790,6 +3790,36 @@
                                     <div style="font-weight:bold; color:#333; margin-bottom:8px;">
                                         ${index + 1}. ${section.h2 || 'Untitled Section'}
                                     </div>
+                                    
+                                    <!-- GEO / AI Optimization Fields -->
+                                    ${section.ai_answer_target && section.ai_answer_target.snippet_text ? `
+                                        <div style="margin-bottom:10px; padding:10px; background:#f3e5f5; border:1px dashed #9c27b0; border-radius:6px;">
+                                            <div style="font-size:11px; font-weight:bold; color:#9c27b0; text-transform:uppercase; margin-bottom:4px;">
+                                                🤖 AI Answer Target (${section.ai_answer_target.type || 'direct'})
+                                            </div>
+                                            <div style="font-size:13px; color:#333; font-style:italic; font-weight:500;">
+                                                "${section.ai_answer_target.snippet_text}"
+                                            </div>
+                                        </div>
+                                    ` : ''}
+
+                                    ${section.structural_format && section.structural_format.recommended ? `
+                                        <div style="margin-bottom:8px; font-size:12px; color:#444; background:#fff; border:1px solid #eee; padding:6px; border-radius:4px;">
+                                            📐 <strong>AI Structure Preference:</strong> 
+                                            Use <span style="background:#e9ecef; padding:2px 6px; border-radius:4px; font-weight:bold; color:#333;">${section.structural_format.recommended}</span>
+                                            ${section.structural_format.columns && section.structural_format.columns.length ? ` <span style="color:#666;">(Cols: ${section.structural_format.columns.join(', ')})</span>` : ''}
+                                        </div>
+                                    ` : ''}
+
+                                    ${section.authority_injection && section.authority_injection.instruction ? `
+                                        <div style="margin-bottom:10px; padding:8px; background:#fff8e1; border-left:3px solid #ffc107; font-size:12px; border-radius:0 4px 4px 0;">
+                                            🏆 <strong>Authority Injection (${section.authority_injection.type || 'gain'}):</strong> 
+                                            ${section.authority_injection.instruction}
+                                            ${section.authority_injection.required_citation ? `<div style="margin-top:2px; color:#856404; font-size:11px;">📝 Cite: <em>${section.authority_injection.required_citation}</em></div>` : ''}
+                                        </div>
+                                    ` : ''}
+                                    <!-- End GEO Fields -->
+
                                     ${Array.isArray(section.section_kpis) && section.section_kpis.length ? `
                                       <div style="margin-bottom:6px;">
                                         ${section.section_kpis.map(k=>`<span style='display:inline-block; padding:2px 8px; border-radius:10px; background:#eef6ff; color:#1a73e8; font-size:11px; margin:2px;'>${k}</span>`).join('')}
