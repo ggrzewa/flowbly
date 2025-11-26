@@ -3811,11 +3811,20 @@
                                         </div>
                                     ` : ''}
 
-                                    ${section.authority_injection && section.authority_injection.instruction ? `
+                                    ${(section.information_gain && section.information_gain.insight) || (section.authority_injection && section.authority_injection.instruction) ? `
                                         <div style="margin-bottom:10px; padding:8px; background:#fff8e1; border-left:3px solid #ffc107; font-size:12px; border-radius:0 4px 4px 0;">
-                                            🏆 <strong>Authority Injection (${section.authority_injection.type || 'gain'}):</strong> 
-                                            ${section.authority_injection.instruction}
-                                            ${section.authority_injection.required_citation ? `<div style="margin-top:2px; color:#856404; font-size:11px;">📝 Cite: <em>${section.authority_injection.required_citation}</em></div>` : ''}
+                                            🏆 <strong>INFORMATION GAIN (${section.information_gain?.type || 'unique_insight'}):</strong> 
+                                            ${section.information_gain?.insight || section.authority_injection?.instruction}
+                                            ${section.information_gain?.evidence_needed ? `<div style="margin-top:4px; font-size:11px; color:#856404;">🔎 Evidence: ${section.information_gain.evidence_needed}</div>` : ''}
+                                        </div>
+                                    ` : ''}
+
+                                    ${Array.isArray(section.trust_signals) && section.trust_signals.length ? `
+                                        <div style="margin-bottom:8px; font-size:11px; color:#555;">
+                                            🏛️ <strong>Trust Signals (Link Out):</strong>
+                                            <ul style="margin:4px 0 4px 18px; padding:0;">
+                                                ${section.trust_signals.map(t => `<li><a href="#" style="color:#00695c; text-decoration:none; border-bottom:1px dotted;">${t.source}</a> <span style="color:#777;">(${t.reason})</span></li>`).join('')}
+                                            </ul>
                                         </div>
                                     ` : ''}
 
@@ -4469,11 +4478,20 @@
                                     </div>
                                 ` : ''}
                                 
-                                ${section.authority_injection?.instruction ? `
+                                ${(section.information_gain?.insight || section.authority_injection?.instruction) ? `
                                     <div>
-                                        <strong style="font-size: 11px; color: #555;">AUTHORITY INJECTION:</strong>
-                                        <div style="font-size: 12px; color: #333;">${section.authority_injection.instruction}</div>
-                                        ${section.authority_injection.required_citation ? `<div style="font-size: 10px; color: #856404; margin-top: 2px;">📝 Cite: ${section.authority_injection.required_citation}</div>` : ''}
+                                        <strong style="font-size: 11px; color: #555;">INFORMATION GAIN (Unique Insight):</strong>
+                                        <div style="font-size: 12px; color: #333;">${section.information_gain?.insight || section.authority_injection?.instruction}</div>
+                                        ${section.information_gain?.evidence_needed ? `<div style="font-size: 10px; color: #856404; margin-top: 2px;">🔎 Evidence: ${section.information_gain.evidence_needed}</div>` : ''}
+                                    </div>
+                                ` : ''}
+
+                                ${section.trust_signals?.length ? `
+                                    <div style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed #ddd;">
+                                        <strong style="font-size: 11px; color: #555;">TRUST SIGNALS (External Links):</strong>
+                                        <ul style="margin: 4px 0 0 15px; padding: 0; font-size: 11px;">
+                                            ${section.trust_signals.map(t => `<li>Link to <strong>${t.source}</strong> (${t.reason})</li>`).join('')}
+                                        </ul>
                                     </div>
                                 ` : ''}
 
