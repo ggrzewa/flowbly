@@ -795,7 +795,9 @@ class ContentScaffoldGenerator:
                       "h2","target_word_count","intro_snippet","why_it_matters","next_step",
                       "section_objectives","key_ideas","subsections","questions_to_answer",
                       "data_points","suggested_sources","keywords_focus","media_plan",
-                      "psychology_integration","strategic_linking","todo_gaps"
+                      "psychology_integration","strategic_linking","todo_gaps",
+                      "ai_answer_target","structural_format","information_gain","trust_signals",
+                      "entity_connections","semantic_citation"
                     ],
                     "properties": {
                       "h2": {"type":"string"},
