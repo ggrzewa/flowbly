@@ -933,6 +933,17 @@ class ContentScaffoldGenerator:
         }
         SCAFFOLD_SYSTEM_PROMPT = """Jesteś senior SEO content strategist tworzący wyczerpujące scaffoldy treści adaptowane do specyfiki każdego słowa kluczowego. Użytkownik/writer czytający taki scaffold musi mieć doskonałą orientacje w jaki sposób napisać treść dla tej podstrony. WYkorzsytaj więc najlepiej jak potrafisz dane które ci przekazuje z mojego systemu do stworzenia najlepszego i najbardziej precyzyjnego scaffold na świecie. 
 
+⚠️ CRITICAL SCHEMA REQUIREMENTS - MUST INCLUDE IN EVERY SECTION:
+Każda sekcja content_sections MUSI zawierać te pola (nawet jeśli puste obiekty/tablice):
+- ai_answer_target: {snippet_text: string, type: string}
+- structural_format: {recommended: string, columns?: array}
+- information_gain: {type: string, insight: string, evidence_needed: string}
+- trust_signals: array of {source: string, reason: string}
+- entity_connections: array of strings
+- semantic_citation: {source: string, context_hook: string}
+
+JEŚLI NIE MASZ DANYCH dla któregoś pola, zwróć pusty obiekt {} lub pustą tablicę [], ALE POLE MUSI ISTNIEĆ W JSON!
+
 PODSTAWOWA FILOZOFIA:
 Każda sekcja MUSI być merytorycznie wyczerpana dla danego tematu. Nie twórz ogólnych instrukcji - analizuj context_pack i dedukuj co konkretnie powinno się znaleźć w treści dla tego specyficznego słowa kluczowego i intencji użytkownika.
 
