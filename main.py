@@ -1093,6 +1093,21 @@ async def get_scaffold_by_id(scaffold_id: str):
                 "meta": {"scaffold_id": scaffold_id}
             }
         
+        # 🔍 DEBUG: Check if GEO fields are in scaffold_data from DB
+        scaffold_data = scaffold.get('scaffold_data', {})
+        if isinstance(scaffold_data, dict) and scaffold_data.get('content_sections'):
+            if len(scaffold_data['content_sections']) > 0:
+                first_section = scaffold_data['content_sections'][0]
+                geo_fields_present = {
+                    'ai_answer_target': 'ai_answer_target' in first_section,
+                    'structural_format': 'structural_format' in first_section,
+                    'information_gain': 'information_gain' in first_section,
+                    'trust_signals': 'trust_signals' in first_section,
+                    'entity_connections': 'entity_connections' in first_section,
+                    'semantic_citation': 'semantic_citation' in first_section
+                }
+                content_scaffold_api_logger.info(f"🔍 [API DEBUG] GEO fields in scaffold from DB: {geo_fields_present}")
+        
         content_scaffold_api_logger.info(f"[API] End get_scaffold_by_id scaffold_id={scaffold_id} success=True")
         return {
             "success": True,

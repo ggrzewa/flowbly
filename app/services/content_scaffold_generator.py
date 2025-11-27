@@ -1593,6 +1593,21 @@ SCHEMA ODPOWIEDZI:
         """Save complete scaffold to Supabase with proper structure"""
         logger.info(f"💾 [SCAFFOLD] Saving scaffold to database...")
         
+        # 🔍 DEBUG: Check if GEO fields are present before saving
+        if scaffold_data.get('content_sections') and len(scaffold_data['content_sections']) > 0:
+            first_section = scaffold_data['content_sections'][0]
+            geo_fields_present = {
+                'ai_answer_target': 'ai_answer_target' in first_section,
+                'structural_format': 'structural_format' in first_section,
+                'information_gain': 'information_gain' in first_section,
+                'trust_signals': 'trust_signals' in first_section,
+                'entity_connections': 'entity_connections' in first_section,
+                'semantic_citation': 'semantic_citation' in first_section
+            }
+            logger.info(f"🔍 [DB SAVE DEBUG] GEO fields in first section before DB save: {geo_fields_present}")
+            if first_section.get('ai_answer_target'):
+                logger.info(f"🔍 [DB SAVE DEBUG] ai_answer_target value: {str(first_section['ai_answer_target'])[:100]}")
+        
         try:
             # Extract specific components for separate JSONB columns
             # Obsługa word_distribution: preferuj v2 'sections' → derive przybliżone długości
