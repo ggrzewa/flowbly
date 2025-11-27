@@ -2476,7 +2476,14 @@ LEGAL:
                 "media_plan": [],
                 "psychology_integration": {},
                 "strategic_linking": [],
-                "todo_gaps": []
+                "todo_gaps": [],
+                # GEO fields (Generative Engine Optimization)
+                "ai_answer_target": {},
+                "structural_format": {},
+                "information_gain": {},
+                "trust_signals": [],
+                "entity_connections": [],
+                "semantic_citation": {}
             }
 
         cs = out.get("content_sections")
@@ -2505,7 +2512,14 @@ LEGAL:
                         "media_plan": sec.get("media_plan") or [],
                         "psychology_integration": sec.get("psychology_integration") or {},
                         "strategic_linking": sec.get("strategic_linking") or sec.get("strategic_links") or [],
-                        "todo_gaps": sec.get("todo_gaps") or []
+                        "todo_gaps": sec.get("todo_gaps") or [],
+                        # GEO fields (Generative Engine Optimization)
+                        "ai_answer_target": sec.get("ai_answer_target") or {},
+                        "structural_format": sec.get("structural_format") or {},
+                        "information_gain": sec.get("information_gain") or {},
+                        "trust_signals": sec.get("trust_signals") or [],
+                        "entity_connections": sec.get("entity_connections") or [],
+                        "semantic_citation": sec.get("semantic_citation") or {}
                     })
                 elif isinstance(sec, str):
                     norm_cs.append(_sec_defaults(i, sec))
