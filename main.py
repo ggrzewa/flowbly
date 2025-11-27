@@ -1280,6 +1280,42 @@ async def get_architecture_links(architecture_id: str):
         logger.error(f"❌ [API] Błąd pobierania architecture links: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/api/debug/scaffold-logs")
+async def get_scaffold_logs(limit: int = 5):
+    """🔍 DEBUG: Pobiera ostatnie logi generowania scaffoldów z /tmp"""
+    try:
+        import glob
+        log_dir = "/tmp" if os.getenv("RAILWAY_ENVIRONMENT") else "."
+        log_pattern = os.path.join(log_dir, "scaffold_generation_*.txt")
+        log_files = sorted(glob.glob(log_pattern), key=os.path.getmtime, reverse=True)[:limit]
+        
+        logs_data = []
+        for log_file in log_files:
+            try:
+                with open(log_file, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                    logs_data.append({
+                        "filename": os.path.basename(log_file),
+                        "size": len(content),
+                        "preview": content[:2000] + "..." if len(content) > 2000 else content,
+                        "full_content": content
+                    })
+            except Exception as e:
+                logs_data.append({
+                    "filename": os.path.basename(log_file),
+                    "error": str(e)
+                })
+        
+        return {
+            "success": True,
+            "log_dir": log_dir,
+            "total_logs": len(log_files),
+            "logs": logs_data
+        }
+    except Exception as e:
+        logger.error(f"❌ [DEBUG] Error reading logs: {e}")
+        return {"success": False, "error": str(e)}
+
 if __name__ == "__main__":
     import uvicorn
     port = int(os.getenv("PORT", 8000))  # Railway przekaże PORT

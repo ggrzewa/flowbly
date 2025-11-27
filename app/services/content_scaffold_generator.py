@@ -1046,6 +1046,18 @@ SCHEMA ODPOWIEDZI:
             context=json.dumps(context_pack_v2, ensure_ascii=False),
             schema=json.dumps(OUTPUT_SCHEMA_V2, ensure_ascii=False)
         )
+        
+        # 🔍 DEBUG: Loguj fragment system promptu z instrukcjami GEO
+        logger.info("=" * 80)
+        logger.info("🔍 [PROMPT DEBUG] System prompt fragment (GEO section):")
+        if "GEO (GENERATIVE ENGINE OPTIMIZATION)" in SCAFFOLD_SYSTEM_PROMPT:
+            geo_start = SCAFFOLD_SYSTEM_PROMPT.find("GEO (GENERATIVE ENGINE OPTIMIZATION)")
+            geo_fragment = SCAFFOLD_SYSTEM_PROMPT[geo_start:geo_start+800]
+            logger.info(geo_fragment)
+        else:
+            logger.warning("⚠️ [PROMPT DEBUG] GEO section NOT FOUND in system prompt!")
+        logger.info("=" * 80)
+        
         # Wywołaj AI z fallbackiem providerów - jak w innych modułach
         try:
             ai_response = await self._call_ai_with_provider_fallback(SCAFFOLD_SYSTEM_PROMPT, user_prompt)
@@ -1771,6 +1783,26 @@ SCHEMA ODPOWIEDZI:
             try:
                 parsed = json.loads(attempt)
                 logger.info(f"✅ [SCAFFOLD] Successfully parsed JSON with {len(str(parsed))} chars")
+                
+                # 🔍 DEBUG: Sprawdź czy pola GEO są w odpowiedzi
+                if parsed.get('content_sections') and len(parsed['content_sections']) > 0:
+                    first_section = parsed['content_sections'][0]
+                    geo_fields = {
+                        'ai_answer_target': 'ai_answer_target' in first_section,
+                        'structural_format': 'structural_format' in first_section,
+                        'information_gain': 'information_gain' in first_section,
+                        'trust_signals': 'trust_signals' in first_section,
+                        'entity_connections': 'entity_connections' in first_section,
+                        'semantic_citation': 'semantic_citation' in first_section
+                    }
+                    logger.info(f"🔍 [GEO DEBUG] First section GEO fields presence: {geo_fields}")
+                    
+                    # Loguj przykładowe wartości jeśli istnieją
+                    if first_section.get('ai_answer_target'):
+                        logger.info(f"🤖 [GEO] ai_answer_target: {str(first_section['ai_answer_target'])[:200]}")
+                    if first_section.get('information_gain'):
+                        logger.info(f"🏆 [GEO] information_gain: {str(first_section['information_gain'])[:200]}")
+                
                 return parsed
             except json.JSONDecodeError as e:
                 logger.warning(f"⚠️ [SCAFFOLD] JSON parse attempt failed: {str(e)[:100]}")
