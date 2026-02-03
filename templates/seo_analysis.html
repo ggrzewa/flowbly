@@ -2956,7 +2956,9 @@
                     // Załaduj i wyświetl dane
                     loadKeywordData(data.keyword, data.country);
                 } else {
-                    showMessage(`⚠️ Analiza częściowo nie powiodła się. Ukończono ${result.completed_steps}/${result.total_steps} kroków.`, 'error');
+                    const firstError = result.results.find(step => step.status === 'error' || step.status === 'timeout');
+                    const errorDetail = firstError && firstError.error ? ` Powód: ${truncateText(firstError.error, 300)}` : '';
+                    showMessage(`⚠️ Analiza częściowo nie powiodła się. Ukończono ${result.completed_steps}/${result.total_steps} kroków.${errorDetail}`, 'error');
                 }
                 
             } catch (error) {
@@ -2991,8 +2993,9 @@
                 const icon = getStatusIcon(step.status);
                 const duration = step.duration_seconds ? ` (${step.duration_seconds.toFixed(1)}s)` : '';
                 const cost = step.cost ? ` - $${step.cost.toFixed(4)}` : '';
+                const errorText = step.error ? ` - ${truncateText(step.error, 220)}` : '';
                 
-                stepElement.textContent = `${icon} ${step.name}${duration}${cost}`;
+                stepElement.textContent = `${icon} ${step.name}${duration}${cost}${errorText}`;
                 stepsList.appendChild(stepElement);
             });
         }
@@ -3004,6 +3007,12 @@
                 'timeout': '⏰'
             };
             return icons[status] || '❓';
+        }
+
+        function truncateText(text, maxLen = 200) {
+            if (!text) return '';
+            if (text.length <= maxLen) return text;
+            return text.slice(0, maxLen) + '...';
         }
         
         function showMessage(text, type) {

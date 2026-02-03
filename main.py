@@ -1,6 +1,7 @@
 import os
 import logging
 import numpy as np
+import requests
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -157,6 +158,23 @@ async def get_orchestrator_status():
     except Exception as e:
         logger.exception(f"❌ Błąd statusu: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Błąd statusu: {str(e)}")
+
+@app.get("/api/v6/ip")
+async def get_public_ip():
+    """Zwraca publiczny IP widziany przez usługę (diagnostyka)"""
+    try:
+        response = requests.get("https://ipinfo.io/json", timeout=5)
+        if response.status_code != 200:
+            raise HTTPException(
+                status_code=502,
+                detail=f"Błąd pobierania IP: HTTP {response.status_code}"
+            )
+        return {"success": True, "data": response.json()}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"❌ Błąd pobierania IP: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Błąd pobierania IP: {str(e)}")
 
 @app.post("/api/v6/clear-cache")
 async def clear_cache():

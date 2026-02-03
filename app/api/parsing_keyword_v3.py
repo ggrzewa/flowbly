@@ -629,6 +629,8 @@ async def analyze_related_only(data: KeywordAnalysisInput):
             "total_related_found": len(items), "raw_response": related_response
         }
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.exception(f"❌ Related keywords analysis failed: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Related keywords analysis failed: {str(e)}")
