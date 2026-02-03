@@ -217,10 +217,14 @@ async def run_dataforseo_scraper(data: DataForSEOScraperRequest):
         )
 
         run_id = result.get("run_id")
+        errors = result.get("errors") or []
+        first_error = errors[0] if errors else None
         return {
             "success": True,
             "run_id": run_id,
             "stats": result.get("stats"),
+            "errors_count": len(errors),
+            "first_error": first_error,
             "download": {
                 "json": f"/api/v6/dataforseo-scraper/download/{run_id}.json",
                 "txt": f"/api/v6/dataforseo-scraper/download/{run_id}.txt"

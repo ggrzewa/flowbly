@@ -64,6 +64,7 @@ class DataForSEOScraper:
                 "raw_item_types": []
             }
             autocomplete_items: List[str] = []
+            keyword_errors: List[Dict[str, Any]] = []
 
             try:
                 serp_result = self._fetch_serp(
@@ -76,7 +77,9 @@ class DataForSEOScraper:
                 )
                 serp_data = self._parse_serp(serp_result)
             except Exception as e:
-                errors.append({"keyword": keyword, "stage": "serp", "error": str(e)})
+                err = {"keyword": keyword, "stage": "serp", "error": str(e)}
+                errors.append(err)
+                keyword_errors.append(err)
 
             try:
                 autocomplete_result = self._fetch_autocomplete(
@@ -86,7 +89,9 @@ class DataForSEOScraper:
                 )
                 autocomplete_items = self._parse_autocomplete(autocomplete_result)
             except Exception as e:
-                errors.append({"keyword": keyword, "stage": "autocomplete", "error": str(e)})
+                err = {"keyword": keyword, "stage": "autocomplete", "error": str(e)}
+                errors.append(err)
+                keyword_errors.append(err)
 
             # Expansion sources
             for kw in serp_data.get("related_searches", []):
@@ -115,6 +120,7 @@ class DataForSEOScraper:
                 "sources": sorted(list(keyword_sources.get(keyword, set()))),
                 "serp": serp_data,
                 "autocomplete": autocomplete_items,
+                "errors": keyword_errors
             }
 
         # Search volume for all collected keywords
@@ -373,6 +379,14 @@ class DataForSEOScraper:
         lines.append(f"TOTAL_KEYWORDS: {stats.get('total_keywords')}")
         lines.append(f"DURATION_SECONDS: {stats.get('duration_seconds')}")
         lines.append("")
+        errors = output.get("errors") or []
+        if errors:
+            lines.append("ERRORS:")
+            for err in errors[:50]:
+                lines.append(f"- [{err.get('stage')}] {err.get('keyword')}: {err.get('error')}")
+            if len(errors) > 50:
+                lines.append(f"... ({len(errors) - 50} more)")
+            lines.append("")
 
         for kw, data in output.get("keywords", {}).items():
             lines.append("=" * 80)
@@ -422,6 +436,12 @@ class DataForSEOScraper:
                 lines.append("ORGANIC:")
                 for item in organic[:20]:
                     lines.append(f"- {item.get('title')} | {item.get('url')}")
+
+            kw_errors = data.get("errors") or []
+            if kw_errors:
+                lines.append("KEYWORD_ERRORS:")
+                for err in kw_errors:
+                    lines.append(f"- [{err.get('stage')}] {err.get('error')}")
 
             lines.append("")
 

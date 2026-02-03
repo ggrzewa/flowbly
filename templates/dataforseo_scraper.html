@@ -300,7 +300,12 @@
                     throw new Error(data.detail || `HTTP ${response.status}`);
                 }
 
-                showStatus(`Gotowe. Run ID: ${data.run_id}. Zebrano ${data.stats?.total_keywords || 0} keywordów.`, 'success');
+                if (data.errors_count && data.errors_count > 0) {
+                    const err = data.first_error ? ` Pierwszy błąd: [${data.first_error.stage}] ${data.first_error.keyword} — ${data.first_error.error}` : '';
+                    showStatus(`Ukończono z błędami (${data.errors_count}). Zebrano ${data.stats?.total_keywords || 0} keywordów.${err}`, 'error');
+                } else {
+                    showStatus(`Gotowe. Run ID: ${data.run_id}. Zebrano ${data.stats?.total_keywords || 0} keywordów.`, 'success');
+                }
                 downloadJson.href = data.download.json;
                 downloadTxt.href = data.download.txt;
                 downloadEl.style.display = 'flex';
