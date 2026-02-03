@@ -60,6 +60,34 @@ class KeywordAnalysisInput(BaseModel):
 # ========================================
 # DATAFORSEO CLIENT
 # ========================================
+def _format_task_error(task) -> str | None:
+    """Return a readable error from a DataForSEO task if present."""
+    status_code = getattr(task, "status_code", None)
+    status_message = getattr(task, "status_message", None)
+    task_id = getattr(task, "id", None)
+    error_obj = getattr(task, "error", None)
+
+    details = None
+    if isinstance(error_obj, dict):
+        details = error_obj.get("message") or error_obj.get("error_message") or error_obj.get("details")
+        if not details:
+            details = str(error_obj)
+    elif error_obj:
+        details = str(error_obj)
+
+    if status_code and status_code != 20000:
+        msg = status_message or "Unknown error"
+        if details and details not in msg:
+            msg = f"{msg} ({details})"
+        if task_id:
+            msg = f"{msg} [task_id={task_id}]"
+        return f"status_code={status_code}: {msg}"
+
+    if details:
+        return details
+
+    return None
+
 class DataForSEOClient:
     def __init__(self):
         self.config = dfs_config.Configuration(username=DFS_LOGIN, password=DFS_PASSWORD)
@@ -77,6 +105,9 @@ class DataForSEOClient:
                 api_response = api_instance.google_search_intent_live(request_data)
                 task = api_response.tasks[0]
                 
+                task_error = _format_task_error(task)
+                if task_error:
+                    return {"cost": task.cost if hasattr(task, 'cost') else 0, "data": None, "error": task_error}
                 if not task.result:
                     return {"cost": task.cost if hasattr(task, 'cost') else 0, "data": None}
                 
@@ -99,6 +130,9 @@ class DataForSEOClient:
                 api_response = api_instance.google_related_keywords_live(request_data)
                 task = api_response.tasks[0]
                 
+                task_error = _format_task_error(task)
+                if task_error:
+                    return {"cost": task.cost if hasattr(task, 'cost') else 0, "data": None, "error": task_error}
                 if not task.result:
                     return {"cost": task.cost if hasattr(task, 'cost') else 0, "data": None}
                 
@@ -122,6 +156,9 @@ class DataForSEOClient:
                 api_response = api_instance.google_keyword_suggestions_live(request_data)
                 task = api_response.tasks[0]
                 
+                task_error = _format_task_error(task)
+                if task_error:
+                    return {"cost": task.cost if hasattr(task, 'cost') else 0, "data": None, "error": task_error}
                 if not task.result or not task.result[0].items:
                     return {"cost": task.cost if hasattr(task, 'cost') else 0, "data": None}
                 
@@ -147,6 +184,9 @@ class DataForSEOClient:
                 api_response = api_instance.google_historical_keyword_data_live(request_data)
                 task = api_response.tasks[0]
                 
+                task_error = _format_task_error(task)
+                if task_error:
+                    return {"cost": task.cost if hasattr(task, 'cost') else 0, "data": None, "error": task_error}
                 if not task.result:
                     return {"cost": task.cost if hasattr(task, 'cost') else 0, "data": None}
                 
@@ -169,6 +209,9 @@ class DataForSEOClient:
                 api_response = api_instance.dataforseo_trends_merged_data_live(request_data)
                 task = api_response.tasks[0]
                 
+                task_error = _format_task_error(task)
+                if task_error:
+                    return {"cost": task.cost if hasattr(task, 'cost') else 0, "data": None, "error": task_error}
                 if not task.result:
                     return {"cost": task.cost if hasattr(task, 'cost') else 0, "data": None}
                 
@@ -290,8 +333,12 @@ async def analyze_related_only(data: KeywordAnalysisInput):
     try:
         related_response = await dfs_client.get_related_keywords(data.keyword, data.location_code, data.language_code)
         
+        if related_response.get("error"):
+            logger.error(f"❌ DataForSEO related keywords error: {related_response['error']}")
+            raise HTTPException(status_code=502, detail=f"DataForSEO related keywords error: {related_response['error']}")
+        
         if not related_response.get("data"):
-            raise HTTPException(status_code=404, detail="No related keywords found")
+            raise HTTPException(status_code=404, detail="No related keywords found (DataForSEO returned empty result)")
         
         related_data = related_response["data"]
         
