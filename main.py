@@ -2,8 +2,10 @@ import os
 import logging
 import numpy as np
 import requests
+import os
+import asyncio
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from fastapi.templating import Jinja2Templates
@@ -11,7 +13,7 @@ from pydantic import BaseModel
 from dotenv import load_dotenv
 import json
 from datetime import datetime
-from typing import Any
+from typing import Any, List
 
 # Function to convert numpy types to Python native types for JSON serialization
 def convert_numpy_types(obj: Any) -> Any:
@@ -39,11 +41,16 @@ from app.services.architecture_generator import ArchitectureGenerator
 
 # Import modułu Content Brief Generator (Moduł 4)
 from app.services.content_brief_generator import ContentBriefGeneratorService
+from app.services.dataforseo_scraper import DataForSEOScraper
 
 # ========================================
 # ENVIRONMENT SETUP
 # ========================================
 load_dotenv()
+
+# DataForSEO credentials
+DFS_LOGIN = os.getenv("DATAFORSEO_LOGIN")
+DFS_PASSWORD = os.getenv("DATAFORSEO_PASSWORD")
 
 # Logger setup - identyczny z orchestratorem
 logger = logging.getLogger("main")
@@ -68,6 +75,15 @@ class AnalysisRequest(BaseModel):
     country: str  # Format: "2616|pl"
     use_cache: bool = True  # Nowy parametr do kontroli cache
 
+class DataForSEOScraperRequest(BaseModel):
+    keywords: List[str]
+    max_expand_depth: int = 1
+    location_code: int = 2616
+    language_code: str = "pl"
+    device: str = "desktop"
+    os: str = "windows"
+    serp_depth: int = 100
+
 # ========================================
 # ROUTES
 # ========================================
@@ -86,6 +102,11 @@ async def seo_analysis_page(request: Request):
 async def seo_analysis_modular_page(request: Request):
     """Modularna wersja strony z formularzem analizy SEO"""
     return templates.TemplateResponse("seo_analysis_modular.html", {"request": request})
+
+@app.get("/dataforseo-scraper", response_class=HTMLResponse)
+async def dataforseo_scraper_page(request: Request):
+    """Strona narzędzia DataForSEO Scraper"""
+    return templates.TemplateResponse("dataforseo_scraper.html", {"request": request})
 
 @app.post("/api/v6/analyze-complete")
 async def run_complete_analysis(data: AnalysisRequest):
@@ -175,6 +196,58 @@ async def get_public_ip():
     except Exception as e:
         logger.exception(f"❌ Błąd pobierania IP: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Błąd pobierania IP: {str(e)}")
+
+@app.post("/api/v6/dataforseo-scraper/run")
+async def run_dataforseo_scraper(data: DataForSEOScraperRequest):
+    """Uruchamia niezależny DataForSEO Scraper i zapisuje output do plików"""
+    if not DFS_LOGIN or not DFS_PASSWORD:
+        raise HTTPException(status_code=500, detail="Missing DataForSEO credentials")
+
+    try:
+        scraper = DataForSEOScraper(DFS_LOGIN, DFS_PASSWORD)
+        result = await asyncio.to_thread(
+            scraper.run,
+            keywords=data.keywords,
+            max_expand_depth=data.max_expand_depth,
+            location_code=data.location_code,
+            language_code=data.language_code,
+            device=data.device,
+            os_name=data.os,
+            serp_depth=data.serp_depth
+        )
+
+        run_id = result.get("run_id")
+        return {
+            "success": True,
+            "run_id": run_id,
+            "stats": result.get("stats"),
+            "download": {
+                "json": f"/api/v6/dataforseo-scraper/download/{run_id}.json",
+                "txt": f"/api/v6/dataforseo-scraper/download/{run_id}.txt"
+            }
+        }
+    except Exception as e:
+        logger.exception(f"❌ DataForSEO Scraper error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"DataForSEO Scraper error: {str(e)}")
+
+@app.get("/api/v6/dataforseo-scraper/download/{run_id}.{ext}")
+async def download_dataforseo_output(run_id: str, ext: str):
+    """Pobiera output JSON lub TXT dla danego run_id"""
+    if ext not in ("json", "txt"):
+        raise HTTPException(status_code=400, detail="Invalid file extension")
+
+    try:
+        scraper = DataForSEOScraper(DFS_LOGIN, DFS_PASSWORD)
+        file_path = os.path.join(scraper.output_dir, f"{run_id}.{ext}")
+        if not os.path.exists(file_path):
+            raise HTTPException(status_code=404, detail="File not found")
+        media_type = "application/json" if ext == "json" else "text/plain"
+        return FileResponse(path=file_path, media_type=media_type, filename=f"{run_id}.{ext}")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"❌ DataForSEO download error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Download error: {str(e)}")
 
 @app.post("/api/v6/clear-cache")
 async def clear_cache():
